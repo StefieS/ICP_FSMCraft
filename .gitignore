@@ -5,6 +5,7 @@
 *.slo
 *.lo
 *.o
+/src/*.o
 *.obj
 
 # Precompiled Headers
@@ -30,3 +31,4 @@
 *.exe
 *.out
 *.app
+/fsm-craft
