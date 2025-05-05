@@ -12,8 +12,7 @@ private:
     bool isActive;
 
 public:
-    Transition(const std::string& src, const std::string& tgt);
-
+    Transition(const std::string& src, const std::string& tgt, const std::string& input, const std::string& cond);
     void setInputEvent(const std::string& input);
     void setGuardCondition(const std::string& cond);
     void setDelay(int ms);

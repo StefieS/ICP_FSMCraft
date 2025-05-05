@@ -1,7 +1,8 @@
 #include "Transition.h"
 
-Transition::Transition(const std::string& src, const std::string& tgt)
-    : source(src), target(tgt), guardCondition(""), inputEvent("") {}
+Transition::Transition(const std::string& src, const std::string& tgt, 
+    const std::string& input, const std::string& cond)
+: source(src), target(tgt), inputEvent(input), guardCondition(cond) {}
 
 
 void Transition::setInputEvent(const std::string& input) {

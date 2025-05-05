@@ -13,7 +13,7 @@ private:
     bool isFinal;
 
 public:
-    State(const std::string& name, const std::string& actionCode, bool isInitial = false);
+    State(const std::string& name, const std::string& actionCode, bool isInitial = false, bool isFinal = false);
     
     const std::string& getName() const;
     const std::string& getActionCode() const;

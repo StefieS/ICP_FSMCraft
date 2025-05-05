@@ -25,10 +25,11 @@ public:
 
     void addState(const std::shared_ptr<State>& state);
     void addTransition(const std::shared_ptr<Transition>& transition);
-    void addInternalVar(const InternalVar& var);
-
+    void addInternalVar(InternalVar var);
+    void addInputName(const std::string& inputName);
+    void addOutputName(const std::string& outputName);
     void setInitialState(const std::string& stateName);
-    void setInput(const std::string& inputName, const std::string& value); // added
+    void setInput(const std::string& inputName, const std::string& value);
     void process(); // renamed from processEvent
 
     const std::string& getCurrentState() const;

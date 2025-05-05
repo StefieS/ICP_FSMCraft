@@ -1,6 +1,6 @@
 #include "State.h"
 
-State::State(const std::string& name, const std::string& actionCode, bool isInitial)
+State::State(const std::string& name, const std::string& actionCode, bool isInitial, bool isFinal)
     : name(name), actionCode(actionCode), isInitial(isInitial),
     isActive(false), isFinal(false) {}
 

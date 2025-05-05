@@ -22,8 +22,16 @@ void FSM::setInitialState(const std::string& stateName) {
     }
 }
 
-void FSM::addInternalVar(const InternalVar& var) {
+void FSM::addInternalVar(InternalVar var) {
     internalVars.push_back(var);
+}
+
+void FSM::addInputName(const std::string& inputName) {
+    inputNames.push_back(inputName);
+}
+
+void FSM::addOutputName(const std::string& outputName) {
+    outputNames.push_back(outputName);
 }
 
 void FSM::setInput(const std::string& inputName, const std::string& value) {
