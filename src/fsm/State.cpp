@@ -1,7 +1,9 @@
 #include "State.h"
 
 State::State(const std::string& name, const std::string& actionCode, bool isInitial)
-    : name(name), actionCode(actionCode), isInitial(isInitial) {}
+    : name(name), actionCode(actionCode), isInitial(isInitial),
+    isActive(false), isFinal(false) {}
+
 
 const std::string& State::getName() const {
     return name;
@@ -13,4 +15,24 @@ const std::string& State::getActionCode() const {
 
 bool State::isInitialState() const {
     return isInitial;
+}
+
+void State::addTransition(const Transition& transition) {
+    transitions.push_back(transition);
+}
+
+const std::vector<Transition>& State::getTransitions() const {
+    return transitions;
+}
+
+void State::setActionCode(const std::string& code) {
+    actionCode = code;
+}
+
+void State::setInitial(bool val) {
+    isInitial = val;
+}
+
+void State::setName(const std::string& newName) {
+    name = newName;
 }

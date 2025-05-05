@@ -1,0 +1,7 @@
+PROJECT_NAME           = FSMCraft
+OUTPUT_DIRECTORY       = doc
+GENERATE_HTML          = YES
+SOURCE_BROWSER         = YES
+RECURSIVE              = YES
+INPUT                  = src
+FILE_PATTERNS          = *.cpp *.h

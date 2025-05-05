@@ -3,6 +3,7 @@
 #include <QPen>
 #include <QBrush>
 #include <QColor>
+#include <QMessageBox>
 
 constexpr int CircleDiameter = 100;
 constexpr int CircleRadius = CircleDiameter / 2;
@@ -53,4 +54,30 @@ bool StateItem::containsScenePoint(const QPointF& pt) const {
     QPointF local = mapFromScene(pt);
     // use the ellipse’s contains() which tests its exact shape
     return circle->contains(local);
+}
+
+QString StateItem::getName() const {
+    return label->toPlainText();
+}
+
+void StateItem::rename(const std::function<bool(const QString&)>& isNameTaken) {
+    bool ok;
+    QString newName = QInputDialog::getText(nullptr, "Rename State",
+        "Enter new state name (max 8 chars):", QLineEdit::Normal, "", &ok);
+
+    if (ok && !newName.isEmpty()) {
+        if (newName.length() > 8)
+            newName = newName.left(8);
+
+        // Check if name is taken (case-sensitive or insensitive as needed)
+        if (isNameTaken(newName)) {
+            QMessageBox::warning(nullptr, "Rename Failed",
+                "State with the name \"" + newName + "\" already exists.");
+            return;
+        }
+
+        label->setPlainText(newName);
+        label->setPos(-label->boundingRect().width() / 2,
+                      -label->boundingRect().height() / 2);
+    }
 }

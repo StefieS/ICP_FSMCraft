@@ -1,14 +1,18 @@
-CXX = g++
-CXXFLAGS = -std=c++17 -Wall -Wextra -O2
+all: run
 
-SRC = $(wildcard src/*.cpp)
-OBJ = $(SRC:.cpp=.o)
-TARGET = ./fsm-craft
+build:
+	@mkdir -p build && cd build && cmake .. && make
 
-all: $(TARGET)
-
-$(TARGET): $(OBJ)
-	$(CXX) $(CXXFLAGS) -o $@ $^
+run:
+	cd build && ./fsmtool
 
 clean:
-	rm -f $(OBJ) $(TARGET)
+	@rm -rf build
+
+doxygen:
+	doxygen Doxyfile
+
+pack:
+	make clean
+	mkdir -p package && cp -r src examples README.txt doc Makefile package/
+	zip -r xname01-xname02.zip package

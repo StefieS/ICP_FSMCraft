@@ -1,5 +1,5 @@
 #pragma once
-
+#include "State.h"
 #include <QMainWindow>
 #include <QPushButton>
 #include <QToolButton>
@@ -7,8 +7,7 @@
 #include <QGraphicsScene>
 #include <QGraphicsView>
 #include <QGraphicsEllipseItem>
-#include <memory>
-#include "../fsm/FSM.h"
+#include "FSM.h"
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -28,6 +27,10 @@ private:
     // FSM engine
     FSM* fsm = nullptr;
 
+    static const int MAX_STATES = 100;
+    State* stateList[MAX_STATES];
+    int stateCount = 0;
+
     // Buttons
     QPushButton* injectButton = nullptr;
     QToolButton* newStateButton = nullptr;
@@ -42,8 +45,6 @@ private:
     // State creation logic
     bool addingNewState = false;
     QGraphicsEllipseItem* ghostCircle = nullptr;
-
     // Helpers
-    void setupUI();
-    void setupConnections();
+    void debugPrintStateList() const;
 };

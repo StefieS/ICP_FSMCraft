@@ -1,11 +1,13 @@
 #pragma once
 #include <string>
+#include "Transition.h"
+#include <vector>
 
 class State {
 private:
     std::string name;
     std::string actionCode;
-    // TODO: Transition state arr
+    std::vector<Transition> transitions;
     bool isActive;
     bool isInitial;
     bool isFinal;
@@ -15,7 +17,12 @@ public:
     
     const std::string& getName() const;
     const std::string& getActionCode() const;
+    const std::vector<Transition>& getTransitions() const;
     bool isInitialState() const;
+    void setInitial(bool val);
+    void setName(const std::string& newName);
+
 
     void setActionCode(const std::string& code);
+    void addTransition(const Transition& transition);
 };

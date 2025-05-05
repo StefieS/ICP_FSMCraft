@@ -12,6 +12,7 @@
 #include <QBrush>
 #include <QColor>
 #include <QMenu>
+#include <QMessageBox>
 #include <QAction>
 #include <QDebug>
 
@@ -22,11 +23,17 @@ constexpr int CircleRadius = CircleDiameter / 2;
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), addingNewState(false), ghostCircle(nullptr) {
 
+    // Initialize state list
+    for (int i = 0; i < MAX_STATES; ++i) {
+        stateList[i] = nullptr;
+    }
+
+
     QWidget *centralWidget = new QWidget(this);
     setCentralWidget(centralWidget);
     QVBoxLayout *layout = new QVBoxLayout(centralWidget);
 
-    setFixedSize(1920, 800);
+    setFixedSize(1420, 800);
 
     // Create New State button
     QToolButton *newStateButton = new QToolButton(this);
@@ -56,7 +63,13 @@ MainWindow::MainWindow(QWidget *parent)
     ghostCircle->setVisible(false);
 }
 
-MainWindow::~MainWindow() {}
+MainWindow::~MainWindow() {
+    for (int i = 0; i < stateCount; ++i) {
+        delete stateList[i];
+        stateList[i] = nullptr;
+    }
+}
+
 
 void MainWindow::onNewStateButtonClicked() {
     addingNewState = true;
@@ -112,12 +125,87 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* event) {
                 QAction* ren     = menu.addAction("Rename");
                 QAction* del     = menu.addAction("Delete");
                 QAction* act     = menu.exec(me->globalPos());
-                if      (act == setInit)  state->setInitial(!state->isInitial());
-                else if (act == ren)      state->rename();
+                if (act == setInit) {
+                    bool newStateInit = !state->isInitial();
+
+                    // Reset all other StateItem visuals to non-initial
+                    for (QGraphicsItem* item : scene->items()) {
+                        auto* s = dynamic_cast<StateItem*>(item);
+                        if (s && s != state && s->isInitial()) {
+                            s->setInitial(false);
+                        }
+                    }
+
+                
+                    // Deselect the old initial
+                    for (int i = 0; i < stateCount; ++i) {
+                        if (stateList[i]->isInitialState()) {
+                            stateList[i]->setInitial(false);
+                        }
+                    }
+                
+                    // Set this state as initial in the logical model
+                    for (int i = 0; i < stateCount; ++i) {
+                        if (stateList[i]->getName() == state->getName().toStdString()) {
+                            stateList[i]->setInitial(newStateInit);
+                        }
+                    }
+
+                
+                    // Update the visual StateItem
+                    state->setInitial(newStateInit);
+                }
+                
+                else if (act == ren) {
+                    QString oldName = state->getName();
+                    state->rename([=](const QString& newName) {
+                        if (newName == oldName) return false;
+                        std::string newNameStr = newName.toStdString();
+                        for (int i = 0; i < stateCount; ++i) {
+                            if (stateList[i]->getName() == newNameStr) {
+                                return true;
+                            }
+                        }
+                        return false;
+                    });
+                
+                    QString newName = state->getName();  // Now holds new name from rename()
+                    for (int i = 0; i < stateCount; ++i) {
+                        if (stateList[i]->getName() == oldName.toStdString()) {
+                            stateList[i]->setName(newName.toStdString());
+                            break;
+                        }
+                    }
+                }
+
                 else if (act == del) {
+                    QString stateName = state->getName();
+                    std::string stateNameStr = stateName.toStdString();
+                
+                    // Remove from logical state list
+                    for (int i = 0; i < stateCount; ++i) {
+                        if (stateList[i] && stateList[i]->getName() == stateNameStr) {
+                            delete stateList[i];
+
+                            // Shift remaining elements left
+                            for (int j = i; j < stateCount - 1; ++j) {
+                                stateList[j] = stateList[j + 1];
+                            }
+
+                            stateList[stateCount - 1] = nullptr;
+                            stateCount--;
+                            break;
+                        }
+                    }
+                                    
+                    // Remove from scene and delete visual
                     scene->removeItem(state);
                     delete state;
-                }     
+                
+                    qDebug() << "Deleted state:" << stateName;
+                    debugPrintStateList();
+                }
+                
                 return true;
             }
         }
@@ -127,16 +215,42 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* event) {
             ghostCircle->setVisible(false);
 
             bool ok;
-            QString name = QInputDialog::getText(
-              this, "New State",
-              "Enter state name (max 8 chars):",
-              QLineEdit::Normal, "", &ok);
+            QString name = QInputDialog::getText(this, "New State", "Enter state name (max 8 chars):", QLineEdit::Normal, "", &ok);
             if (ok && !name.isEmpty()) {
                 if (name.length() > 8) name = name.left(8);
+                std::string nameStr = name.toStdString();
+            
+                // Check for duplicates first
+                bool exists = false;
+                for (int i = 0; i < stateCount; ++i) {
+                    if (stateList[i]->getName() == nameStr) {
+                        exists = true;
+                        break;
+                    }
+                }
+            
+                if (exists) {
+                    QMessageBox::warning(this, "Creation Failed", 
+                        "State with the name \"" + name + "\" already exists.");
+                    return true;
+                }
+            
+                if (stateCount >= MAX_STATES) {
+                    QMessageBox::warning(this, "Creation Failed", "Maximum number of states reached.");
+                    return true;
+                }
+            
+                // ✅ Now safe to create and show
                 auto *state = new StateItem(scenePos, name);
                 scene->addItem(state);
                 qDebug() << "Created state at:" << scenePos;
+            
+                stateList[stateCount++] = new State(nameStr, "");
+                debugPrintStateList();
+                qDebug() << "StateList now has" << stateCount << "items";
             }
+            
+            
             return true;
         }
     }
@@ -155,5 +269,17 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* event) {
 
 
 void MainWindow::onInjectInputClicked() {
-    // No behavior yet
+    // TODO
+}
+
+void MainWindow::debugPrintStateList() const {
+    qDebug() << "==== DEBUG: stateList ====";
+    for (int i = 0; i < stateCount; ++i) {
+        const State* s = stateList[i];
+        qDebug() << "State name:" << QString::fromStdString(s->getName())
+                 << " | isInitial:" << s->isInitialState()
+                 << " | actionCode:" << QString::fromStdString(s->getActionCode())
+                 << " | transitions:" << s->getTransitions().size();
+    }
+    qDebug() << "===========================";
 }
