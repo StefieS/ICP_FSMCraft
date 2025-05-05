@@ -30,7 +30,7 @@ QJsonObject JsonMaker::toJson(FSM* fsm) {
   doc["outputs"] = outputsArr;
 
   QJsonArray internalsArr;
-  for (InternalVar& internal : fsm->getInternalVars()) {
+  for (InternalVar internal : fsm->getInternalVars()) {
     QJsonObject internalObj;
     internalObj["name"] = QString::fromStdString(internal.getName());
     internalObj["type"] = QString::fromStdString(internal.getType());
