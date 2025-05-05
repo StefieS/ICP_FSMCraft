@@ -19,6 +19,7 @@ public:
     const std::string& getActionCode() const;
     const std::vector<Transition>& getTransitions() const;
     bool isInitialState() const;
+    bool isFinalState() const;
     void setInitial(bool val);
     void setName(const std::string& newName);
 

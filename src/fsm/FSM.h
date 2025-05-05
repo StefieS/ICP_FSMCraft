@@ -5,6 +5,7 @@
 #include <memory>
 #include "State.h"
 #include "Transition.h"
+#include "InternalVar.h"
 
 class FSM {
 private:
@@ -13,7 +14,10 @@ private:
     std::map<std::string, std::shared_ptr<State>> states;
     std::vector<std::shared_ptr<Transition>> transitions;
     std::map<std::string, std::string> inputMemory; // added input memory
+    std::vector<std::string> inputNames;
+    std::vector<std::string> outputNames;
     std::string currentState;
+    std::vector<InternalVar> internalVars;
     bool isActive;
 
 public:
@@ -21,6 +25,7 @@ public:
 
     void addState(const std::shared_ptr<State>& state);
     void addTransition(const std::shared_ptr<Transition>& transition);
+    void addInternalVar(const InternalVar& var);
 
     void setInitialState(const std::string& stateName);
     void setInput(const std::string& inputName, const std::string& value); // added
@@ -28,4 +33,13 @@ public:
 
     const std::string& getCurrentState() const;
     void printStatus() const; // added
+
+    // getters
+    std::string getName();
+    std::map<std::string, std::shared_ptr<State>> getStates();
+    std::vector<std::shared_ptr<Transition>> getTransitions();
+    std::vector<std::string> getInputNames();
+    std::vector<std::string> getOutputNames();
+    std::vector<InternalVar> getInternalVars();
+
 };

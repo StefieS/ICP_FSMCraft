@@ -1,4 +1,5 @@
 #include "FSM.h"
+#include "InternalVar.h"
 #include <iostream>
 
 FSM::FSM(const std::string& name)
@@ -19,6 +20,10 @@ void FSM::setInitialState(const std::string& stateName) {
     if (states.count(stateName)) {
         currentState = stateName;
     }
+}
+
+void FSM::addInternalVar(const InternalVar& var) {
+    internalVars.push_back(var);
 }
 
 void FSM::setInput(const std::string& inputName, const std::string& value) {
@@ -45,17 +50,17 @@ void FSM::process() {
         if (transition->getSource() != currentState) continue;
 
         auto input = transition->getInputEvent();
-        if (input.has_value()) {
-            auto it = inputMemory.find(input.value());
+
+            auto it = inputMemory.find(input);
             if (it == inputMemory.end()) continue;
 
             std::cout << "Transitioning from " << transition->getSource()
                       << " to " << transition->getTarget()
-                      << " on input: " << input.value() << std::endl;
+                      << " on input: " << input << std::endl;
 
             currentState = transition->getTarget();
             break;
-        }
+        
     }
 
     auto it = states.find(currentState);
@@ -63,3 +68,28 @@ void FSM::process() {
         std::cout << "Action code: " << it->second->getActionCode() << std::endl;
     }
 }
+
+std::string FSM::getName() {
+    return name;
+}
+
+std::map<std::string, std::shared_ptr<State>> FSM::getStates() {
+    return states;
+}
+
+std::vector<std::shared_ptr<Transition>> FSM::getTransitions() {
+    return transitions;
+}
+
+std::vector<std::string> FSM::getInputNames() {
+    return inputNames;
+}
+
+std::vector<std::string> FSM::getOutputNames() {
+    return outputNames;
+}
+
+std::vector<InternalVar> FSM::getInternalVars() {
+    return internalVars;
+}   
+

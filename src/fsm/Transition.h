@@ -6,8 +6,8 @@ class Transition {
 private:
     std::string source;
     std::string target;
-    std::optional<std::string> inputEvent;
-    std::optional<std::string> guardCondition;
+    std::string inputEvent;
+    std::string guardCondition;
     std::optional<int> delayMs;
     bool isActive;
 
@@ -20,7 +20,7 @@ public:
 
     const std::string& getSource() const;
     const std::string& getTarget() const;
-    const std::optional<std::string>& getInputEvent() const;
-    const std::optional<std::string>& getGuardCondition() const;
+    const std::string& getInputEvent() const;
+    const std::string& getGuardCondition() const;
     const std::optional<int>& getDelay() const;
 };

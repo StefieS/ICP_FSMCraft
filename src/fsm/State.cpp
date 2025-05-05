@@ -17,6 +17,10 @@ bool State::isInitialState() const {
     return isInitial;
 }
 
+bool State::isFinalState() const {
+    return isFinal;
+}
+
 void State::addTransition(const Transition& transition) {
     transitions.push_back(transition);
 }

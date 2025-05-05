@@ -1,7 +1,8 @@
 #include "Transition.h"
 
 Transition::Transition(const std::string& src, const std::string& tgt)
-    : source(src), target(tgt) {}
+    : source(src), target(tgt), guardCondition(""), inputEvent("") {}
+
 
 void Transition::setInputEvent(const std::string& input) {
     inputEvent = input;
@@ -23,11 +24,11 @@ const std::string& Transition::getTarget() const {
     return target;
 }
 
-const std::optional<std::string>& Transition::getInputEvent() const {
+const std::string& Transition::getInputEvent() const {
     return inputEvent;
 }
 
-const std::optional<std::string>& Transition::getGuardCondition() const {
+const std::string& Transition::getGuardCondition() const {
     return guardCondition;
 }
 
