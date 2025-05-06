@@ -9,7 +9,7 @@ constexpr int CircleDiameter = 100;
 constexpr int CircleRadius = CircleDiameter / 2;
 
 StateItem::StateItem(const QPointF& position, const QString& name)
-    : initial(false) {  // 👈 Initialize initial
+    : initial(false) {  // Initialize initial
     circle = new QGraphicsEllipseItem(-CircleRadius, -CircleRadius,
                                       CircleDiameter, CircleDiameter, this);
     circle->setPen(QPen(Qt::black, 2));
