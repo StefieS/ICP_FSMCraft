@@ -1,5 +1,6 @@
 #include "MainWindow.h"
 #include "StateItem.h"
+#include "../fsm/FSM.h"
 #include <QGraphicsEllipseItem>
 #include <QMouseEvent>
 #include <QInputDialog>
@@ -13,9 +14,12 @@
 #include <QColor>
 #include <QMenu>
 #include <QMessageBox>
+#include <QIcon>
 #include <QAction>
 #include <QDebug>
-
+#include "../io/JsonMaker.h"
+#include <QFile>
+#include <QJsonDocument>
 
 constexpr int CircleDiameter = 100; 
 constexpr int CircleRadius = CircleDiameter / 2; 
@@ -28,7 +32,6 @@ MainWindow::MainWindow(QWidget *parent)
         stateList[i] = nullptr;
     }
 
-
     QWidget *centralWidget = new QWidget(this);
     setCentralWidget(centralWidget);
     QVBoxLayout *layout = new QVBoxLayout(centralWidget);
@@ -40,8 +43,14 @@ MainWindow::MainWindow(QWidget *parent)
     newStateButton->setText("+");
     newStateButton->setToolTip("New state");
     layout->addWidget(newStateButton);
-
     connect(newStateButton, &QToolButton::clicked, this, &MainWindow::onNewStateButtonClicked);
+
+    // Create Run button
+    QPushButton *newRunButton = new QPushButton(this);
+    newRunButton->setText("Run");
+    newRunButton->setToolTip("Run FSM");
+    layout->addWidget(newRunButton, 0, Qt::AlignLeft);  // align left to prevent stretching
+    connect(newRunButton, &QToolButton::clicked, this, &MainWindow::onRunClicked);
 
     // Create scene and view
     scene = new QGraphicsScene(this);
@@ -70,19 +79,53 @@ MainWindow::~MainWindow() {
     }
 }
 
-
 void MainWindow::onNewStateButtonClicked() {
     addingNewState = true;
     ghostCircle->setVisible(true);
 }
+
+void MainWindow::onRunClicked() {
+    fsm = new FSM("fsm_gen");
+
+    for (int i = 0; i < stateCount; ++i) {
+        std::shared_ptr<State> statePtr(stateList[i]);
+        fsm->addState(statePtr);
+
+        // Add transitions stored in this state
+        for (const Transition& t : statePtr->getTransitions()) {
+            fsm->addTransition(std::make_shared<Transition>(t));
+        }
+
+        // Prevent double delete: hand ownership to FSM
+        stateList[i] = nullptr;
+    }
+
+    // TODO: Add inputs, outputs, internals
+
+    JsonMaker maker;
+    QJsonObject json = maker.toJson(fsm);
+
+    QJsonDocument doc(json);
+    QString fileName = "generated_fsm.json";
+    QFile file(fileName);
+    if (!file.open(QIODevice::WriteOnly)) {
+        QMessageBox::critical(this, "Error", "Failed to write FSM JSON.");
+        return;
+    }
+
+    file.write(doc.toJson());
+    file.close();
+
+    QMessageBox::information(this, "FSM Saved", "FSM saved and Run triggered.");
+}
+
 
 bool MainWindow::eventFilter(QObject* watched, QEvent* event) {
     if (watched != view->viewport())
         return QMainWindow::eventFilter(watched, event);
 
     // Only mouse events from the viewport
-    if (event->type() == QEvent::MouseMove ||
-        event->type() == QEvent::MouseButtonPress) 
+    if (event->type() == QEvent::MouseMove || event->type() == QEvent::MouseButtonPress) 
     {
         auto *me = static_cast<QMouseEvent*>(event);
         QPointF scenePos = view->mapToScene(me->pos());
@@ -93,8 +136,11 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* event) {
             qDebug() << " raw under =" << under;
 
             StateItem* state = nullptr;
-            if      (auto *g = dynamic_cast<StateItem*>(under))      state = g;
-            else if (under && under->parentItem())                   state = dynamic_cast<StateItem*>(under->parentItem());
+            if (auto *g = dynamic_cast<StateItem*>(under)) {
+                state = g;
+            } else if (under && under->parentItem()) {
+                state = dynamic_cast<StateItem*>(under->parentItem());
+            }                  
 
             if (state) {
                 QPointF center = state->scenePos();
@@ -103,7 +149,44 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* event) {
             } else {
                 qDebug() << " Hovering over empty at" << scenePos;
             }
-            // continue on to press handling
+        }
+
+        if (event->type() == QEvent::MouseMove && transitionStart && currentLine) {
+            auto *me = static_cast<QMouseEvent*>(event);
+            QPointF scenePos = view->mapToScene(me->pos());
+            currentLine->updateLine(transitionStart->sceneCenter(), scenePos);
+            return true;
+        }
+
+        if (event->type() == QEvent::MouseButtonRelease && me->button() == Qt::LeftButton && transitionStart) {
+            QGraphicsItem* released = scene->itemAt(scenePos, QTransform());
+            auto* target = dynamic_cast<StateItem*>(released ? released : released->parentItem());
+        
+            if (target) {
+                // Draw final connection
+                currentLine->updateLine(transitionStart->sceneCenter(), target->sceneCenter());
+        
+                // Add logical transition
+                std::string src = transitionStart->getName().toStdString();
+                std::string dst = target->getName().toStdString();
+                auto* t = new Transition(src, dst, "in", "1");  // Adjust logic later
+            } else {
+                scene->removeItem(currentLine);  // Remove if no valid end
+                delete currentLine;
+            }
+        
+            transitionStart = nullptr;
+            currentLine = nullptr;
+            return true;
+        }
+
+        QGraphicsItem* under = scene->itemAt(scenePos, QTransform());
+        auto* clicked = dynamic_cast<StateItem*>(under ? under : under->parentItem());
+        if (clicked) {
+            transitionStart = clicked;
+            currentLine = new TransitionItem(clicked->sceneCenter(), scenePos);
+            scene->addItem(currentLine);
+            return true;
         }
 
         // ─── Mouse‐button‐press handling ──────────────────────────────
@@ -112,8 +195,11 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* event) {
             qDebug() << " Right-click raw item =" << under;
 
             StateItem* state = nullptr;
-            if      (auto *g = dynamic_cast<StateItem*>(under))      state = g;
-            else if (under && under->parentItem())                   state = dynamic_cast<StateItem*>(under->parentItem());
+            if (auto *g = dynamic_cast<StateItem*>(under)) {
+                state = g;
+            } else if (under && under->parentItem()) {
+                state = dynamic_cast<StateItem*>(under->parentItem());
+            }                   
 
             if (state) {
                 QPointF center = state->scenePos();
@@ -135,7 +221,6 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* event) {
                             s->setInitial(false);
                         }
                     }
-
                 
                     // Deselect the old initial
                     for (int i = 0; i < stateCount; ++i) {
@@ -150,7 +235,6 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* event) {
                             stateList[i]->setInitial(newStateInit);
                         }
                     }
-
                 
                     // Update the visual StateItem
                     state->setInitial(newStateInit);
@@ -185,7 +269,7 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* event) {
                     // Remove from logical state list
                     for (int i = 0; i < stateCount; ++i) {
                         if (stateList[i] && stateList[i]->getName() == stateNameStr) {
-                            delete stateList[i];
+                            stateList[i] = nullptr;
 
                             // Shift remaining elements left
                             for (int j = i; j < stateCount - 1; ++j) {
@@ -209,6 +293,7 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* event) {
                 return true;
             }
         }
+
         else if (addingNewState && me->button() == Qt::LeftButton && event->type() == QEvent::MouseButtonPress) {
             // Place new state
             addingNewState = false;
@@ -240,7 +325,6 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* event) {
                     return true;
                 }
             
-                // ✅ Now safe to create and show
                 auto *state = new StateItem(scenePos, name);
                 scene->addItem(state);
                 qDebug() << "Created state at:" << scenePos;
@@ -249,8 +333,7 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* event) {
                 debugPrintStateList();
                 qDebug() << "StateList now has" << stateCount << "items";
             }
-            
-            
+
             return true;
         }
     }

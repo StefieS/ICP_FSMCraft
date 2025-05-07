@@ -1,5 +1,7 @@
 #pragma once
 #include "State.h"
+#include "StateItem.h"
+#include "TransitionItem.h"
 #include <QMainWindow>
 #include <QPushButton>
 #include <QToolButton>
@@ -22,6 +24,7 @@ protected:
 private slots:
     void onInjectInputClicked();
     void onNewStateButtonClicked();
+    void onRunClicked();
 
 private:
     // FSM engine
@@ -32,8 +35,11 @@ private:
     int stateCount = 0;
 
     // Buttons
-    QPushButton* injectButton = nullptr;
+    QToolButton* newRunButton = nullptr;
     QToolButton* newStateButton = nullptr;
+
+    StateItem* transitionStart = nullptr;
+    TransitionItem* currentLine = nullptr;
 
     // State label
     QLabel* stateLabel = nullptr;
@@ -45,6 +51,7 @@ private:
     // State creation logic
     bool addingNewState = false;
     QGraphicsEllipseItem* ghostCircle = nullptr;
+    
     // Helpers
     void debugPrintStateList() const;
 };

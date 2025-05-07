@@ -13,7 +13,6 @@ using namespace std;
 QJsonObject JsonMaker::toJson(FSM* fsm) {
   QJsonObject doc;
 
-
   string name = fsm->getName();
   doc["name"] = QString::fromStdString(name);
   
