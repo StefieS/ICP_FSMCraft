@@ -40,4 +40,18 @@ public:
      * @param outputValue The value of the output to show.
      */
     virtual void showOutput(std::string outputID, std::string outputValue) = 0;
+
+    /**
+     * @brief Shows an error message on screen.
+     * @param errorMessage The message to show.
+     */
+    virtual void showError(std::string errorMessage) = 0;
+
+    /**
+     * @brief After receiving the ACCEPT message from server,
+     * GUI is now ready to send inputs/expect outputs and is not editable.
+     * 
+     * @note To access editing, it has to be stopped.
+     */
+    virtual void setRunning() = 0;
 };

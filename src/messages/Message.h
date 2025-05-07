@@ -30,6 +30,8 @@ private:
     std::map<std::string, std::string> outputValues;
     std::map<std::string, std::string> internalValues;
 
+    std::string otherData;
+
 public:
 
     Message(std::string receivedMessage);
@@ -41,7 +43,7 @@ public:
     void buildJsonMessage(const std::string& jsonName);
     void buildStopMessage();
     void buildAcceptMessage();
-    void buildRejectMessage();
+    void buildRejectMessage(const std::string& otherInfo);
     void buildLogMessage(const std::string& timestamp,
         EItemType elementType,
         const std::string& currentElement, 
@@ -58,4 +60,5 @@ public:
     std::string getCurrentElement() const;
     EItemType getElementType() const;
     std::map<std::string, std::string> getOutputValues() const;
+    std::string getOtherInfo() const;
 };
