@@ -7,6 +7,7 @@
 #include <QJsonValue>
 #include "../common/EMessageType.h"
 #include "../common/EItemType.h"
+#include <map>
 
 // datum a čas, aktuální stav/transition, hodnoty vstupů, výstupů a interních proměnných.
 class Message {    
