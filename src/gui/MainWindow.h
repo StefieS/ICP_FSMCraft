@@ -33,6 +33,7 @@ private:
     static const int MAX_STATES = 100;
     State* stateList[MAX_STATES];
     int stateCount = 0;
+    bool connectingMode = false;
 
     // Buttons
     QToolButton* newRunButton = nullptr;

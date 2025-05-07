@@ -20,6 +20,8 @@
 #include "../io/JsonMaker.h"
 #include <QFile>
 #include <QJsonDocument>
+#include "TransitionItem.h"
+
 
 constexpr int CircleDiameter = 100; 
 constexpr int CircleRadius = CircleDiameter / 2; 
@@ -151,42 +153,54 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* event) {
             }
         }
 
-        if (event->type() == QEvent::MouseMove && transitionStart && currentLine) {
-            auto *me = static_cast<QMouseEvent*>(event);
-            QPointF scenePos = view->mapToScene(me->pos());
+        if (event->type() == QEvent::MouseMove && connectingMode && transitionStart && currentLine) {
+            QPointF scenePos = view->mapToScene(static_cast<QMouseEvent*>(event)->pos());
             currentLine->updateLine(transitionStart->sceneCenter(), scenePos);
             return true;
         }
-
-        if (event->type() == QEvent::MouseButtonRelease && me->button() == Qt::LeftButton && transitionStart) {
-            QGraphicsItem* released = scene->itemAt(scenePos, QTransform());
-            auto* target = dynamic_cast<StateItem*>(released ? released : released->parentItem());
         
-            if (target) {
-                // Draw final connection
+
+        if (connectingMode && event->type() == QEvent::MouseButtonPress && me->button() == Qt::LeftButton) {
+            QGraphicsItem* under = scene->itemAt(scenePos, QTransform());
+            StateItem* target = nullptr;
+            if (auto* g = dynamic_cast<StateItem*>(under)) {
+                target = g;
+            } else if (under && under->parentItem()) {
+                target = dynamic_cast<StateItem*>(under->parentItem());
+            }
+        
+            if (target && transitionStart && target != transitionStart) {
                 currentLine->updateLine(transitionStart->sceneCenter(), target->sceneCenter());
         
-                // Add logical transition
                 std::string src = transitionStart->getName().toStdString();
                 std::string dst = target->getName().toStdString();
-                auto* t = new Transition(src, dst, "in", "1");  // Adjust logic later
+                Transition t(src, dst, "in", "1");
+        
+                for (int i = 0; i < stateCount; ++i) {
+                    if (stateList[i]->getName() == src) {
+                        stateList[i]->addTransition(t);
+                        break;
+                    }
+                }
+        
             } else {
-                scene->removeItem(currentLine);  // Remove if no valid end
+                // Not a valid target: remove line
+                scene->removeItem(currentLine);
                 delete currentLine;
             }
         
             transitionStart = nullptr;
             currentLine = nullptr;
+            connectingMode = false;
             return true;
         }
 
         QGraphicsItem* under = scene->itemAt(scenePos, QTransform());
-        auto* clicked = dynamic_cast<StateItem*>(under ? under : under->parentItem());
-        if (clicked) {
-            transitionStart = clicked;
-            currentLine = new TransitionItem(clicked->sceneCenter(), scenePos);
-            scene->addItem(currentLine);
-            return true;
+        StateItem* clicked = nullptr;
+        if (auto* g = dynamic_cast<StateItem*>(under)) {
+            clicked = g;
+        } else if (under && under->parentItem()) {
+            clicked = dynamic_cast<StateItem*>(under->parentItem());
         }
 
         // ─── Mouse‐button‐press handling ──────────────────────────────
@@ -209,6 +223,7 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* event) {
                 QMenu menu;
                 QAction* setInit = menu.addAction(state->isInitial() ? "Unset Initial" : "Set Initial");
                 QAction* ren     = menu.addAction("Rename");
+                QAction* connect = menu.addAction("Connect");
                 QAction* del     = menu.addAction("Delete");
                 QAction* act     = menu.exec(me->globalPos());
                 if (act == setInit) {
@@ -260,6 +275,14 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* event) {
                             break;
                         }
                     }
+                }
+
+                else if (act == connect) {
+                    transitionStart = state;
+                    currentLine = new TransitionItem(state->sceneCenter(), state->sceneCenter());
+                    scene->addItem(currentLine);
+                    connectingMode = true;
+                    return true;
                 }
 
                 else if (act == del) {
@@ -332,6 +355,14 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* event) {
                 stateList[stateCount++] = new State(nameStr, "");
                 debugPrintStateList();
                 qDebug() << "StateList now has" << stateCount << "items";
+            }
+
+            // Ensures nothing is selected for connection immediately after placing a state
+            transitionStart = nullptr;
+            if (currentLine) {
+                scene->removeItem(currentLine);
+                delete currentLine;
+                currentLine = nullptr;
             }
 
             return true;

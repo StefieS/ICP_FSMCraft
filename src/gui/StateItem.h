@@ -1,7 +1,12 @@
+#pragma once
+
+#include <QGraphicsObject>
+#include <QGraphicsEllipseItem>
+#include <QGraphicsTextItem>
 #include <QGraphicsSceneHoverEvent>
 
-class StateItem : public QGraphicsItemGroup {
-    Q_OBJECT  // needed if you use signals/slots (optional here)
+class StateItem : public QGraphicsObject {
+    Q_OBJECT
 
 public:
     StateItem(const QPointF& position, const QString& name);
@@ -16,6 +21,10 @@ public:
 protected:
     void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override;
     void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) override;
+
+    // Required for QGraphicsObject
+    QRectF boundingRect() const override;
+    void paint(QPainter*, const QStyleOptionGraphicsItem*, QWidget*) override;
 
 private:
     QGraphicsEllipseItem* circle;

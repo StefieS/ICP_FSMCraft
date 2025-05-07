@@ -8,13 +8,12 @@
 constexpr int CircleDiameter = 100;
 constexpr int CircleRadius = CircleDiameter / 2;
 
-StateItem::StateItem(const QPointF& position, const QString& name)
-    : initial(false) {  // Initialize initial
 StateItem::StateItem(const QPointF& position, const QString& name) : initial(false) {
     circle = new QGraphicsEllipseItem(-CircleRadius, -CircleRadius,
                                       CircleDiameter, CircleDiameter, this);
     circle->setPen(QPen(Qt::black, 2));
     circle->setBrush(QBrush(Qt::NoBrush));
+    circle->setBrush(QBrush(Qt::white));
 
     label = new QGraphicsTextItem(name, this);
     label->setPos(-label->boundingRect().width() / 2,
@@ -88,16 +87,23 @@ void StateItem::hoverEnterEvent(QGraphicsSceneHoverEvent* event) {
     QPen p = circle->pen();       // access the circle's pen
     p.setWidth(4);
     circle->setPen(p);            // set it back to the circle
-    QGraphicsItemGroup::hoverEnterEvent(event);  // call base class
 }
 
 void StateItem::hoverLeaveEvent(QGraphicsSceneHoverEvent* event) {
     QPen p = circle->pen();
     p.setWidth(2);
     circle->setPen(p);
-    QGraphicsItemGroup::hoverLeaveEvent(event);
 }
 
 QPointF StateItem::sceneCenter() const {
     return mapToScene(circle->rect().center());
+}
+
+QRectF StateItem::boundingRect() const {
+    return circle->boundingRect();  // or a fixed size if needed
+}
+
+void StateItem::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidget*) {
+    // No painting here since sub-items (circle, label) handle their own painting
+    Q_UNUSED(painter);
 }
