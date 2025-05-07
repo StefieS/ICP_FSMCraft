@@ -2,6 +2,8 @@ file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
     fsm/*.cpp
     gui/*.cpp
     io/*.cpp
+    messages/*.cpp
+    controllers/*/*.cpp
     main.cpp
 )
 

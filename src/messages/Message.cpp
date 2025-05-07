@@ -16,6 +16,7 @@ Message::Message() {
     this->inputValues = {};
     this->outputValues = {};
     this->internalValues = {};
+    this->otherData = {};
 }
 
 Message::Message(std::string receivedMessage) {
@@ -45,7 +46,8 @@ Message::Message(std::string receivedMessage) {
             break;
         }
         case (EMessageType::REJECT): {
-            this->buildRejectMessage();
+            std::string otherInfo = root["otherInfo"].toString().toStdString();
+            this->buildRejectMessage(otherInfo);
             break;
         }
         case (EMessageType::LOG): {
@@ -103,8 +105,9 @@ void Message::buildAcceptMessage() {
     this->type = EMessageType::ACCEPT;
 }
 
-void Message::buildRejectMessage() {
+void Message::buildRejectMessage(const std::string& otherInfo) {
     this->type = EMessageType::REJECT;
+    this->otherData = otherInfo;
 }
 
 void Message::buildStopMessage() {
@@ -145,6 +148,10 @@ EItemType Message::getElementType() const {
 
 std::string Message::getCurrentElement() const {
     return this->currentElement;
+}
+
+std::string Message::getOtherInfo() const {
+    return this->otherData;
 }
 
 std::map<std::string, std::string> Message::getOutputValues() const {
