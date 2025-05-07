@@ -1,6 +1,6 @@
 #include "QTfsm.h"
 #include <QDebug>
-
+#include "QTTransition.h"
 QTfsm::QTfsm(QObject* parent, const std::string& name) 
     : QObject(parent), jsonName(name) {
     this->automaton = new QState(&machine);
@@ -23,18 +23,38 @@ void QTfsm::setInitialState(QAbstractState* state) {
     this->automaton->setInitialState(state);
 }
 
-QFinalState* QTfsm::addFinalState() {
+QFinalState* QTfsm::addFinalState(const QString& name) {
     QFinalState* finalState = new QFinalState(this->automaton);
+    if (!name.isEmpty()) {
+        finalState->setObjectName(name);
+    }
     return finalState; 
 }
 
-void QTfsm::addStateActions(QAbstractState* state, std::function<void()> onEntry) {
-    if (onEntry) {
-        QObject::connect(state, &QState::entered, this, [onEntry]() {
-            onEntry();
-        });
-    }
+QJSEngine* QTfsm::getJsEngine(){
+    return &this->engine;
 }
+
+// TODO
+void QTfsm::addStateJsAction(QState* state, const QString& jsCode) {
+    QObject::connect(state, &QState::entered, this, [this, jsCode]() {
+        QJSValue result = this->engine.evaluate(jsCode);
+        if (result.isError()) {
+            qWarning() << "JavaScript error in state entry action:" << result.toString();
+        }
+    });
+}
+
+// Might be good
+void QTfsm::addJsTransition(QState* from, QState* to, const QString& jsCondition) {
+    auto* transition = new JsConditionTransition(&this->engine, jsCondition, from);
+    transition->setTargetState(to);
+    from->addTransition(transition);
+}
+
+// TODO: Handle input
+// ...
+
 
 void QTfsm::postEvent(QEvent* event) {
     machine.postEvent(event);
