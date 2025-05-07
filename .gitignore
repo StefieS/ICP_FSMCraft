@@ -33,3 +33,6 @@
 *.out
 *.app
 /fsm-craft
+
+#build 
+build
