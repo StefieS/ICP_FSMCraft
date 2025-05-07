@@ -11,6 +11,7 @@ private:
     bool isActive;
     bool isInitial;
     bool isFinal;
+    
 
 public:
     State(const std::string& name, const std::string& actionCode, bool isInitial = false, bool isFinal = false);
@@ -26,4 +27,6 @@ public:
 
     void setActionCode(const std::string& code);
     void addTransition(const Transition& transition);
+    void setFinal(bool val);
+
 };

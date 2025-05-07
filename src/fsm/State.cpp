@@ -1,8 +1,7 @@
 #include "State.h"
 
 State::State(const std::string& name, const std::string& actionCode, bool isInitial, bool isFinal)
-    : name(name), actionCode(actionCode), isInitial(isInitial),
-    isActive(false), isFinal(false) {}
+    : name(name), actionCode(actionCode), transitions(), isActive(false), isInitial(isInitial), isFinal(isFinal) {}
 
 
 const std::string& State::getName() const {
@@ -23,6 +22,10 @@ bool State::isFinalState() const {
 
 void State::addTransition(const Transition& transition) {
     transitions.push_back(transition);
+}
+
+void State::setFinal(bool val) {
+    isFinal = val;
 }
 
 const std::vector<Transition>& State::getTransitions() const {

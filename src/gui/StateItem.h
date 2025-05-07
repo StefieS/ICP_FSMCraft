@@ -10,12 +10,13 @@ class StateItem : public QGraphicsObject {
 
 public:
     StateItem(const QPointF& position, const QString& name);
-    void rename();
     void setInitial(bool initial);  
     bool isInitial() const;         
+    void setFinal(bool final);      
+    bool isFinal() const;           
     bool containsScenePoint(const QPointF& pt) const;
+    void updatePen();
     QString getName() const;
-    void rename(const std::function<bool(const QString&)>& isNameTaken);
     QPointF sceneCenter() const;
 
 protected:
@@ -30,4 +31,5 @@ private:
     QGraphicsEllipseItem* circle;
     QGraphicsTextItem* label;
     bool initial = false;       
+    bool final = false;
 };

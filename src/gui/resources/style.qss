@@ -1,0 +1,29 @@
+/* Base widget look */
+QWidget#centralWidget {
+    background-color: #ffffff; /* grey toolbar area */
+}
+
+QWidget {
+    background-color: #ffffff;
+    color: #000000;
+    font-family: "Segoe UI", "Helvetica Neue", sans-serif;
+    font-size: 13px;
+}
+
+/* Input fields */
+QLineEdit, QTextEdit {
+    background-color: #e0e0e0;
+    border: 1px solid #999999;
+    padding: 4px;
+}
+
+/* Buttons */
+QPushButton {
+    background-color: #e0e0e0;
+    border: 1px solid #999999;
+    padding: 4px 10px;
+    border-radius: 3px;
+}
+QPushButton:hover {
+    background-color: #d5d5d5;
+}

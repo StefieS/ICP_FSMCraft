@@ -1,3 +1,4 @@
+#include <QApplication>
 #include "MainWindow.h"
 #include "StateItem.h"
 #include "../fsm/FSM.h"
@@ -17,6 +18,7 @@
 #include <QIcon>
 #include <QAction>
 #include <QDebug>
+#include <QTextEdit>
 #include "../io/JsonMaker.h"
 #include <QFile>
 #include <QJsonDocument>
@@ -33,37 +35,59 @@ MainWindow::MainWindow(QWidget *parent)
     for (int i = 0; i < MAX_STATES; ++i) {
         stateList[i] = nullptr;
     }
+    
 
     QWidget *centralWidget = new QWidget(this);
+    centralWidget->setObjectName("centralWidget");
     setCentralWidget(centralWidget);
     QVBoxLayout *layout = new QVBoxLayout(centralWidget);
 
     setFixedSize(1420, 800);
 
-    // Create New State button
+    QFile styleFile("./resources/style.qss");
+    if (styleFile.open(QFile::ReadOnly)) {
+        QString styleSheet = QLatin1String(styleFile.readAll());
+        qApp->setStyleSheet(styleSheet);  // Applies globally
+    }
+
+
+    // Create horizontal layout for top buttons
+    QHBoxLayout *buttonLayout = new QHBoxLayout();
+
+    // + Button
     QToolButton *newStateButton = new QToolButton(this);
     newStateButton->setText("+");
     newStateButton->setToolTip("New state");
-    layout->addWidget(newStateButton);
+    buttonLayout->addWidget(newStateButton);
     connect(newStateButton, &QToolButton::clicked, this, &MainWindow::onNewStateButtonClicked);
 
-    // Create Run button
-    QPushButton *newRunButton = new QPushButton(this);
-    newRunButton->setText("Run");
+    // Run Button
+    QPushButton *newRunButton = new QPushButton("Run", this);
     newRunButton->setToolTip("Run FSM");
-    layout->addWidget(newRunButton, 0, Qt::AlignLeft);  // align left to prevent stretching
-    connect(newRunButton, &QToolButton::clicked, this, &MainWindow::onRunClicked);
+    buttonLayout->addWidget(newRunButton);
+    connect(newRunButton, &QPushButton::clicked, this, &MainWindow::onRunClicked);
 
-    // Create Clear button
-    QPushButton *clearButton = new QPushButton(this);
-    clearButton->setText("Clear");
+    // Clear Button
+    QPushButton *clearButton = new QPushButton("Clear", this);
     clearButton->setToolTip("Clear canvas");
-    layout->addWidget(clearButton, 0, Qt::AlignLeft);
+    buttonLayout->addWidget(clearButton);
     connect(clearButton, &QPushButton::clicked, this, &MainWindow::onClearClicked);
 
+    int buttonWidth = 80;
+    int buttonHeight = 30;
+
+    newStateButton->setFixedSize(buttonWidth, buttonHeight);
+    newRunButton->setFixedSize(buttonWidth, buttonHeight);
+    clearButton->setFixedSize(buttonWidth, buttonHeight);
+
+
+    // Add button row to main layout
+    layout->addLayout(buttonLayout);
 
     // Create scene and view
     scene = new QGraphicsScene(this);
+    scene->setBackgroundBrush(QColor("#ffffff"));
+
     view = new QGraphicsView(scene, this);
     layout->addWidget(view);
 
@@ -76,8 +100,9 @@ MainWindow::MainWindow(QWidget *parent)
     scene->setSceneRect(0, 0, view->width(), view->height());
 
     // Create ghost circle but keep it hidden
-    ghostCircle = scene->addEllipse(-CircleRadius, -CircleRadius, CircleDiameter, CircleDiameter,
-                                    QPen(Qt::black, 2), QBrush(QColor(0, 0, 0, 0)));
+    ghostCircle = scene->addEllipse(0, 0, CircleDiameter, CircleDiameter,
+        QPen(Qt::black, 2), QBrush(QColor(0, 0, 0, 0)));
+                                    
     ghostCircle->setOpacity(0.5);
     ghostCircle->setVisible(false);
 }
@@ -144,12 +169,32 @@ void MainWindow::onClearClicked() {
     connectingMode = false;
 
     // Add ghostCircle back if needed
-    ghostCircle = scene->addEllipse(-CircleRadius, -CircleRadius, CircleDiameter, CircleDiameter,
-                                    QPen(Qt::black, 2), QBrush(Qt::NoBrush));
+    ghostCircle = scene->addEllipse(0, 0, CircleDiameter, CircleDiameter,
+        QPen(Qt::black, 2), QBrush(Qt::NoBrush));
+        
     ghostCircle->setOpacity(0.5);
     ghostCircle->setVisible(false);
 }
 
+QString MainWindow::askForCondition() {
+    QDialog dialog(this);
+    dialog.setWindowTitle("Enter Transition Condition");
+    dialog.setFixedSize(300, 150);  // Can adjust size if needed
+    
+    QVBoxLayout* layout = new QVBoxLayout(&dialog);
+    QTextEdit* textEdit = new QTextEdit(&dialog);
+    textEdit->setPlainText("1");
+    layout->addWidget(textEdit);
+
+    QPushButton* okButton = new QPushButton("OK", &dialog);
+    layout->addWidget(okButton);
+    connect(okButton, &QPushButton::clicked, &dialog, &QDialog::accept);
+
+    if (dialog.exec() == QDialog::Accepted) {
+        return textEdit->toPlainText();
+    }
+    return "";  // User cancelled
+}
 
 bool MainWindow::eventFilter(QObject* watched, QEvent* event) {
     if (watched != view->viewport())
@@ -203,7 +248,19 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* event) {
         
                 std::string src = transitionStart->getName().toStdString();
                 std::string dst = target->getName().toStdString();
-                Transition t(src, dst, "in", "1");
+                QString cond = askForCondition();
+                if (cond.isEmpty()) {
+                    // Cancel if user aborted
+                    scene->removeItem(currentLine);
+                    delete currentLine;
+                    currentLine = nullptr;
+                    transitionStart = nullptr;
+                    connectingMode = false;
+                    return true;
+                }
+
+                Transition t(src, dst, "in", cond.toStdString());
+
         
                 for (int i = 0; i < stateCount; ++i) {
                     if (stateList[i]->getName() == src) {
@@ -250,8 +307,9 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* event) {
                          << " cursor =" << scenePos;
 
                 QMenu menu;
+                
                 QAction* setInit = menu.addAction(state->isInitial() ? "Unset Initial" : "Set Initial");
-                QAction* ren     = menu.addAction("Rename");
+                QAction* setFinal = menu.addAction(state->isFinal()   ? "Unset Final"   : "Set Final");
                 QAction* connect = menu.addAction("Connect");
                 QAction* act     = menu.exec(me->globalPos());
                 if (act == setInit) {
@@ -282,29 +340,31 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* event) {
                     // Update the visual StateItem
                     state->setInitial(newStateInit);
                 }
-                
-                else if (act == ren) {
-                    QString oldName = state->getName();
-                    state->rename([=](const QString& newName) {
-                        if (newName == oldName) return false;
-                        std::string newNameStr = newName.toStdString();
-                        for (int i = 0; i < stateCount; ++i) {
-                            if (stateList[i]->getName() == newNameStr) {
-                                return true;
-                            }
-                        }
-                        return false;
-                    });
-                
-                    QString newName = state->getName();  // Now holds new name from rename()
-                    for (int i = 0; i < stateCount; ++i) {
-                        if (stateList[i]->getName() == oldName.toStdString()) {
-                            stateList[i]->setName(newName.toStdString());
-                            break;
+
+                else if (act == setFinal) {
+                    bool newStateFinal = !state->isFinal();
+            
+                    // Unset final on all other states
+                    for (QGraphicsItem* item : scene->items()) {
+                        auto* s = dynamic_cast<StateItem*>(item);
+                        if (s && s != state && s->isFinal()) {
+                            s->setFinal(false);
                         }
                     }
+            
+                    for (int i = 0; i < stateCount; ++i) {
+                        stateList[i]->setFinal(false);
+                    }
+            
+                    for (int i = 0; i < stateCount; ++i) {
+                        if (stateList[i]->getName() == state->getName().toStdString()) {
+                            stateList[i]->setFinal(newStateFinal);
+                        }
+                    }
+            
+                    state->setFinal(newStateFinal);
                 }
-
+                
                 else if (act == connect) {
                     transitionStart = state;
                     currentLine = new TransitionItem(state->sceneCenter(), state->sceneCenter());
@@ -318,63 +378,53 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* event) {
         }
 
         else if (addingNewState && me->button() == Qt::LeftButton && event->type() == QEvent::MouseButtonPress) {
-            // Place new state
-            addingNewState = false;
-            ghostCircle->setVisible(false);
-
+            QPointF finalPos = ghostCircle->pos() + QPointF(CircleRadius, CircleRadius);
+        
             bool ok;
             QString name = QInputDialog::getText(this, "New State", "Enter state name (max 8 chars):", QLineEdit::Normal, "", &ok);
-            if (ok && !name.isEmpty()) {
-                if (name.length() > 8) name = name.left(8);
-                std::string nameStr = name.toStdString();
+        
+            if (!ok || name.isEmpty()) {
+                addingNewState = false;
+                ghostCircle->setVisible(false);
+                return true;
+            }
             
-                // Check for duplicates first
-                bool exists = false;
-                for (int i = 0; i < stateCount; ++i) {
-                    if (stateList[i]->getName() == nameStr) {
-                        exists = true;
-                        break;
-                    }
-                }
-            
-                if (exists) {
-                    QMessageBox::warning(this, "Creation Failed", 
+        
+            if (name.length() > 8) name = name.left(8);
+            std::string nameStr = name.toStdString();
+        
+            for (int i = 0; i < stateCount; ++i) {
+                if (stateList[i]->getName() == nameStr) {
+                    QMessageBox::warning(this, "Creation Failed",
                         "State with the name \"" + name + "\" already exists.");
-                    return true;
+                    return true;  // Duplicate, keep ghost
                 }
-            
-                if (stateCount >= MAX_STATES) {
-                    QMessageBox::warning(this, "Creation Failed", "Maximum number of states reached.");
-                    return true;
-                }
-            
-                auto *state = new StateItem(scenePos, name);
-                scene->addItem(state);
-                qDebug() << "Created state at:" << scenePos;
-            
-                stateList[stateCount++] = new State(nameStr, "");
-                debugPrintStateList();
-                qDebug() << "StateList now has" << stateCount << "items";
             }
-
-            // Ensures nothing is selected for connection immediately after placing a state
-            transitionStart = nullptr;
-            if (currentLine) {
-                scene->removeItem(currentLine);
-                delete currentLine;
-                currentLine = nullptr;
+        
+            if (stateCount >= MAX_STATES) {
+                QMessageBox::warning(this, "Creation Failed", "Maximum number of states reached.");
+                return true;
             }
-
+        
+            auto *state = new StateItem(finalPos, name);
+            scene->addItem(state);
+            qDebug() << "Created state at:" << finalPos;
+        
+            stateList[stateCount++] = new State(nameStr, "");
+            debugPrintStateList();
+        
+            addingNewState = false;
+            ghostCircle->setVisible(false);
             return true;
         }
+        
     }
 
-    // ─── Ghost‐circle follow when adding ───────────────────────────
+    // Ghost‐circle follow when adding
     if (addingNewState && event->type() == QEvent::MouseMove) {
         auto *me = static_cast<QMouseEvent*>(event);
         QPointF scenePos = view->mapToScene(me->pos());
-        ghostCircle->setPos(scenePos.x() - CircleRadius,
-                            scenePos.y() - CircleRadius);
+        ghostCircle->setPos(scenePos - QPointF(CircleRadius, CircleRadius));
         return true;
     }
 

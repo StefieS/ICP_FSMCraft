@@ -26,35 +26,36 @@ private slots:
     void onNewStateButtonClicked();
     void onRunClicked();
     void onClearClicked();
-
-
-private:
+    
+    
+    private:
     // FSM engine
     FSM* fsm = nullptr;
-
+    
     static const int MAX_STATES = 100;
     State* stateList[MAX_STATES];
     int stateCount = 0;
     bool connectingMode = false;
-
+    
     // Buttons
     QToolButton* newRunButton = nullptr;
     QToolButton* newStateButton = nullptr;
-
+    
     StateItem* transitionStart = nullptr;
     TransitionItem* currentLine = nullptr;
-
+    
     // State label
     QLabel* stateLabel = nullptr;
-
+    
     // Graphics scene and view
     QGraphicsScene* scene = nullptr;
     QGraphicsView* view = nullptr;
-
+    
     // State creation logic
     bool addingNewState = false;
     QGraphicsEllipseItem* ghostCircle = nullptr;
     
     // Helpers
+    QString askForCondition();
     void debugPrintStateList() const;
 };
