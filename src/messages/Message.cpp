@@ -57,7 +57,8 @@ Message::Message(std::string receivedMessage) {
             std::string currentElement = root["currentElement"].toString().toStdString();
             std::map<std::string, std::string> inputValues = {};
             QJsonArray inputs = root["inputs"].toArray();
-            for (const QJsonValue& element : inputs) {
+            for (const QJsonValue& value : inputs) {
+                QJsonObject element = value.toObject();
                 std::string inputID = element["input"].toString().toStdString();
                 std::string inputVal = element["value"].toString().toStdString();
                 inputValues[inputID] = inputVal;
@@ -65,7 +66,8 @@ Message::Message(std::string receivedMessage) {
 
             std::map<std::string, std::string> outputValues = {};
             QJsonArray outputs = root["outputs"].toArray();
-            for (const QJsonValue& element : outputs) {
+            for (const QJsonValue& value : outputs) {
+                QJsonObject element = value.toObject();
                 std::string outputID = element["output"].toString().toStdString();
                 std::string outputVal = element["value"].toString().toStdString();
                 outputValues[outputID] = outputVal;
@@ -73,7 +75,8 @@ Message::Message(std::string receivedMessage) {
 
             std::map<std::string, std::string> internalValues = {};
             QJsonArray internals = root["internals"].toArray();
-            for (const QJsonValue& element : internals) {
+            for (const QJsonValue& value : internals) {
+                QJsonObject element = value.toObject();
                 std::string internalID = element["internal"].toString().toStdString();
                 std::string internalVal = element["value"].toString().toStdString();
                 internalValues[internalID] = internalVal;
