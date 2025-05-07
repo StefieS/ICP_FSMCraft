@@ -24,7 +24,7 @@ enum class EItemType {
  * @param type The EItemType to convert.
  * @return String of the EItemType.
  */
-inline std::string toString(EItemType type) {
+inline std::string eItemTypeToString(EItemType type) {
     switch (type) {
         case EItemType::STATE: return "STATE";
         case EItemType::TRANSITION: return "TRANSITION";

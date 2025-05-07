@@ -28,7 +28,7 @@
   * @param type The EMessageType to convert.
   * @return String of the EMessageType.
   */
- inline std::string toString(EMessageType type) {
+ inline std::string eMessageTypeToString(EMessageType type) {
      switch (type) {
         case EMessageType::LOG: return "LOG";
         case EMessageType::INPUT: return "INPUT";

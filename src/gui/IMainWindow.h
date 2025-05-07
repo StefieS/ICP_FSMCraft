@@ -8,6 +8,7 @@
 #pragma once
 
 #include "IActivable.h"
+#include "../common/EItemType.h"
 #include <string>
 
 /**
@@ -54,4 +55,14 @@ public:
      * @note To access editing, it has to be stopped.
      */
     virtual void setRunning() = 0;
+
+    /**
+     * @brief Returns a reference activable item based on the type and its id.
+     * 
+     * @param type Type of the item STATE/TRANSITION
+     * @param itemID Id of the item to return.
+     * 
+     * @return A reference to the activable item wanted.
+     */
+    virtual IActivable& getActivableItem(EItemType type, std::string itemID);
 };

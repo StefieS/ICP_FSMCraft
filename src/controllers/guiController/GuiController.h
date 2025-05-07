@@ -1,3 +1,11 @@
+/**
+ * @file GuiController.h
+ * @brief Header file for the GuiController class
+ * @author xnovakf00
+ * @date 07.05.2025
+ */
+
+
 #pragma once
 #include "IMainWindow.h"
 #include "../messages/Message.h"

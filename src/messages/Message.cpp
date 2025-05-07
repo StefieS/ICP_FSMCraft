@@ -68,15 +68,15 @@ Message::Message(std::string receivedMessage) {
             for (const QJsonValue& element : outputs) {
                 std::string outputID = element["output"].toString().toStdString();
                 std::string outputVal = element["value"].toString().toStdString();
-                inputValues[outputID] = outputVal;
+                outputValues[outputID] = outputVal;
             }
 
             std::map<std::string, std::string> internalValues = {};
             QJsonArray internals = root["internals"].toArray();
             for (const QJsonValue& element : internals) {
-                std::string internalID = element["var"].toString().toStdString();
+                std::string internalID = element["internal"].toString().toStdString();
                 std::string internalVal = element["value"].toString().toStdString();
-                inputValues[internalID] = internalVal;
+                internalValues[internalID] = internalVal;
             }
 
             this->buildLogMessage(timestamp,
@@ -88,6 +88,73 @@ Message::Message(std::string receivedMessage) {
             break;
         }
     }
+}
+
+std::string Message::toMessageString() const {
+    QJsonObject msgDoc;
+    msgDoc["type"] = QString::fromStdString(eMessageTypeToString(this->type));
+    switch (this->type) {
+
+        case (EMessageType::INPUT) : {
+            msgDoc["inputName"] = QString::fromStdString(this->inputName);
+            msgDoc["inputValue"] = QString::fromStdString(this->inputValue);
+            break;
+        }
+
+        case (EMessageType::JSON) : {
+            msgDoc["jsonName"] = QString::fromStdString(this->name);
+            break;
+        }
+
+        case (EMessageType::REJECT) : {
+            msgDoc["otherInfo"] = QString::fromStdString(this->otherData);
+            break;
+        }
+
+        case (EMessageType::LOG) : {
+            msgDoc["timestamp"] = QString::fromStdString(this->timestamp);
+            msgDoc["elementType"] = QString::fromStdString(eItemTypeToString(this->elementType));
+            msgDoc["currentElement"] = QString::fromStdString(this->currentElement);
+
+            QJsonArray inputsArray;
+            for (const auto& [inputID, inputVal] : this->inputValues) {
+                QJsonObject obj;
+                obj["input"] = QString::fromStdString(inputID);
+                obj["value"] = QString::fromStdString(inputVal);
+                inputsArray.append(obj);
+            }
+
+            msgDoc["inputs"] = inputsArray;    
+
+            QJsonArray outputsArray;
+            for (const auto& [outputID, outputVal] : this->outputValues) {
+                QJsonObject outputObj;
+                outputObj["output"] = QString::fromStdString(outputID);
+                outputObj["value"] = QString::fromStdString(outputVal);
+                outputsArray.append(outputObj);
+            }
+
+            msgDoc["outputs"] = outputsArray;
+
+            QJsonArray internalsArray;
+            for (const auto& [internalID, internalVal] : this->internalValues) {
+                QJsonObject internalObj;
+                internalObj["internal"] = QString::fromStdString(internalID);
+                internalObj["value"] = QString::fromStdString(internalVal);
+                internalsArray.append(internalObj);
+            }
+
+            msgDoc["internals"] = internalsArray;
+
+            break;
+        }
+
+        default:
+            break;
+    }
+
+   QJsonDocument doc(msgDoc);
+   return doc.toJson().toStdString(); // TODO CHECK THIS
 }
 
 void Message::buildInputMessage(const std::string& inputName, const std::string& inputValue) {
@@ -119,7 +186,7 @@ void Message::buildLogMessage(const std::string& timestamp,
     const std::map<std::string, std::string>& inputValues, 
     const std::map<std::string, std::string>& outputValues, 
     const std::map<std::string, std::string>& internalValues) {
-        
+        this->type = EMessageType::LOG;
         this->timestamp = timestamp;
         this->elementType = elementType;
         this->inputValues = inputValues;

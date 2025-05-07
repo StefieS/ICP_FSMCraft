@@ -1,3 +1,11 @@
+/**
+ * @file GuiController.cpp
+ * @brief Implementation for the GuiController class
+ * @author xnovakf00
+ * @date 07.05.2025
+ */
+
+
 #include "GuiController.h"
 #include "../common/EMessageType.h"
 GuiController::GuiController(IMainWindow* gui) {
@@ -15,7 +23,22 @@ void GuiController::performAction(Message &msg) {
         }
 
         case (EMessageType::LOG) : {
-            // TODO other actions based on the type (show output/activate)
+            
+            EItemType activableType = msg.getElementType();
+            std::string activableID = msg.getCurrentElement();
+
+            IActivable& toActivate = this->gui->getActivableItem(activableType, activableID);
+
+            auto outputs = msg.getOutputValues();
+
+            for (const auto& output : outputs) {
+                std::string name = output.first;
+                std::string value = output.second;
+            
+                this->gui->showOutput(name, value);
+            }
+            // TODO MAYBE SHOW INTERNAL
+            this->gui->highlightItem(true, toActivate);
             this->gui->printLog(msg.getLogString());
             break;
         }
