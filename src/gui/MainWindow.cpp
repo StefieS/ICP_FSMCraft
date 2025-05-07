@@ -54,6 +54,14 @@ MainWindow::MainWindow(QWidget *parent)
     layout->addWidget(newRunButton, 0, Qt::AlignLeft);  // align left to prevent stretching
     connect(newRunButton, &QToolButton::clicked, this, &MainWindow::onRunClicked);
 
+    // Create Clear button
+    QPushButton *clearButton = new QPushButton(this);
+    clearButton->setText("Clear");
+    clearButton->setToolTip("Clear canvas");
+    layout->addWidget(clearButton, 0, Qt::AlignLeft);
+    connect(clearButton, &QPushButton::clicked, this, &MainWindow::onClearClicked);
+
+
     // Create scene and view
     scene = new QGraphicsScene(this);
     view = new QGraphicsView(scene, this);
@@ -119,6 +127,27 @@ void MainWindow::onRunClicked() {
     file.close();
 
     QMessageBox::information(this, "FSM Saved", "FSM saved and Run triggered.");
+}
+
+void MainWindow::onClearClicked() {
+    scene->clear();  // Remove all visual items
+    stateCount = 0;
+
+    for (int i = 0; i < MAX_STATES; ++i) {
+        stateList[i] = nullptr;
+    }
+
+    // Reset any in-progress transitions or ghost elements
+    transitionStart = nullptr;
+    currentLine = nullptr;
+    addingNewState = false;
+    connectingMode = false;
+
+    // Add ghostCircle back if needed
+    ghostCircle = scene->addEllipse(-CircleRadius, -CircleRadius, CircleDiameter, CircleDiameter,
+                                    QPen(Qt::black, 2), QBrush(Qt::NoBrush));
+    ghostCircle->setOpacity(0.5);
+    ghostCircle->setVisible(false);
 }
 
 
@@ -224,7 +253,6 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* event) {
                 QAction* setInit = menu.addAction(state->isInitial() ? "Unset Initial" : "Set Initial");
                 QAction* ren     = menu.addAction("Rename");
                 QAction* connect = menu.addAction("Connect");
-                QAction* del     = menu.addAction("Delete");
                 QAction* act     = menu.exec(me->globalPos());
                 if (act == setInit) {
                     bool newStateInit = !state->isInitial();
@@ -285,34 +313,6 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* event) {
                     return true;
                 }
 
-                else if (act == del) {
-                    QString stateName = state->getName();
-                    std::string stateNameStr = stateName.toStdString();
-                
-                    // Remove from logical state list
-                    for (int i = 0; i < stateCount; ++i) {
-                        if (stateList[i] && stateList[i]->getName() == stateNameStr) {
-                            stateList[i] = nullptr;
-
-                            // Shift remaining elements left
-                            for (int j = i; j < stateCount - 1; ++j) {
-                                stateList[j] = stateList[j + 1];
-                            }
-
-                            stateList[stateCount - 1] = nullptr;
-                            stateCount--;
-                            break;
-                        }
-                    }
-                                    
-                    // Remove from scene and delete visual
-                    scene->removeItem(state);
-                    delete state;
-                
-                    qDebug() << "Deleted state:" << stateName;
-                    debugPrintStateList();
-                }
-                
                 return true;
             }
         }

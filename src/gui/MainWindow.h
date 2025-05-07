@@ -25,6 +25,8 @@ private slots:
     void onInjectInputClicked();
     void onNewStateButtonClicked();
     void onRunClicked();
+    void onClearClicked();
+
 
 private:
     // FSM engine
