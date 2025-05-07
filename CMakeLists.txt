@@ -11,6 +11,7 @@ if(NOT DEFINED ENV{Qt5_DIR})
 endif()
 
 find_package(Qt5 REQUIRED COMPONENTS Widgets)
+find_package(Qt5 REQUIRED COMPONENTS Qml)
 
 # Enable Qt MOC/UIC/RCC
 set(CMAKE_AUTOMOC ON)

@@ -9,7 +9,7 @@ class QTfsm : public QObject {
     Q_OBJECT
 
 public:
-    QTfsm(QObject* parent = nullptr, const std::string& name);
+    QTfsm(QObject* parent = nullptr, const std::string& name = "");
 
     void start();
     void stop();

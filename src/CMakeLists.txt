@@ -4,6 +4,7 @@ file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
     io/*.cpp
     messages/*.cpp
     controllers/*/*.cpp
+    qtfsm/*.cpp
     main.cpp
 )
 
@@ -14,4 +15,5 @@ target_include_directories(fsmtool PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/gui
 )
 
-target_link_libraries(fsmtool PRIVATE Qt5::Widgets)
+
+target_link_libraries(fsmtool PRIVATE Qt5::Widgets Qt5::Qml)
