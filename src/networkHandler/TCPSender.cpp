@@ -72,8 +72,3 @@ bool TCPSender::sendMessage(const std::string& msg) {
     std::cout << "Message sent: " << msg << std::endl;
     return true;
 }
-
-
-std::string SimpleParser::parseMessage(const std::string& msg) {
-    return msg;  // Just return the message as is
-}

@@ -4,8 +4,7 @@
  * @author xlesigm00
  * @date 05.05.2025
  */
-#ifndef NETWORK_HANDLER_H
-#define NETWORK_HANDLER_H
+#pragma once 
 
 #include <iostream>
 #include <string>
@@ -92,4 +91,3 @@ public:
     void startListening(int port, std::function<void(const std::string&, int)> onMessage) override;
 };
 
-#endif // NETWORK_HANDLER_H

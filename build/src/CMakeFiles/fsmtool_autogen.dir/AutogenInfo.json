@@ -1,0 +1,122 @@
+{
+	"BUILD_DIR" : "/home/stefies/icp/FSMCraft/build/src/fsmtool_autogen",
+	"CMAKE_BINARY_DIR" : "/home/stefies/icp/FSMCraft/build",
+	"CMAKE_CURRENT_BINARY_DIR" : "/home/stefies/icp/FSMCraft/build/src",
+	"CMAKE_CURRENT_SOURCE_DIR" : "/home/stefies/icp/FSMCraft/src",
+	"CMAKE_EXECUTABLE" : "/usr/bin/cmake",
+	"CMAKE_LIST_FILES" : [ "/home/stefies/icp/FSMCraft/src/CMakeLists.txt" ],
+	"CMAKE_SOURCE_DIR" : "/home/stefies/icp/FSMCraft",
+	"DEP_FILE" : "",
+	"DEP_FILE_RULE_NAME" : "",
+	"HEADERS" : 
+	[
+		[
+			"/home/stefies/icp/FSMCraft/src/fsm/FSM.h",
+			"MU",
+			"4YFWP7ZT5D/moc_FSM.cpp",
+			null
+		],
+		[
+			"/home/stefies/icp/FSMCraft/src/fsm/InternalVar.h",
+			"MU",
+			"4YFWP7ZT5D/moc_InternalVar.cpp",
+			null
+		],
+		[
+			"/home/stefies/icp/FSMCraft/src/fsm/State.h",
+			"MU",
+			"4YFWP7ZT5D/moc_State.cpp",
+			null
+		],
+		[
+			"/home/stefies/icp/FSMCraft/src/fsm/Transition.h",
+			"MU",
+			"4YFWP7ZT5D/moc_Transition.cpp",
+			null
+		],
+		[
+			"/home/stefies/icp/FSMCraft/src/gui/MainWindow.h",
+			"MU",
+			"DMHXEJ42XS/moc_MainWindow.cpp",
+			null
+		],
+		[
+			"/home/stefies/icp/FSMCraft/src/gui/StateItem.h",
+			"MU",
+			"DMHXEJ42XS/moc_StateItem.cpp",
+			null
+		],
+		[
+			"/home/stefies/icp/FSMCraft/src/io/JsonMaker.h",
+			"MU",
+			"HR73DCNJIQ/moc_JsonMaker.cpp",
+			null
+		]
+	],
+	"HEADER_EXTENSIONS" : [ "h", "hh", "h++", "hm", "hpp", "hxx", "in", "txx" ],
+	"INCLUDE_DIR" : "/home/stefies/icp/FSMCraft/build/src/fsmtool_autogen/include",
+	"MOC_COMPILATION_FILE" : "/home/stefies/icp/FSMCraft/build/src/fsmtool_autogen/mocs_compilation.cpp",
+	"MOC_DEFINITIONS" : [ "QT_CORE_LIB", "QT_GUI_LIB", "QT_NO_DEBUG", "QT_WIDGETS_LIB" ],
+	"MOC_DEPEND_FILTERS" : 
+	[
+		[
+			"Q_PLUGIN_METADATA",
+			"[\n][ \t]*Q_PLUGIN_METADATA[ \t]*\\([^\\)]*FILE[ \t]*\"([^\"]+)\""
+		]
+	],
+	"MOC_INCLUDES" : 
+	[
+		"/home/stefies/icp/FSMCraft/src/fsm",
+		"/home/stefies/icp/FSMCraft/src/gui",
+		"/usr/include/x86_64-linux-gnu/qt5",
+		"/usr/include/x86_64-linux-gnu/qt5/QtWidgets",
+		"/usr/include/x86_64-linux-gnu/qt5/QtGui",
+		"/usr/include/x86_64-linux-gnu/qt5/QtCore",
+		"/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++",
+		"/usr/include/c++/11",
+		"/usr/include/x86_64-linux-gnu/c++/11",
+		"/usr/include/c++/11/backward",
+		"/usr/lib/gcc/x86_64-linux-gnu/11/include",
+		"/usr/local/include",
+		"/usr/include/x86_64-linux-gnu",
+		"/usr/include"
+	],
+	"MOC_MACRO_NAMES" : [ "Q_OBJECT", "Q_GADGET", "Q_NAMESPACE", "Q_NAMESPACE_EXPORT" ],
+	"MOC_OPTIONS" : [],
+	"MOC_PATH_PREFIX" : false,
+	"MOC_PREDEFS_CMD" : 
+	[
+		"/usr/bin/c++",
+		"-dM",
+		"-E",
+		"-c",
+		"/usr/share/cmake-3.22/Modules/CMakeCXXCompilerABI.cpp"
+	],
+	"MOC_PREDEFS_FILE" : "/home/stefies/icp/FSMCraft/build/src/fsmtool_autogen/moc_predefs.h",
+	"MOC_RELAXED_MODE" : false,
+	"MOC_SKIP" : [],
+	"MULTI_CONFIG" : false,
+	"PARALLEL" : 6,
+	"PARSE_CACHE_FILE" : "/home/stefies/icp/FSMCraft/build/src/CMakeFiles/fsmtool_autogen.dir/ParseCache.txt",
+	"QT_MOC_EXECUTABLE" : "/usr/lib/qt5/bin/moc",
+	"QT_UIC_EXECUTABLE" : "/usr/lib/qt5/bin/uic",
+	"QT_VERSION_MAJOR" : 5,
+	"QT_VERSION_MINOR" : 15,
+	"SETTINGS_FILE" : "/home/stefies/icp/FSMCraft/build/src/CMakeFiles/fsmtool_autogen.dir/AutogenUsed.txt",
+	"SOURCES" : 
+	[
+		[ "/home/stefies/icp/FSMCraft/src/fsm/FSM.cpp", "MU", null ],
+		[ "/home/stefies/icp/FSMCraft/src/fsm/InternalVar.cpp", "MU", null ],
+		[ "/home/stefies/icp/FSMCraft/src/fsm/State.cpp", "MU", null ],
+		[ "/home/stefies/icp/FSMCraft/src/fsm/Transition.cpp", "MU", null ],
+		[ "/home/stefies/icp/FSMCraft/src/gui/MainWindow.cpp", "MU", null ],
+		[ "/home/stefies/icp/FSMCraft/src/gui/StateItem.cpp", "MU", null ],
+		[ "/home/stefies/icp/FSMCraft/src/io/JsonMaker.cpp", "MU", null ],
+		[ "/home/stefies/icp/FSMCraft/src/main.cpp", "MU", null ]
+	],
+	"UIC_OPTIONS" : [],
+	"UIC_SEARCH_PATHS" : [],
+	"UIC_SKIP" : [],
+	"UIC_UI_FILES" : [],
+	"VERBOSITY" : 0
+}
