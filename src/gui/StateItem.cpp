@@ -8,6 +8,8 @@
 constexpr int CircleDiameter = 100;
 constexpr int CircleRadius = CircleDiameter / 2;
 
+StateItem::StateItem(const QPointF& position, const QString& name)
+    : initial(false) {  // Initialize initial
 StateItem::StateItem(const QPointF& position, const QString& name) : initial(false) {
     circle = new QGraphicsEllipseItem(-CircleRadius, -CircleRadius,
                                       CircleDiameter, CircleDiameter, this);

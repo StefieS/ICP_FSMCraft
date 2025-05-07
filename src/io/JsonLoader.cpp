@@ -1,3 +1,10 @@
+/**
+*  @file JsonLoader.cpp
+ * @brief Implementation file for the JsonLoader class for creating a FSM from a Json representation
+ * @author xnovakf00
+ * @date 05.05.2025
+ */
+
 #include "JsonLoader.h"
 #include <QJsonDocument>
 #include <QJsonObject>
