@@ -45,7 +45,7 @@ void QTfsm::addStateJsAction(QAbstractState* state, const QString& jsCode) {
     });
 }
 
-QState* QTfsm::getStateByName(const QString& name) const {
+QAbstractState* QTfsm::getStateByName(const QString& name) const {
     const auto children = this->automaton->findChildren<QState*>(QString(), Qt::FindDirectChildrenOnly);
     for (QState* state : children) {
         if (state->objectName() == name) {
@@ -60,7 +60,7 @@ void QTfsm::setJsVariable(const QString& name, const QJSValue& value) {
 }
 
 
-void QTfsm::addJsTransition(QState* from, QState* to, const QString& condition) {
+void QTfsm::addJsTransition(QState* from, QAbstractState* to, const QString& condition) {
     JsConditionTransition *trans = new JsConditionTransition(&this->engine, condition, from);
 
     trans->setTargetState(to);

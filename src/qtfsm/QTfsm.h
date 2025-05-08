@@ -15,17 +15,17 @@ public:
     void stop();
     void emitStopSignal();
     // Setup methods
-    QState* addState(const QString& name = QString()); // Optionally name the state        
+    QState* addState(const QString& name);      
     void setInitialState(QAbstractState* state);
     QFinalState* addFinalState(const QString& name);
     void addStateJsAction(QAbstractState* state, const QString& jsCode);
-    void addJsTransition(QState* from, QState* to, const QString& jsCondition);
+    void addJsTransition(QState* from, QAbstractState* to, const QString& jsCondition);
     void setJsVariable(const QString& name, const QJSValue& value);
     // getters
     std::string getName();
     QJSEngine* getJsEngine();
     QStateMachine* getMachine();
-    QState* getStateByName(const QString& name) const;
+    QAbstractState* getStateByName(const QString& name) const;
     void postEvent(QEvent* event);
 signals:
     void stopSignal();
