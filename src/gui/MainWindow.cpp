@@ -176,24 +176,35 @@ void MainWindow::onClearClicked() {
     ghostCircle->setVisible(false);
 }
 
-QString MainWindow::askForCondition() {
+std::pair<QString, QString> MainWindow::askForTransitionDetails() {
     QDialog dialog(this);
-    dialog.setWindowTitle("Enter Transition Condition");
-    dialog.setFixedSize(300, 150);  // Can adjust size if needed
-    
+    dialog.setWindowTitle("New Transition");
+    dialog.setFixedSize(300, 200);
+
     QVBoxLayout* layout = new QVBoxLayout(&dialog);
-    QTextEdit* textEdit = new QTextEdit(&dialog);
-    textEdit->setPlainText("1");
-    layout->addWidget(textEdit);
+
+    QLabel* inputLabel = new QLabel("Input name:", &dialog);
+    QLineEdit* inputEdit = new QLineEdit(&dialog);
+    inputEdit->setPlaceholderText("e.g. buttonPressed");
+
+    QLabel* condLabel = new QLabel("Guard condition:", &dialog);
+    QTextEdit* condEdit = new QTextEdit(&dialog);
+    condEdit->setPlaceholderText("e.g. value > 5");
 
     QPushButton* okButton = new QPushButton("OK", &dialog);
-    layout->addWidget(okButton);
     connect(okButton, &QPushButton::clicked, &dialog, &QDialog::accept);
 
+    layout->addWidget(inputLabel);
+    layout->addWidget(inputEdit);
+    layout->addWidget(condLabel);
+    layout->addWidget(condEdit);
+    layout->addWidget(okButton);
+
     if (dialog.exec() == QDialog::Accepted) {
-        return textEdit->toPlainText();
+        return { inputEdit->text(), condEdit->toPlainText() };
     }
-    return "";  // User cancelled
+
+    return { "", "" };
 }
 
 bool MainWindow::eventFilter(QObject* watched, QEvent* event) {
@@ -248,9 +259,8 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* event) {
         
                 std::string src = transitionStart->getName().toStdString();
                 std::string dst = target->getName().toStdString();
-                QString cond = askForCondition();
-                if (cond.isEmpty()) {
-                    // Cancel if user aborted
+                auto [input, cond] = askForTransitionDetails();
+                if (input.isEmpty() || cond.isEmpty()) {
                     scene->removeItem(currentLine);
                     delete currentLine;
                     currentLine = nullptr;
@@ -259,15 +269,18 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* event) {
                     return true;
                 }
 
-                Transition t(src, dst, "in", cond.toStdString());
+                Transition t(src, dst, input.toStdString(), cond.toStdString());
 
-        
                 for (int i = 0; i < stateCount; ++i) {
                     if (stateList[i]->getName() == src) {
                         stateList[i]->addTransition(t);
                         break;
                     }
                 }
+
+                QString labelText = input + " / " + cond;
+                currentLine->setLabel(labelText);
+                currentLine->markConfirmed();
         
             } else {
                 // Not a valid target: remove line

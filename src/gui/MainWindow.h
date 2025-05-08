@@ -26,7 +26,7 @@ private slots:
     void onNewStateButtonClicked();
     void onRunClicked();
     void onClearClicked();
-    
+    std::pair<QString, QString> askForTransitionDetails();
     
     private:
     // FSM engine
