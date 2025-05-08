@@ -207,6 +207,58 @@ std::pair<QString, QString> MainWindow::askForTransitionDetails() {
     return { "", "" };
 }
 
+std::tuple<QString, QString, QString> MainWindow::askForStateDetails() {
+    QDialog dialog(this);
+    dialog.setWindowTitle("New State");
+    dialog.setFixedSize(300, 250);
+
+    QVBoxLayout* layout = new QVBoxLayout(&dialog);
+
+    // State name
+    QLabel* nameLabel = new QLabel("State name:", &dialog);
+    QLineEdit* nameEdit = new QLineEdit(&dialog);
+    nameEdit->setPlaceholderText("e.g. ACTIVE");
+
+    // Output name
+    QLabel* outLabel = new QLabel("Output name (optional):", &dialog);
+    QLineEdit* outEdit = new QLineEdit(&dialog);
+    outEdit->setPlaceholderText("e.g. out");
+
+    // Output value
+    QLabel* valLabel = new QLabel("Output value (optional):", &dialog);
+    QLineEdit* valEdit = new QLineEdit(&dialog);
+    valEdit->setPlaceholderText("e.g. 1");
+
+    // Button row
+    QHBoxLayout* buttonRow = new QHBoxLayout();
+    QPushButton* okButton = new QPushButton("OK", &dialog);
+    QPushButton* cancelButton = new QPushButton("Cancel", &dialog);
+    buttonRow->addStretch();
+    buttonRow->addWidget(cancelButton);
+    buttonRow->addWidget(okButton);
+
+    connect(okButton, &QPushButton::clicked, &dialog, &QDialog::accept);
+    connect(cancelButton, &QPushButton::clicked, &dialog, &QDialog::reject);
+
+    layout->addWidget(nameLabel);
+    layout->addWidget(nameEdit);
+    layout->addWidget(outLabel);
+    layout->addWidget(outEdit);
+    layout->addWidget(valLabel);
+    layout->addWidget(valEdit);
+    layout->addLayout(buttonRow);
+
+    if (dialog.exec() == QDialog::Accepted) {
+        return {
+            nameEdit->text().trimmed(),
+            outEdit->text().trimmed(),
+            valEdit->text().trimmed()
+        };
+    }
+
+    return { "", "", "" };  // Cancelled
+}
+
 bool MainWindow::eventFilter(QObject* watched, QEvent* event) {
     if (watched != view->viewport())
         return QMainWindow::eventFilter(watched, event);
@@ -393,16 +445,13 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* event) {
         else if (addingNewState && me->button() == Qt::LeftButton && event->type() == QEvent::MouseButtonPress) {
             QPointF finalPos = ghostCircle->pos() + QPointF(CircleRadius, CircleRadius);
         
-            bool ok;
-            QString name = QInputDialog::getText(this, "New State", "Enter state name (max 8 chars):", QLineEdit::Normal, "", &ok);
-        
-            if (!ok || name.isEmpty()) {
+            auto [name, outName, outVal] = askForStateDetails();
+            if (name.isEmpty()) {
                 addingNewState = false;
                 ghostCircle->setVisible(false);
                 return true;
             }
-            
-        
+
             if (name.length() > 8) name = name.left(8);
             std::string nameStr = name.toStdString();
         
@@ -423,7 +472,12 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* event) {
             scene->addItem(state);
             qDebug() << "Created state at:" << finalPos;
         
-            stateList[stateCount++] = new State(nameStr, "");
+            QString actionCode;
+            if (!outName.isEmpty() && !outVal.isEmpty()) {
+                actionCode = QString("output(\"%1\", %2);").arg(outName).arg(outVal);
+            }
+            stateList[stateCount++] = new State(name.toStdString(), actionCode.toStdString());
+
             debugPrintStateList();
         
             addingNewState = false;
