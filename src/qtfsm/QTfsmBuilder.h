@@ -5,7 +5,7 @@
  * @date 08.05.2025
  */
 
-#pragma once;
+#pragma once
 #include "../fsm/FSM.h"
 #include "../fsm/State.h"
 #include "../fsm/Transition.h"
@@ -15,6 +15,7 @@ class QTfsmBuilder {
 
 private:
     FSM* innerFsm;
+    QTfsm* built;
 
 public:
     /**
@@ -22,6 +23,6 @@ public:
      * @param jsonDoc json representation
      * @returns Built QTfsm
      */
-    QTfsm& buildQTfsm(const QJsonDocument& jsonDoc);
+    void buildQTfsm(const QJsonDocument& jsonDoc);
 
 };

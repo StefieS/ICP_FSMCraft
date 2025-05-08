@@ -8,12 +8,13 @@
 #include "QTfsm.h"
 #include "QTfsmBuilder.h"
 #include "../fsm/State.h"
+#include <utility>
 #include "../fsm/Transition.h"
-QTfsm& QTfsmBuilder::buildQTfsm(const QJsonDocument& jsonDoc) {
+void QTfsmBuilder::buildQTfsm(const QJsonDocument& jsonDoc) {
     JsonLoader loader = JsonLoader();
     this->innerFsm = loader.fromJson(jsonDoc);
 
-    QTfsm qtfsm = QTfsm(nullptr, this->innerFsm->getName());
+    QTfsm* qtfsm = new QTfsm(nullptr, this->innerFsm->getName());
 
     auto states = this->innerFsm->getStates();
     for (auto state : states) {
@@ -21,14 +22,14 @@ QTfsm& QTfsmBuilder::buildQTfsm(const QJsonDocument& jsonDoc) {
         QString stateAction = QString::fromStdString(state.second->getActionCode());
         QAbstractState* toBeSet;
         if (state.second->isFinalState()) {
-            toBeSet = qtfsm.addFinalState(stateName);
+            toBeSet = qtfsm->addFinalState(stateName);
         } else if (state.second->isInitialState()) {
-            toBeSet = qtfsm.addState(stateName);
-            qtfsm.setInitialState(toBeSet);
+            toBeSet = qtfsm->addState(stateName);
+            qtfsm->setInitialState(toBeSet);
         } else {
-            toBeSet = qtfsm.addState(stateName);
+            toBeSet = qtfsm->addState(stateName);
         }
-        qtfsm.addStateJsAction(toBeSet, stateAction);
+        qtfsm->addStateJsAction(toBeSet, stateAction);
     }
 
     auto transitions = this->innerFsm->getTransitions();
@@ -36,16 +37,17 @@ QTfsm& QTfsmBuilder::buildQTfsm(const QJsonDocument& jsonDoc) {
         QString srcName = QString::fromStdString(transition->getSource());
         QString trgtName = QString::fromStdString(transition->getTarget());
         QString cond = QString::fromStdString(transition->getGuardCondition()); 
-        QState* srcState = qobject_cast<QState*>(qtfsm.getStateByName(srcName));
-        QAbstractState* trgtState = qtfsm.getStateByName(trgtName);
-        qtfsm.addJsTransition(srcState, trgtState, cond);
+        QState* srcState = qobject_cast<QState*>(qtfsm->getStateByName(srcName));
+        QAbstractState* trgtState = qtfsm->getStateByName(trgtName);
+        qtfsm->addJsTransition(srcState, trgtState, cond);
     }
 
     auto variables = this->innerFsm->getInternalVars();
     for (auto var : variables) {
-        QJSValue val = qtfsm.getJsEngine()->toScriptValue(var.getInitialValue());
+        QJSValue val = qtfsm->getJsEngine()->toScriptValue(QString::fromStdString(var.getInitialValue()));
         QString name = QString::fromStdString(var.getName());
-        qtfsm.setJsVariable(name, val);
+        qtfsm->setJsVariable(name, val);
     }
 
+    this->built = qtfsm;
 }
