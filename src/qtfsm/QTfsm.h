@@ -18,12 +18,13 @@ public:
     QState* addState(const QString& name = QString()); // Optionally name the state        
     void setInitialState(QAbstractState* state);
     QFinalState* addFinalState(const QString& name);
-    void addStateJsAction(QState* state, const QString& jsCode);
+    void addStateJsAction(QAbstractState* state, const QString& jsCode);
     void addJsTransition(QState* from, QState* to, const QString& jsCondition);
     // getters
     std::string getName();
     QJSEngine* getJsEngine();
     QStateMachine* getMachine();
+    QState* getStateByName(const QString& name) const;
     void postEvent(QEvent* event);
 signals:
     void stopSignal();

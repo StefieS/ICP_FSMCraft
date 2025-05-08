@@ -36,7 +36,7 @@ QJSEngine* QTfsm::getJsEngine(){
 }
 
 // TODO
-void QTfsm::addStateJsAction(QState* state, const QString& jsCode) {
+void QTfsm::addStateJsAction(QAbstractState* state, const QString& jsCode) {
     QObject::connect(state, &QState::entered, this, [this, jsCode]() {
         QJSValue result = this->engine.evaluate(jsCode);
         if (result.isError()) {
@@ -44,16 +44,23 @@ void QTfsm::addStateJsAction(QState* state, const QString& jsCode) {
         }
     });
 }
-
-// Might be good
-void QTfsm::addJsTransition(QState* from, QState* to, const QString& jsCondition) {
-    auto* transition = new JsConditionTransition(&this->engine, jsCondition, from);
-    transition->setTargetState(to);
-    from->addTransition(transition);
+QState* QTfsm::getStateByName(const QString& name) const {
+    const auto children = this->automaton->findChildren<QState*>(QString(), Qt::FindDirectChildrenOnly);
+    for (QState* state : children) {
+        if (state->objectName() == name) {
+            return state;
+        }
+    }
+    return nullptr; 
 }
 
-// TODO: Handle input
-// ...
+
+void QTfsm::addJsTransition(QState* from, QState* to, const QString& condition) {
+    JsConditionTransition *trans = new JsConditionTransition(&this->engine, condition, from);
+
+    trans->setTargetState(to);
+    from->addTransition(trans);
+}
 
 
 void QTfsm::postEvent(QEvent* event) {
