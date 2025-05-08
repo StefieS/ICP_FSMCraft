@@ -207,29 +207,29 @@ std::pair<QString, QString> MainWindow::askForTransitionDetails() {
     return { "", "" };
 }
 
-std::tuple<QString, QString, QString> MainWindow::askForStateDetails() {
+std::pair<QString, QString> MainWindow::askForStateDetails() {
     QDialog dialog(this);
     dialog.setWindowTitle("New State");
-    dialog.setFixedSize(300, 250);
+    dialog.setFixedSize(350, 300);
 
     QVBoxLayout* layout = new QVBoxLayout(&dialog);
 
     // State name
     QLabel* nameLabel = new QLabel("State name:", &dialog);
     QLineEdit* nameEdit = new QLineEdit(&dialog);
-    nameEdit->setPlaceholderText("e.g. ACTIVE");
+    nameEdit->setPlaceholderText("e.g. IDLE");
 
-    // Output name
-    QLabel* outLabel = new QLabel("Output name (optional):", &dialog);
-    QLineEdit* outEdit = new QLineEdit(&dialog);
-    outEdit->setPlaceholderText("e.g. out");
+    // Action block
+    QLabel* actionLabel = new QLabel("State action (JavaScript-style code):", &dialog);
+    QTextEdit* actionEdit = new QTextEdit(&dialog);
+    actionEdit->setPlainText(R"(if (defined("set_to")) {
+        timeout = atoi(valueof("set_to"));
+    }
+    output("out", 0);
+    output("rt", 0);)");
+    
 
-    // Output value
-    QLabel* valLabel = new QLabel("Output value (optional):", &dialog);
-    QLineEdit* valEdit = new QLineEdit(&dialog);
-    valEdit->setPlaceholderText("e.g. 1");
-
-    // Button row
+    // Buttons
     QHBoxLayout* buttonRow = new QHBoxLayout();
     QPushButton* okButton = new QPushButton("OK", &dialog);
     QPushButton* cancelButton = new QPushButton("Cancel", &dialog);
@@ -242,21 +242,49 @@ std::tuple<QString, QString, QString> MainWindow::askForStateDetails() {
 
     layout->addWidget(nameLabel);
     layout->addWidget(nameEdit);
-    layout->addWidget(outLabel);
-    layout->addWidget(outEdit);
-    layout->addWidget(valLabel);
-    layout->addWidget(valEdit);
+    layout->addWidget(actionLabel);
+    layout->addWidget(actionEdit);
     layout->addLayout(buttonRow);
 
     if (dialog.exec() == QDialog::Accepted) {
         return {
             nameEdit->text().trimmed(),
-            outEdit->text().trimmed(),
-            valEdit->text().trimmed()
+            actionEdit->toPlainText().trimmed()
         };
     }
 
-    return { "", "", "" };  // Cancelled
+    return { "", "" }; // Cancelled
+}
+
+QString MainWindow::askToEditAction(const QString& currentCode) {
+    QDialog dialog(this);
+    dialog.setWindowTitle("Edit State Action");
+    dialog.setFixedSize(400, 300);
+
+    QVBoxLayout* layout = new QVBoxLayout(&dialog);
+    QLabel* label = new QLabel("Edit action code:", &dialog);
+    QTextEdit* editor = new QTextEdit(&dialog);
+    editor->setPlainText(currentCode);
+
+    QHBoxLayout* buttonRow = new QHBoxLayout();
+    QPushButton* okButton = new QPushButton("OK", &dialog);
+    QPushButton* cancelButton = new QPushButton("Cancel", &dialog);
+    buttonRow->addStretch();
+    buttonRow->addWidget(cancelButton);
+    buttonRow->addWidget(okButton);
+
+    connect(okButton, &QPushButton::clicked, &dialog, &QDialog::accept);
+    connect(cancelButton, &QPushButton::clicked, &dialog, &QDialog::reject);
+
+    layout->addWidget(label);
+    layout->addWidget(editor);
+    layout->addLayout(buttonRow);
+
+    if (dialog.exec() == QDialog::Accepted) {
+        return editor->toPlainText().trimmed();
+    }
+
+    return {}; // Empty = cancel
 }
 
 bool MainWindow::eventFilter(QObject* watched, QEvent* event) {
@@ -376,6 +404,8 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* event) {
                 QAction* setInit = menu.addAction(state->isInitial() ? "Unset Initial" : "Set Initial");
                 QAction* setFinal = menu.addAction(state->isFinal()   ? "Unset Final"   : "Set Final");
                 QAction* connect = menu.addAction("Connect");
+                QAction* editAct = menu.addAction("Edit Action");
+
                 QAction* act     = menu.exec(me->globalPos());
                 if (act == setInit) {
                     bool newStateInit = !state->isInitial();
@@ -438,6 +468,22 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* event) {
                     return true;
                 }
 
+                else if (act == editAct) {
+                    // Lookup corresponding FSM state object
+                    for (int i = 0; i < stateCount; ++i) {
+                        if (stateList[i] && stateList[i]->getName() == state->getName().toStdString()) {
+                            QString current = QString::fromStdString(stateList[i]->getActionCode());
+                            QString updated = askToEditAction(current);
+                            if (!updated.isEmpty()) {
+                                stateList[i]->setActionCode(updated.toStdString());
+                                qDebug() << "Updated actionCode for state" << QString::fromStdString(stateList[i]->getName());
+                            }
+                            break;
+                        }
+                    }
+                }
+                
+
                 return true;
             }
         }
@@ -445,13 +491,13 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* event) {
         else if (addingNewState && me->button() == Qt::LeftButton && event->type() == QEvent::MouseButtonPress) {
             QPointF finalPos = ghostCircle->pos() + QPointF(CircleRadius, CircleRadius);
         
-            auto [name, outName, outVal] = askForStateDetails();
+            auto [name, actionCode] = askForStateDetails();
             if (name.isEmpty()) {
                 addingNewState = false;
                 ghostCircle->setVisible(false);
                 return true;
             }
-
+        
             if (name.length() > 8) name = name.left(8);
             std::string nameStr = name.toStdString();
         
@@ -472,12 +518,8 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* event) {
             scene->addItem(state);
             qDebug() << "Created state at:" << finalPos;
         
-            QString actionCode;
-            if (!outName.isEmpty() && !outVal.isEmpty()) {
-                actionCode = QString("output(\"%1\", %2);").arg(outName).arg(outVal);
-            }
             stateList[stateCount++] = new State(name.toStdString(), actionCode.toStdString());
-
+        
             debugPrintStateList();
         
             addingNewState = false;

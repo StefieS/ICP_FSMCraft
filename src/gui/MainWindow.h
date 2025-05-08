@@ -27,7 +27,8 @@ private slots:
     void onRunClicked();
     void onClearClicked();
     std::pair<QString, QString> askForTransitionDetails();
-    std::tuple<QString, QString, QString> askForStateDetails();
+    std::pair<QString, QString> askForStateDetails();
+    QString askToEditAction(const QString& currentCode);
     
     private:
     // FSM engine
@@ -57,6 +58,5 @@ private slots:
     QGraphicsEllipseItem* ghostCircle = nullptr;
     
     // Helpers
-    QString askForCondition();
     void debugPrintStateList() const;
 };
