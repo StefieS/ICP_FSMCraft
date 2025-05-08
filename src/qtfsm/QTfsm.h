@@ -20,6 +20,7 @@ public:
     QFinalState* addFinalState(const QString& name);
     void addStateJsAction(QAbstractState* state, const QString& jsCode);
     void addJsTransition(QState* from, QState* to, const QString& jsCondition);
+    void setJsVariable(const QString& name, const QJSValue& value);
     // getters
     std::string getName();
     QJSEngine* getJsEngine();

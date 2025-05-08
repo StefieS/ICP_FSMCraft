@@ -44,6 +44,7 @@ void QTfsm::addStateJsAction(QAbstractState* state, const QString& jsCode) {
         }
     });
 }
+
 QState* QTfsm::getStateByName(const QString& name) const {
     const auto children = this->automaton->findChildren<QState*>(QString(), Qt::FindDirectChildrenOnly);
     for (QState* state : children) {
@@ -52,6 +53,10 @@ QState* QTfsm::getStateByName(const QString& name) const {
         }
     }
     return nullptr; 
+}
+
+void QTfsm::setJsVariable(const QString& name, const QJSValue& value) {
+    engine.globalObject().setProperty(name, value);
 }
 
 
