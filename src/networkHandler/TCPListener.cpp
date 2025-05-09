@@ -1,6 +1,37 @@
 #include "NetworkHandler.h"
 
-void TCPListener::startListening(int port, std::function<void(const std::string&, int)> onMessage) {
+#include <thread>
+#include <mutex>
+#include <vector>
+#include <atomic>
+
+std::atomic<int> firstClientSocket{-1};  // Shared socket ID of the first client
+std::mutex clientMutex;
+
+void handleClient(int client_socket, std::function<void(const std::string&, int)> onMessage) {
+    char buffer[1024];
+    while (true) {
+        memset(buffer, 0, sizeof(buffer));
+        int bytesRead = recv(client_socket, buffer, sizeof(buffer), 0);
+
+        if (bytesRead <= 0) {
+            safePrint("Client " + std::to_string(client_socket) + " disconnected.");
+            close(client_socket);
+            return;
+        }
+
+        std::string msg(buffer, bytesRead);
+        try {
+            onMessage(msg, client_socket);  // Can log, filter, or process differently per client
+        } catch (const std::exception& e) {
+            std::cerr << "Error processing message: " << e.what() << std::endl;
+        }
+    }
+}
+
+void TCPListener::startListening(int port,
+    std::function<void(const std::string&, int)> onMessage,
+    std::function<void(int)> onDisconnect) {
     int server_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (server_fd < 0) {
         perror("socket");
@@ -27,7 +58,7 @@ void TCPListener::startListening(int port, std::function<void(const std::string&
         return;
     }
 
-    std::cout << "Listening for a single client on port " << port << "..." << std::endl;
+    std::cout << "Listening for clients on port " << port << "..." << std::endl;
 
     while (true) {
         int client_socket = accept(server_fd, nullptr, nullptr);
@@ -37,7 +68,7 @@ void TCPListener::startListening(int port, std::function<void(const std::string&
             return;
         }
 
-        std::cout << "Client connected!" << std::endl;
+        safePrint("Client connected! Socket: " + std::to_string(client_socket));
 
         char buffer[1024];
         while (true) {
@@ -45,21 +76,23 @@ void TCPListener::startListening(int port, std::function<void(const std::string&
             int bytesRead = recv(client_socket, buffer, sizeof(buffer), 0);
 
             if (bytesRead <= 0) {
-                std::cout << "Client disconnected." << std::endl;
-                break;  // Break the inner loop to accept a new client if they disconnect
+
+                safePrint("Client " + std::to_string(client_socket) + " disconnected.");
+                break;
             }
 
             std::string msg(buffer, bytesRead);
+            safePrint("Received message from socket " + std::to_string(client_socket) + ": " + msg);
+
             try {
-                onMessage(msg, client_socket); 
+                onMessage(msg, client_socket);
             } catch (const std::exception& e) {
                 std::cerr << "Error processing message: " << e.what() << std::endl;
             }
         }
 
-        close(client_socket);  // Close the client socket after they disconnect
-        std::cout << "Waiting for the same client to reconnect..." << std::endl;
+        close(client_socket);
     }
 
-    close(server_fd);  // Close the server socket when shutting down
+    close(server_fd);
 }

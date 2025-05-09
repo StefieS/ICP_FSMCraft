@@ -8,11 +8,16 @@
 #include "NetworkHandler.h"
 #include <memory>
 
+std::mutex coutMutex;
+
+void safePrint(const std::string& msg) {
+    std::lock_guard<std::mutex> lock(coutMutex);
+    std::cout << msg << std::endl;
+}
 // NetworkHandler constructor
 NetworkHandler::NetworkHandler(const std::string& host, int port)
     : host(host), port(port) {
     // Create instances of SimpleParser, TCPListener, and TCPSender
-    this->parser = std::unique_ptr<SimpleParser>(new SimpleParser());
     this->listener = std::unique_ptr<TCPListener>(new TCPListener());
     this->sender = std::unique_ptr<TCPSender>(new TCPSender());
     
@@ -52,12 +57,29 @@ void NetworkHandler::sendToHost(const std::string& msg) {
 void NetworkHandler::listen(int port) {
     if (listener) {
         listener->startListening(port, [this](const std::string& msg, int clientSocket) {
-            if (parser) {
-                std::string parsedMessage = parser->parseMessage(msg);
-                std::cout << "Received message: " << parsedMessage << std::endl;
+                // Register the first client socket
+            {
+                std::lock_guard<std::mutex> lock(socketMutex);
+                if (firstClientSocket == -1) {
+                    firstClientSocket = clientSocket;
+                    safePrint("Registered first client socket: " + std::to_string(firstClientSocket));
+                }
+            }
 
-                std::string response = "Echo: " + parsedMessage;
-                ::send(clientSocket, response.c_str(), response.size(), 0);
+            // Only send a response to the first client
+            int targetSocket = firstClientSocket;
+            if (targetSocket == clientSocket) {
+                std::string response = "Echo: " + msg;
+                ::send(targetSocket, response.c_str(), response.size(), 0);
+            }
+            
+        },
+        // Add optional onDisconnect callback
+        [this](int clientSocket) {
+            std::lock_guard<std::mutex> lock(socketMutex);
+            if (clientSocket == firstClientSocket) {
+                safePrint("First client disconnected. Resetting slot.");
+                firstClientSocket = -1;
             }
         });
     }

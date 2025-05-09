@@ -8,7 +8,15 @@
 
 
 #pragma once
+#include "../../qtfsm/QTfsm.h"
+#include "../../messages/Message.h"
+#include "../../qtfsm/QTfsmBuilder.h"
+#include <QFile>
 class FsmController {
-private:
-public:
+    private:
+    QTfsm *qtfsm;
+
+    public:
+    FsmController();
+    const Message& performAction(Message &msg);
 };

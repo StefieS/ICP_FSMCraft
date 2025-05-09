@@ -12,6 +12,8 @@
 #include <functional>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <atomic>
+#include <mutex>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
@@ -37,7 +39,9 @@ public:
 // Abstract base class for listening to messages
 class NetworkListener {
 public:
-    virtual void startListening(int port, std::function<void(const std::string&, int)> onMessage) = 0;
+    virtual void startListening(int port,
+        std::function<void(const std::string&, int)> onMessage,
+        std::function<void(int)> onDisconnect = nullptr) = 0;
     virtual ~NetworkListener() = default;
 };
 
@@ -56,8 +60,8 @@ public:
 private:
     std::unique_ptr<NetworkSender> sender;
     std::unique_ptr<NetworkListener> listener;
-    std::unique_ptr<NetworkParser> parser;
-
+    std::atomic<int> firstClientSocket{-1};
+    std::mutex socketMutex;
     std::string host;
     int port;
 };
@@ -87,7 +91,12 @@ public:
 
 // TCP Listener for listening to incoming TCP connections
 class TCPListener : public NetworkListener {
+private:
 public:
-    void startListening(int port, std::function<void(const std::string&, int)> onMessage) override;
+    void startListening(int port,
+        std::function<void(const std::string&, int)> onMessage,
+        std::function<void(int)> onDisconnect = nullptr) override;
 };
 
+extern std::mutex coutMutex;
+void safePrint(const std::string& msg);

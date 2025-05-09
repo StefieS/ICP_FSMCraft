@@ -1,11 +1,17 @@
 #include "NetworkHandler.h"
+#include <mutex>
+
+std::mutex sockMutex;  // Mutex to protect socket operations
 
 void TCPSender::setHostAndPort(const std::string& host, int port) {
+    std::lock_guard<std::mutex> lock(sockMutex);  // Protect shared resource
     this->host = host;
     this->port = port;
 }
 
 void TCPSender::connectToServer() {
+    std::lock_guard<std::mutex> lock(sockMutex);  // Protect socket access
+
     if (sock != -1) {
         std::cerr << "Already connected. Close the current connection before reusing." << std::endl;
         return;
@@ -30,11 +36,13 @@ void TCPSender::connectToServer() {
         closeConnection();
         return;
     }
+    safePrint("Connected to server: " + host + ":" + std::to_string(port));
 
-    std::cout << "Connected to server: " << host << ":" << port << std::endl;
 }
 
 std::string TCPSender::recvMessage() {
+    std::lock_guard<std::mutex> lock(sockMutex);  // Protect socket access
+
     char buffer[1024];
     memset(buffer, 0, sizeof(buffer));
 
@@ -47,16 +55,19 @@ std::string TCPSender::recvMessage() {
     return std::string(buffer, bytesRead);
 }
 
-
 void TCPSender::closeConnection() {
+    std::lock_guard<std::mutex> lock(sockMutex);  // Protect socket access
+
     if (sock != -1) {
         close(sock);
         sock = -1;
-        std::cout << "Connection closed." << std::endl;
+        safePrint("Connection closed.");
     }
 }
 
 bool TCPSender::sendMessage(const std::string& msg) {
+    std::lock_guard<std::mutex> lock(sockMutex);  // Protect socket access
+
     if (sock == -1) {
         std::cerr << "Not connected! Call connectToServer first." << std::endl;
         return false;
@@ -68,7 +79,6 @@ bool TCPSender::sendMessage(const std::string& msg) {
         closeConnection();
         return false;
     }
-
-    std::cout << "Message sent: " << msg << std::endl;
+    safePrint("Message sent from socket " + std::to_string(sock) + ": " + msg);
     return true;
 }
