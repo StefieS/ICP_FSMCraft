@@ -346,14 +346,21 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* event) {
                 std::string src = transitionStart->getName().toStdString();
                 std::string dst = target->getName().toStdString();
                 auto [input, cond, timeout] = askForTransitionDetails();
-                if (input.isEmpty() || cond.isEmpty()) {
-                    scene->removeItem(currentLine);
-                    delete currentLine;
-                    currentLine = nullptr;
-                    transitionStart = nullptr;
-                    connectingMode = false;
-                    return true;
+
+                std::string inputToSet;
+                if (input.isEmpty()) {
+                    inputToSet = "";
+                } else {
+                    inputToSet = input.toStdString();
                 }
+                
+                std::string condToSet;
+                if (cond.isEmpty()) {
+                    condToSet = "";
+                } else {
+                    condToSet = cond.toStdString();
+                }
+
                 std::string timeoutToSet;
                 if (timeout.isEmpty()) {
                     timeoutToSet = "0";
@@ -361,7 +368,7 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* event) {
                     timeoutToSet = timeout.toStdString();
                 }
 
-                Transition t(src, dst, input.toStdString(), cond.toStdString(), timeoutToSet);
+                Transition t(src, dst, inputToSet, condToSet, timeoutToSet);
 
                 for (int i = 0; i < stateCount; ++i) {
                     if (stateList[i]->getName() == src) {
