@@ -44,20 +44,33 @@ void QTfsm::initializeJsEngine() {
 }
 
 // TODO
-void QTfsm::addStateJsAction(QAbstractState* state, const QString& jsCode) {
+void QTfsm::addStateJsAction(QState* state, const QString& jsCode) {
     qDebug() << "Added action with code:" << jsCode;
 
     QObject::connect(state, &QState::entered, this, [this, jsCode]() {
-        // epsilon
-        QString empty = "";
-        QVariantMap map; // todo add current map
-        this->postEvent(new JsConditionEvent(map, empty));
+
 
         QJSValue result = this->engine.evaluate(jsCode);
         if (result.isError()) {
             qWarning() << "JavaScript error in state entry action:" << result.toString();
         }
+
+        // epsilon
+        QString empty = "";
+        QVariantMap map; // todo add current map
+        this->postEvent(new JsConditionEvent(map, empty));
+
     });
+
+    QObject::connect(state, &QState::exited, this, [state]() {
+    for (auto* t : state->transitions()) {
+        if (auto* jsT = dynamic_cast<JsConditionTransition*>(t)) {
+            jsT->cancelDelayTimer();
+        }
+    }
+    });
+
+    
 }
 
 QAbstractState* QTfsm::getStateByName(const QString& name) const {
@@ -75,8 +88,8 @@ void QTfsm::setJsVariable(const QString& name, const QJSValue& value) {
 }
 
 
-void QTfsm::addJsTransition(QState* from, QAbstractState* to, const QString& condition, const QString& expectedInput) {
-    JsConditionTransition *trans = new JsConditionTransition(&this->engine, condition, expectedInput, from);
+void QTfsm::addJsTransition(QState* from, QAbstractState* to, const QString& condition, const QString& expectedInput, const QString& timeout) {
+    JsConditionTransition *trans = new JsConditionTransition(&this->engine, condition, expectedInput, from, timeout, this);
 
     trans->setTargetState(to);
     from->addTransition(trans);

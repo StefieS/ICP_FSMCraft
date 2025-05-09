@@ -15,14 +15,14 @@ void QTfsmBuilder::buildQTfsm(const QJsonDocument& jsonDoc) {
     this->innerFsm = loader.fromJson(jsonDoc);
 
     this->built = new QTfsm(nullptr, this->innerFsm->getName());
-    qDebug() << "Set Name" << QString::fromStdString( this->built->getName());
     auto states = this->innerFsm->getStates();
     for (auto state : states) {
         QString stateName = QString::fromStdString(state.first);
         QString stateAction = QString::fromStdString(state.second->getActionCode());
-        QAbstractState* toBeSet;
+        QState* toBeSet;
         if (state.second->isFinalState()) {
-            toBeSet = this->built->addFinalState(stateName);
+            this->built->addFinalState(stateName);
+            return;
         } else if (state.second->isInitialState()) {
             qDebug("Added initial");
             toBeSet = this->built->addState(stateName);
@@ -39,9 +39,10 @@ void QTfsmBuilder::buildQTfsm(const QJsonDocument& jsonDoc) {
         QString trgtName = QString::fromStdString(transition->getTarget());
         QString cond = QString::fromStdString(transition->getGuardCondition());
         QString input = QString::fromStdString(transition->getInputEvent());
+        QString timeout = QString::fromStdString(transition->getDelay());
         QState* srcState = qobject_cast<QState*>(this->built->getStateByName(srcName));
         QAbstractState* trgtState = this->built->getStateByName(trgtName);
-        this->built->addJsTransition(srcState, trgtState, cond, input);
+        this->built->addJsTransition(srcState, trgtState, cond, input, timeout);
     }
 
     auto variables = this->innerFsm->getInternalVars();
