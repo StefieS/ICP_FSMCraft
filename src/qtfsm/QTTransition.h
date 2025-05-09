@@ -15,26 +15,26 @@ JsConditionTransition(QJSEngine* engine, const QString& condition, const QString
 
 protected:
     bool eventTest(QEvent* event) override {
-
-        // if (event->type() != JsConditionEvent::EventType)
-        //     return false;
+        if (event->type() != JsConditionEventType) {
+            return false;
+        }
 
         auto* jsEvent = static_cast<JsConditionEvent*>(event);
 
         // check if the expected input was added
-        // if (!jsEvent->eventData.contains(inputKey))
-        //     return false;
+        if (jsEvent->inputKey != this->inputKey) {
+            return false;
+        }
 
         // Inject variables into the JS engine
-        qDebug() << "Here";
-        QVariantMap vars = jsEvent->getEventData();
-        qDebug() << "Here 2 ";
+        QVariantMap vars = jsEvent->eventData;
         for (auto it = vars.constBegin(); it != vars.constEnd(); ++it) {
             jsEngine->globalObject().setProperty(it.key(), jsEngine->toScriptValue(it.value()));
         }
 
         QJSValue result = jsEngine->evaluate(jsCondition);
         if (result.isError()) {
+            qWarning() <<jsCondition;
             qWarning() << "JavaScript error:" << result.toString();
             return false;
         }

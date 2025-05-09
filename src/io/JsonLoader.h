@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "FSM.h"
+#include "../fsm/FSM.h"
 #include <QJsonDocument>
 class JsonLoader {
 public:

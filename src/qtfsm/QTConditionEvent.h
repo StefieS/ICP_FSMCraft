@@ -2,16 +2,11 @@
 #include <QEvent>
 #include <QVariant>
 
-class JsConditionEvent : public QEvent {
-public:
-    static constexpr QEvent::Type EventType = static_cast<QEvent::Type>(QEvent::User + 1);
+constexpr QEvent::Type JsConditionEventType = static_cast<QEvent::Type>(QEvent::User + 1);
 
-    JsConditionEvent(const QVariantMap& data = {})
-        : QEvent(EventType), eventData(data) {}
-
+struct JsConditionEvent : public QEvent {
+    JsConditionEvent(const QVariantMap& data, QString& inputKey)
+        : QEvent(JsConditionEventType), eventData(data), inputKey(inputKey) {}
     QVariantMap eventData;
-
-    QVariantMap getEventData() {
-        return this->eventData;
-    }
+    QString inputKey;
 };
