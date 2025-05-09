@@ -26,6 +26,10 @@ protected:
             return false;
         }
 
+        if (this->jsCondition == "") { // epsilon
+            return true;
+        }
+
         // Inject variables into the JS engine
         QVariantMap vars = jsEvent->eventData;
         for (auto it = vars.constBegin(); it != vars.constEnd(); ++it) {

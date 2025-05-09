@@ -48,6 +48,11 @@ void QTfsm::addStateJsAction(QAbstractState* state, const QString& jsCode) {
     qDebug() << "Added action with code:" << jsCode;
 
     QObject::connect(state, &QState::entered, this, [this, jsCode]() {
+        // epsilon
+        QString empty = "";
+        QVariantMap map; // todo add current map
+        this->postEvent(new JsConditionEvent(map, empty));
+
         QJSValue result = this->engine.evaluate(jsCode);
         if (result.isError()) {
             qWarning() << "JavaScript error in state entry action:" << result.toString();
