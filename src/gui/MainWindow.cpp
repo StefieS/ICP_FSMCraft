@@ -22,7 +22,9 @@
 #include "../io/JsonMaker.h"
 #include <QFile>
 #include <QJsonDocument>
+#include <QRegularExpression>
 #include "TransitionItem.h"
+#include "QFlowLayout.h"
 
 
 constexpr int CircleDiameter = 100; 
@@ -50,39 +52,76 @@ MainWindow::MainWindow(QWidget *parent)
         qApp->setStyleSheet(styleSheet);  // Applies globally
     }
 
-
-    // Create horizontal layout for top buttons
-    QHBoxLayout *buttonLayout = new QHBoxLayout();
-
-    // + Button
-    QToolButton *newStateButton = new QToolButton(this);
-    newStateButton->setText("+");
-    newStateButton->setToolTip("New state");
-    buttonLayout->addWidget(newStateButton);
-    connect(newStateButton, &QToolButton::clicked, this, &MainWindow::onNewStateButtonClicked);
+    // Create compact horizontal toolbar aligned top-left
+    QWidget *toolbarWidget = new QWidget(this);
+    QHBoxLayout *toolbarLayout = new QHBoxLayout(toolbarWidget);
+    toolbarLayout->setContentsMargins(0, 0, 0, 0);
+    toolbarLayout->setSpacing(5);
 
     // Run Button
-    QPushButton *newRunButton = new QPushButton("Run", this);
-    newRunButton->setToolTip("Run FSM");
-    buttonLayout->addWidget(newRunButton);
-    connect(newRunButton, &QPushButton::clicked, this, &MainWindow::onRunClicked);
-
-    // Clear Button
-    QPushButton *clearButton = new QPushButton("Clear", this);
+    QToolButton *runButton = new QToolButton(toolbarWidget);
+    runButton->setText("▶");
+    runButton->setToolTip("Run FSM");
+    runButton->setFixedSize(32, 32);
+    toolbarLayout->addWidget(runButton);
+    
+    // New State Button
+    QToolButton *newStateButton = new QToolButton(toolbarWidget);
+    newStateButton->setText("◯");
+    newStateButton->setToolTip("New state");
+    newStateButton->setFixedSize(32, 32);
+    toolbarLayout->addWidget(newStateButton);
+    
+    QToolButton *clearButton = new QToolButton(toolbarWidget);
+    clearButton->setText("Clear"); 
     clearButton->setToolTip("Clear canvas");
-    buttonLayout->addWidget(clearButton);
-    connect(clearButton, &QPushButton::clicked, this, &MainWindow::onClearClicked);
+    clearButton->setFixedSize(45, 32);
+    toolbarLayout->addWidget(clearButton);
 
-    int buttonWidth = 80;
-    int buttonHeight = 30;
+    connect(runButton, &QToolButton::clicked, this, &MainWindow::onRunClicked);
+    connect(newStateButton, &QToolButton::clicked, this, &MainWindow::onNewStateButtonClicked);
+    connect(clearButton, &QToolButton::clicked, this, &MainWindow::onClearClicked);
 
-    newStateButton->setFixedSize(buttonWidth, buttonHeight);
-    newRunButton->setFixedSize(buttonWidth, buttonHeight);
-    clearButton->setFixedSize(buttonWidth, buttonHeight);
+    layout->addWidget(toolbarWidget, 0, Qt::AlignLeft);
 
+    // Add environment variable input row under toolbar
+    QWidget* envInputRow = new QWidget(this);
 
-    // Add button row to main layout
-    layout->addLayout(buttonLayout);
+    QHBoxLayout* envLayout = new QHBoxLayout(envInputRow);
+    envLayout->setContentsMargins(0, 0, 0, 0);
+    envLayout->setSpacing(6);
+
+    QLineEdit* keyEdit = new QLineEdit(this);
+    keyEdit->setPlaceholderText("key");
+    keyEdit->setFixedWidth(120);
+
+    QLabel* colonLabel = new QLabel(":", this);
+
+    QLineEdit* valueEdit = new QLineEdit(this);
+    valueEdit->setPlaceholderText("value");
+    valueEdit->setFixedWidth(120);
+
+    QPushButton* addEnvButton = new QPushButton("Add", this);
+    addEnvButton->setFixedWidth(50);
+    keyEdit->setFixedHeight(32);
+    valueEdit->setFixedHeight(32);
+    addEnvButton->setFixedHeight(32);
+
+    envLayout->addWidget(keyEdit);
+    envLayout->addWidget(colonLabel);
+    envLayout->addWidget(valueEdit);
+    envLayout->addWidget(addEnvButton);
+    envLayout->addStretch();  // Pushes row to left
+
+    layout->addWidget(envInputRow, 0, Qt::AlignLeft);
+
+    // Internal variable container
+    internalVarsContainer = new QWidget(this);
+    internalVarsFlow = new QFlowLayout(internalVarsContainer);
+    internalVarsFlow->setContentsMargins(5, 5, 5, 5);
+    internalVarsFlow->setSpacing(8);
+
+    layout->addWidget(internalVarsContainer);
 
     // Create scene and view
     scene = new QGraphicsScene(this);
@@ -97,6 +136,35 @@ MainWindow::MainWindow(QWidget *parent)
     view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
+    connect(addEnvButton, &QPushButton::clicked, this, [=]() {
+        QString key = keyEdit->text().trimmed();
+        QString val = valueEdit->text().trimmed();
+
+        if (key.isEmpty())
+            return;
+
+        if (internalVarMap.contains(key)) {
+            QMessageBox::warning(this, "Duplicate Variable", "Variable with this name already exists.");
+            return;
+        }
+
+        auto* item = new InternalVarItem(key, val, this);
+        connect(item, &InternalVarItem::removeRequested, this, [=](const QString& keyToRemove) {
+            auto it = internalVarMap.find(keyToRemove);
+            if (it != internalVarMap.end()) {
+                internalVarsFlow->removeWidget(it.value());
+                it.value()->deleteLater();
+                internalVarMap.erase(it);
+            }
+        });
+
+        internalVarsFlow->addWidget(item);
+        internalVarMap[key] = item;
+
+        keyEdit->clear();
+        valueEdit->clear();
+    });
+
     scene->setSceneRect(0, 0, view->width(), view->height());
 
     // Create ghost circle but keep it hidden
@@ -106,6 +174,21 @@ MainWindow::MainWindow(QWidget *parent)
     ghostCircle->setOpacity(0.5);
     ghostCircle->setVisible(false);
 }
+
+static std::string detectTypeFromValue(const QString& value) {
+    bool okInt = false;
+    bool okFloat = false;
+
+    value.toInt(&okInt);
+    value.toFloat(&okFloat);
+
+    if (okInt) return "int";
+    if (okFloat) return "float";
+    if (value == "true" || value == "false") return "bool";
+
+    return "string";
+}
+
 
 MainWindow::~MainWindow() {
     for (int i = 0; i < stateCount; ++i) {
@@ -122,20 +205,59 @@ void MainWindow::onNewStateButtonClicked() {
 void MainWindow::onRunClicked() {
     fsm = new FSM("fsm_gen");
 
-    for (int i = 0; i < stateCount; ++i) {
-        std::shared_ptr<State> statePtr(stateList[i]);
-        fsm->addState(statePtr);
+    // Add internal variables
+    for (auto it = internalVarMap.begin(); it != internalVarMap.end(); ++it) {
+        QString key = it.key();
+        QString value = it.value()->getValue();
 
-        // Add transitions stored in this state
-        for (const Transition& t : statePtr->getTransitions()) {
-            fsm->addTransition(std::make_shared<Transition>(t));
-        }
+        InternalVar var;
+        var.setName(key.toStdString());
+        std::string detected = detectTypeFromValue(value);
+        var.setType(detected);
+        var.setInitialValue(value.toStdString());
 
-        // Prevent double delete: hand ownership to FSM
-        stateList[i] = nullptr;
+        fsm->addInternalVar(var);
     }
 
-    // TODO: Add inputs, outputs, internals
+    QSet<QString> inputSet;
+    QSet<QString> outputSet;
+    QRegularExpression outputRegex(R"(output\(\s*["'](\w+)["'])");
+
+    for (int index = 0; index < stateCount; ++index) {
+        std::shared_ptr<State> statePtr(stateList[index]);
+        fsm->addState(statePtr);
+
+        // Extract outputs from action code
+        QString action = QString::fromStdString(statePtr->getActionCode());
+        QRegularExpressionMatchIterator matchIt = outputRegex.globalMatch(action);
+        while (matchIt.hasNext()) {
+            QRegularExpressionMatch match = matchIt.next();
+            if (match.hasMatch()) {
+                outputSet.insert(match.captured(1));
+            }
+        }
+
+        // Process transitions and collect input names
+        for (const Transition& t : statePtr->getTransitions()) {
+            fsm->addTransition(std::make_shared<Transition>(t));
+
+            QString input = QString::fromStdString(t.getInputEvent());
+            if (!input.isEmpty()) {
+                inputSet.insert(input);
+            }
+        }
+
+        // Transfer ownership
+        stateList[index] = nullptr;
+    }
+
+    // Add all unique inputs and outputs
+    for (const QString& input : inputSet) {
+        fsm->addInputName(input.toStdString());
+    }
+    for (const QString& output : outputSet) {
+        fsm->addOutputName(output.toStdString());
+    }
 
     JsonMaker maker;
     QJsonObject json = maker.toJson(fsm);

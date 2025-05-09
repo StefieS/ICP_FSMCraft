@@ -9,6 +9,10 @@
 #include <QGraphicsScene>
 #include <QGraphicsView>
 #include <QGraphicsEllipseItem>
+#include <QSet>
+#include <QMap>
+#include "InternalVarItem.h"
+#include "QFlowLayout.h"
 #include "FSM.h"
 
 class MainWindow : public QMainWindow {
@@ -52,7 +56,10 @@ private slots:
     // Graphics scene and view
     QGraphicsScene* scene = nullptr;
     QGraphicsView* view = nullptr;
-    
+    QWidget* internalVarsContainer;
+    QFlowLayout* internalVarsFlow;
+    QMap<QString, InternalVarItem*> internalVarMap;
+
     // State creation logic
     bool addingNewState = false;
     QGraphicsEllipseItem* ghostCircle = nullptr;
