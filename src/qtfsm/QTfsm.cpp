@@ -1,6 +1,8 @@
 #include "QTfsm.h"
 #include <QDebug>
 #include "QTTransition.h"
+#include "QTBuiltinHandler.h"
+
 QTfsm::QTfsm(QObject* parent, const std::string& name) 
     : QObject(parent), jsonName(name) {
     this->automaton = new QState(&machine);
@@ -35,8 +37,16 @@ QJSEngine* QTfsm::getJsEngine(){
     return &this->engine;
 }
 
+void QTfsm::initializeJsEngine() {
+    QTBuiltinHandler* builtinHandler = new QTBuiltinHandler();
+    QJSValue builtinHandlerJs = engine.newQObject(builtinHandler);
+    engine.globalObject().setProperty("fsm", builtinHandlerJs);
+}
+
 // TODO
 void QTfsm::addStateJsAction(QAbstractState* state, const QString& jsCode) {
+    qDebug() << "Added action with code:" << jsCode;
+
     QObject::connect(state, &QState::entered, this, [this, jsCode]() {
         QJSValue result = this->engine.evaluate(jsCode);
         if (result.isError()) {
@@ -60,8 +70,8 @@ void QTfsm::setJsVariable(const QString& name, const QJSValue& value) {
 }
 
 
-void QTfsm::addJsTransition(QState* from, QAbstractState* to, const QString& condition) {
-    JsConditionTransition *trans = new JsConditionTransition(&this->engine, condition, from);
+void QTfsm::addJsTransition(QState* from, QAbstractState* to, const QString& condition, const QString& expectedInput) {
+    JsConditionTransition *trans = new JsConditionTransition(&this->engine, condition, expectedInput, from);
 
     trans->setTargetState(to);
     from->addTransition(trans);
@@ -81,6 +91,7 @@ void QTfsm::emitStopSignal() {
 }
 
 void QTfsm::start() {
+    initializeJsEngine();
     machine.start();
 }
 

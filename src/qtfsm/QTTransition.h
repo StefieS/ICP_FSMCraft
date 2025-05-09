@@ -4,22 +4,32 @@
 #include <QJSEngine>
 #include <QString>
 #include <QEvent>
-#include "QTTransitionEvent.h"
+#include "QTConditionEvent.h"
 
 class JsConditionTransition : public QAbstractTransition {
+private:
+    QString inputKey;
 public:
-JsConditionTransition(QJSEngine* engine, const QString& condition, QState* parentState)
-: QAbstractTransition(parentState), jsEngine(engine), jsCondition(condition) {}
+JsConditionTransition(QJSEngine* engine, const QString& condition, const QString& expectedInputKey, QState* parentState)
+: QAbstractTransition(parentState), jsEngine(engine), jsCondition(condition), inputKey(expectedInputKey){}
 
 protected:
     bool eventTest(QEvent* event) override {
-        if (event->type() != JsConditionEvent::EventType)
-            return false;
+
+        // if (event->type() != JsConditionEvent::EventType)
+        //     return false;
 
         auto* jsEvent = static_cast<JsConditionEvent*>(event);
 
+        // check if the expected input was added
+        // if (!jsEvent->eventData.contains(inputKey))
+        //     return false;
+
         // Inject variables into the JS engine
-        for (auto it = jsEvent->eventData.begin(); it != jsEvent->eventData.end(); ++it) {
+        qDebug() << "Here";
+        QVariantMap vars = jsEvent->getEventData();
+        qDebug() << "Here 2 ";
+        for (auto it = vars.constBegin(); it != vars.constEnd(); ++it) {
             jsEngine->globalObject().setProperty(it.key(), jsEngine->toScriptValue(it.value()));
         }
 

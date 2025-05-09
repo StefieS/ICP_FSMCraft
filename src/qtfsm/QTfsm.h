@@ -19,8 +19,9 @@ public:
     void setInitialState(QAbstractState* state);
     QFinalState* addFinalState(const QString& name);
     void addStateJsAction(QAbstractState* state, const QString& jsCode);
-    void addJsTransition(QState* from, QAbstractState* to, const QString& jsCondition);
+    void addJsTransition(QState* from, QAbstractState* to, const QString& jsCondition, const QString& expectedInput);
     void setJsVariable(const QString& name, const QJSValue& value);
+    void initializeJsEngine();
     // getters
     std::string getName();
     QJSEngine* getJsEngine();

@@ -24,5 +24,5 @@ public:
      * @returns Built QTfsm
      */
     void buildQTfsm(const QJsonDocument& jsonDoc);
-
+    QTfsm* getBuiltFsm();
 };

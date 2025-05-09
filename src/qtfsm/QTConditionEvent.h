@@ -10,4 +10,8 @@ public:
         : QEvent(EventType), eventData(data) {}
 
     QVariantMap eventData;
+
+    QVariantMap getEventData() {
+        return this->eventData;
+    }
 };
