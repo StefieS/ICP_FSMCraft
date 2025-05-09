@@ -9,18 +9,18 @@ void TCPSender::setHostAndPort(const std::string& host, int port) {
     this->port = port;
 }
 
-void TCPSender::connectToServer() {
+bool TCPSender::connectToServer() {
     std::lock_guard<std::mutex> lock(sockMutex);  // Protect socket access
 
     if (sock != -1) {
         std::cerr << "Already connected. Close the current connection before reusing." << std::endl;
-        return;
+        return false;
     }
 
     sock = socket(AF_INET, SOCK_STREAM, 0);
     if (sock == -1) {
         std::cerr << "Socket creation failed!" << std::endl;
-        return;
+        return false;
     }
 
     server.sin_family = AF_INET;
@@ -28,16 +28,17 @@ void TCPSender::connectToServer() {
     if (inet_pton(AF_INET, host.c_str(), &server.sin_addr) <= 0) {
         std::cerr << "Invalid address or Address not supported!" << std::endl;
         closeConnection();
-        return;
+        return false;
     }
 
     if (connect(sock, (struct sockaddr*)&server, sizeof(server)) < 0) {
         std::cerr << "Connection failed!" << std::endl;
         closeConnection();
-        return;
+        return false;
     }
-    safePrint("Connected to server: " + host + ":" + std::to_string(port));
 
+    safePrint("Connected to server: " + host + ":" + std::to_string(port));
+    return true;
 }
 
 std::string TCPSender::recvMessage() {

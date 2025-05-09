@@ -6,6 +6,8 @@
  */
 
 #include "NetworkHandler.h"
+#include "../messages/Message.h"
+#include "../controllers/fsmController/FsmController.h"
 #include <memory>
 
 std::mutex coutMutex;
@@ -26,10 +28,11 @@ NetworkHandler::NetworkHandler(const std::string& host, int port)
 }
 
 // Connect to the server
-void NetworkHandler::connectToServer() {
+bool NetworkHandler::connectToServer() {
     if (sender) {
-        sender->connectToServer();
+       return sender->connectToServer();
     }
+    return false;
 }
 
 std::string NetworkHandler::recvFromHost() {
@@ -56,7 +59,8 @@ void NetworkHandler::sendToHost(const std::string& msg) {
 // Listen for incoming messages
 void NetworkHandler::listen(int port) {
     if (listener) {
-        listener->startListening(port, [this](const std::string& msg, int clientSocket) {
+        FsmController controller;
+        listener->startListening(port, [this, &controller](const std::string& msg, int clientSocket) {
                 // Register the first client socket
             {
                 std::lock_guard<std::mutex> lock(socketMutex);
@@ -69,8 +73,10 @@ void NetworkHandler::listen(int port) {
             // Only send a response to the first client
             int targetSocket = firstClientSocket;
             if (targetSocket == clientSocket) {
-                std::string response = "Echo: " + msg;
-                ::send(targetSocket, response.c_str(), response.size(), 0);
+                Message message(msg);
+                Message processed = controller.performAction(message);
+                std::string responseStr = "Echo: " + processed.toMessageString(); 
+                ::send(targetSocket, responseStr.c_str(), responseStr.size(), 0);
             }
             
         },

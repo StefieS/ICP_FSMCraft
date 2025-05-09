@@ -4,6 +4,7 @@
 #include <mutex>
 #include <vector>
 #include <atomic>
+#include "../messages/Message.h"
 
 std::atomic<int> firstClientSocket{-1};  // Shared socket ID of the first client
 std::mutex clientMutex;
@@ -86,6 +87,9 @@ void TCPListener::startListening(int port,
 
             try {
                 onMessage(msg, client_socket);
+                Message isStop(msg);
+                if (isStop.getType() == EMessageType::STOP) break;
+                
             } catch (const std::exception& e) {
                 std::cerr << "Error processing message: " << e.what() << std::endl;
             }
