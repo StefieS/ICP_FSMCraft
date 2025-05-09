@@ -30,6 +30,7 @@ private slots:
     void onNewStateButtonClicked();
     void onRunClicked();
     void onClearClicked();
+    void onSaveClicked();
     std::tuple<QString, QString, QString> askForTransitionDetails();
     std::pair<QString, QString> askForStateDetails();
     QString askToEditAction(const QString& currentCode);
@@ -59,6 +60,7 @@ private slots:
     QWidget* internalVarsContainer;
     QFlowLayout* internalVarsFlow;
     QMap<QString, InternalVarItem*> internalVarMap;
+
 
     // State creation logic
     bool addingNewState = false;

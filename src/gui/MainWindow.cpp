@@ -64,6 +64,13 @@ MainWindow::MainWindow(QWidget *parent)
     runButton->setToolTip("Run FSM");
     runButton->setFixedSize(32, 32);
     toolbarLayout->addWidget(runButton);
+
+    // Save Button
+    QToolButton *saveButton = new QToolButton(toolbarWidget);
+    saveButton->setText("SAVE");
+    saveButton->setToolTip("Save FSM");
+    saveButton->setFixedSize(32, 32);
+    toolbarLayout->addWidget(saveButton);
     
     // New State Button
     QToolButton *newStateButton = new QToolButton(toolbarWidget);
@@ -79,6 +86,7 @@ MainWindow::MainWindow(QWidget *parent)
     toolbarLayout->addWidget(clearButton);
 
     connect(runButton, &QToolButton::clicked, this, &MainWindow::onRunClicked);
+    connect(saveButton, &QToolButton::clicked, this, &MainWindow::onSaveClicked);
     connect(newStateButton, &QToolButton::clicked, this, &MainWindow::onNewStateButtonClicked);
     connect(clearButton, &QToolButton::clicked, this, &MainWindow::onClearClicked);
 
@@ -203,7 +211,12 @@ void MainWindow::onNewStateButtonClicked() {
 }
 
 void MainWindow::onRunClicked() {
-    fsm = new FSM("fsm_gen");
+    onSaveClicked();
+    // todo controller stuff for starting server...
+}
+
+void MainWindow::onSaveClicked() {
+        fsm = new FSM("fsm_gen");
 
     // Add internal variables
     for (auto it = internalVarMap.begin(); it != internalVarMap.end(); ++it) {
@@ -273,7 +286,7 @@ void MainWindow::onRunClicked() {
     file.write(doc.toJson());
     file.close();
 
-    QMessageBox::information(this, "FSM Saved", "FSM saved and Run triggered.");
+    QMessageBox::information(this, "FSM Saved", "FSM saved.");
 }
 
 void MainWindow::onClearClicked() {
@@ -475,7 +488,7 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* event) {
                 } else {
                     inputToSet = input.toStdString();
                 }
-                
+
                 std::string condToSet;
                 if (cond.isEmpty()) {
                     condToSet = "";
