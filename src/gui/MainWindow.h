@@ -26,7 +26,7 @@ private slots:
     void onNewStateButtonClicked();
     void onRunClicked();
     void onClearClicked();
-    std::pair<QString, QString> askForTransitionDetails();
+    std::tuple<QString, QString, QString> askForTransitionDetails();
     std::pair<QString, QString> askForStateDetails();
     QString askToEditAction(const QString& currentCode);
     

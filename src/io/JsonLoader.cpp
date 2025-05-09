@@ -68,7 +68,8 @@ FSM* JsonLoader::fromJson(const QJsonDocument& jsonDoc) {
         std::string dst = transitionObj["dst"].toString().toStdString();
         std::string input = transitionObj["input"].toString().toStdString();
         std::string cond = transitionObj["cond"].toString().toStdString();
-        std::shared_ptr<Transition> transition = std::make_shared<Transition>(src, dst, input, cond);
+        std::string timeout = transitionObj["timeout"].toString().toStdString();
+        std::shared_ptr<Transition> transition = std::make_shared<Transition>(src, dst, input, cond, timeout);
         fsm->addTransition(transition);
     }
 

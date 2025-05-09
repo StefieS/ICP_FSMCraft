@@ -176,7 +176,7 @@ void MainWindow::onClearClicked() {
     ghostCircle->setVisible(false);
 }
 
-std::pair<QString, QString> MainWindow::askForTransitionDetails() {
+std::tuple<QString, QString, QString> MainWindow::askForTransitionDetails() {
     QDialog dialog(this);
     dialog.setWindowTitle("New Transition");
     dialog.setFixedSize(300, 200);
@@ -186,6 +186,10 @@ std::pair<QString, QString> MainWindow::askForTransitionDetails() {
     QLabel* inputLabel = new QLabel("Input name:", &dialog);
     QLineEdit* inputEdit = new QLineEdit(&dialog);
     inputEdit->setPlaceholderText("e.g. buttonPressed");
+
+    QLabel* timeoutLabel = new QLabel("Timeout in ms (optional):", &dialog);
+    QLineEdit* timeoutEdit = new QLineEdit(&dialog);
+    timeoutEdit->setPlaceholderText("e.g. 5000");
 
     QLabel* condLabel = new QLabel("Guard condition:", &dialog);
     QTextEdit* condEdit = new QTextEdit(&dialog);
@@ -198,13 +202,15 @@ std::pair<QString, QString> MainWindow::askForTransitionDetails() {
     layout->addWidget(inputEdit);
     layout->addWidget(condLabel);
     layout->addWidget(condEdit);
+    layout->addWidget(timeoutLabel);
+    layout->addWidget(timeoutEdit);
     layout->addWidget(okButton);
 
     if (dialog.exec() == QDialog::Accepted) {
-        return { inputEdit->text(), condEdit->toPlainText() };
+        return { inputEdit->text(), condEdit->toPlainText(), timeoutEdit->text() };
     }
 
-    return { "", "" };
+    return { "", "" , ""};
 }
 
 std::pair<QString, QString> MainWindow::askForStateDetails() {
@@ -339,7 +345,7 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* event) {
         
                 std::string src = transitionStart->getName().toStdString();
                 std::string dst = target->getName().toStdString();
-                auto [input, cond] = askForTransitionDetails();
+                auto [input, cond, timeout] = askForTransitionDetails();
                 if (input.isEmpty() || cond.isEmpty()) {
                     scene->removeItem(currentLine);
                     delete currentLine;
@@ -348,8 +354,14 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* event) {
                     connectingMode = false;
                     return true;
                 }
+                std::string timeoutToSet;
+                if (timeout.isEmpty()) {
+                    timeoutToSet = "0";
+                } else {
+                    timeoutToSet = timeout.toStdString();
+                }
 
-                Transition t(src, dst, input.toStdString(), cond.toStdString());
+                Transition t(src, dst, input.toStdString(), cond.toStdString(), timeoutToSet);
 
                 for (int i = 0; i < stateCount; ++i) {
                     if (stateList[i]->getName() == src) {
