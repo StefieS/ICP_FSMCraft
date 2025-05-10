@@ -72,26 +72,34 @@ void TCPListener::startListening(int port,
         safePrint("Client connected! Socket: " + std::to_string(client_socket));
 
         char buffer[1024];
+        std::string recvBuffer;
+
         while (true) {
             memset(buffer, 0, sizeof(buffer));
             int bytesRead = recv(client_socket, buffer, sizeof(buffer), 0);
 
             if (bytesRead <= 0) {
-
                 safePrint("Client " + std::to_string(client_socket) + " disconnected.");
                 break;
             }
 
-            std::string msg(buffer, bytesRead);
-            safePrint("Received message from socket " + std::to_string(client_socket) + ": " + msg);
+            recvBuffer.append(buffer, bytesRead);
 
-            try {
-                onMessage(msg, client_socket);
-                Message isStop(msg);
-                if (isStop.getType() == EMessageType::STOP) break;
-                
-            } catch (const std::exception& e) {
-                std::cerr << "Error processing message: " << e.what() << std::endl;
+            // Process all complete messages in the buffer
+            size_t pos;
+            while ((pos = recvBuffer.find("\r\n")) != std::string::npos) {
+                std::string msg = recvBuffer.substr(0, pos);
+                recvBuffer.erase(0, pos + 2); // Remove message + delimiter
+
+                safePrint("Received message from socket " + std::to_string(client_socket) + ": " + msg);
+
+                try {
+                    onMessage(msg, client_socket);
+                    Message isStop(msg);
+                    if (isStop.getType() == EMessageType::STOP) return; // Exit outer loop
+                } catch (const std::exception& e) {
+                    std::cerr << "Error processing message: " << e.what() << std::endl;
+                }
             }
         }
 
