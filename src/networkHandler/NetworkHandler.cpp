@@ -73,7 +73,7 @@ void NetworkHandler::listen(int port) {
             // Process message from any client
             Message message(msg);
             Message processed = controller.performAction(message);
-            std::string responseStr = "Echo: " + processed.toMessageString(); 
+            std::string responseStr = processed.toMessageString() + "\r\n"; 
 
             // Send processed result only to first client
             int targetSocket;
