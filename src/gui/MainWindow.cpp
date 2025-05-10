@@ -481,19 +481,6 @@ void MainWindow::onNewStateButtonClicked() {
     ghostCircle->setVisible(true);
 }
 
-void MainWindow::onRunClicked() {
-    onSaveClicked();
-    this->listenerThread = std::thread([this]() {
-        this->networkHandler.listen(8080);
-    });
-    std::this_thread::sleep_for(std::chrono::seconds(1));
-    networkHandler.connectToServer();
-    std::this_thread::sleep_for(std::chrono::seconds(1));
-    Message msg;
-    msg.buildJsonMessage("generated_fsm.json"); // TODO NAME
-    networkHandler.sendToHost(msg.toMessageString());
-}
-
 void MainWindow::onStopClicked() {
     // todo send message of stop
     Message msg;
@@ -519,6 +506,15 @@ void MainWindow::onRunClicked() {
         // TODO: Start FSM logic here
         qDebug() << "FSM Started";
 
+        this->listenerThread = std::thread([this]() {
+            this->networkHandler.listen(8080);
+        });
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+        networkHandler.connectToServer();
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+        Message msg;
+        msg.buildJsonMessage("generated_fsm.json"); // TODO NAME
+        networkHandler.sendToHost(msg.toMessageString());
         // todo controller stuff for starting server...
         // for (auto it = inputMap.begin(); it != inputMap.end(); ++it) {
         //     QString name = it.key();

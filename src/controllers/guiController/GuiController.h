@@ -19,7 +19,7 @@ private:
      * GUI window to control
      */
     IMainWindow* gui;
-
+    std::string buffer;
 public:
     /**
      * @brief Constructor for the controller

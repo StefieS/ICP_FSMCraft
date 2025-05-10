@@ -3,6 +3,7 @@
 
 std::mutex sockMutex;  // Mutex to protect socket operations
 std::mutex sockMutex2; 
+std::mutex readMutex;
 
 void TCPSender::setHostAndPort(const std::string& host, int port) {
     std::lock_guard<std::mutex> lock(sockMutex);  // Protect shared resource
@@ -43,7 +44,7 @@ bool TCPSender::connectToServer() {
 }
 
 std::string TCPSender::recvMessage() {
-    std::lock_guard<std::mutex> lock(sockMutex);
+    std::lock_guard<std::mutex> lock(readMutex);
 
     char buffer[1024];
     size_t delimiterPos;
