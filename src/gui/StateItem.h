@@ -21,6 +21,7 @@ public:
     QPointF sceneCenter() const;
     void setActive(bool active) override;
     bool isActive() const override;
+    
 
 protected:
     void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override;
@@ -35,4 +36,5 @@ private:
     QGraphicsTextItem* label;
     bool initial = false;       
     bool final = false;
+    bool active = false;
 };

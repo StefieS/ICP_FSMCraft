@@ -16,4 +16,5 @@ private:
 public:
     GuiController(IMainWindow* gui);
     void performAction(Message &msg);
+    void sendInput(const std::string& name, const std::string& value);
 };

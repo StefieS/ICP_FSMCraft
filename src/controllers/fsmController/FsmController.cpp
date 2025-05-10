@@ -16,7 +16,7 @@ const Message FsmController::performAction(Message &msg) {
         QFile file(fileName);
 
         if (!file.open(QIODevice::ReadOnly)) {
-            qWarning() << "Couldn't open the file for reading:" << file.errorString();
+            // qWarning() << "Couldn't open the file for reading:" << file.errorString();
             response.buildRejectMessage("Couldn't open the file for reading");
             return response;
         }

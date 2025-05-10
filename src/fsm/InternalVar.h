@@ -14,7 +14,7 @@ public:
     std::string setType(std::string type);
     std::string setInitialValue(std::string initialValue);
 
-    std::string getName();
+    std::string getName() const;
     std::string getType();
-    std::string getInitialValue();
+    std::string getInitialValue() const;
 };
