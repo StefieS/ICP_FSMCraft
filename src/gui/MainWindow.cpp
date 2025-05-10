@@ -158,6 +158,7 @@ MainWindow::MainWindow(QWidget *parent)
     internalVarsFlow = new QFlowLayout(internalVarsContainer);
     internalVarsFlow->setContentsMargins(5, 5, 5, 5);
     internalVarsFlow->setSpacing(8);
+    
     leftLayout->addWidget(internalVarsContainer);
 
     // Input container --
@@ -434,8 +435,6 @@ MainWindow::MainWindow(QWidget *parent)
     if (this->connected) {
         // send request message TODO
     }
-
-
 }
 
 void MainWindow::printLog(std::string logMessage) {
@@ -562,7 +561,7 @@ void MainWindow::onRunClicked() {
 }
 
 void MainWindow::onSaveClicked() {
-        fsm = new FSM("fsm_gen");
+    fsm = new FSM("fsm_gen");
 
     // Add internal variables
     for (auto it = internalVarMap.begin(); it != internalVarMap.end(); ++it) {
@@ -837,8 +836,9 @@ void MainWindow::onClearClicked() {
 
 std::tuple<QString, QString, QString> MainWindow::askForTransitionDetails() {
     QDialog dialog(this);
+    dialog.setStyleSheet("");
     dialog.setWindowTitle("New Transition");
-    dialog.setFixedSize(300, 200);
+    dialog.setFixedSize(300, 300);
 
     QVBoxLayout* layout = new QVBoxLayout(&dialog);
 
