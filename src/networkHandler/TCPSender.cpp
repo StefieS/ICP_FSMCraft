@@ -2,6 +2,7 @@
 #include <mutex>
 
 std::mutex sockMutex;  // Mutex to protect socket operations
+std::mutex sockMutex2; 
 
 void TCPSender::setHostAndPort(const std::string& host, int port) {
     std::lock_guard<std::mutex> lock(sockMutex);  // Protect shared resource
