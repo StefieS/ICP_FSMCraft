@@ -1,7 +1,7 @@
 #include "FsmController.h"
 #include "../../qtfsm/QTConditionEvent.h"
 
-FsmController::FsmController() : qtfsm(nullptr) {}
+FsmController::FsmController() {}
 
 const Message FsmController::performAction(Message &msg) {
     EMessageType type = msg.getType();
