@@ -10,8 +10,10 @@
 #include "../fsm/State.h"
 #include <utility>
 #include "../fsm/Transition.h"
+#include "../messages/Message.h"
 void QTfsmBuilder::buildQTfsm(const QJsonDocument& jsonDoc) {
     JsonLoader loader = JsonLoader();
+    bool addedInitial = false;
     this->innerFsm = loader.fromJson(jsonDoc);
 
     this->built = new QTfsm(nullptr, this->innerFsm->getName());
@@ -25,12 +27,19 @@ void QTfsmBuilder::buildQTfsm(const QJsonDocument& jsonDoc) {
             return;
         } else if (state.second->isInitialState()) {
             qDebug("Added initial");
+            addedInitial = true;
             toBeSet = this->built->addState(stateName);
             this->built->setInitialState(toBeSet);
         } else {
             toBeSet = this->built->addState(stateName);
         }
         this->built->addStateJsAction(toBeSet, stateAction);
+    }
+
+    if (!addedInitial) {
+        Message msg = Message();
+        msg.buildRejectMessage("No initial state!");
+        this->built->getNetworkHandler().sendToHost(msg.toMessageString());
     }
 
     auto transitions = this->innerFsm->getTransitions();
