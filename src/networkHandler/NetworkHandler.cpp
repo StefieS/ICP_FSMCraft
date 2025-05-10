@@ -58,8 +58,9 @@ void NetworkHandler::sendToHost(const std::string& msg) {
 }
 
 // Listen for incoming messages
-void NetworkHandler::listen(int port, FsmController& controller) {
+void NetworkHandler::listen(int port) {
     if (listener) {
+        FsmController controller;
         listener->startListening(port, [this, &controller](const std::string& msg, int clientSocket) {
                 // Register the first client socket
             {

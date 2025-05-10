@@ -3,6 +3,7 @@
 #include "QTTransition.h"
 #include "QTBuiltinHandler.h"
 #include <QDateTime>
+#include <QApplication>
 #include "../common/EItemType.h"
 #include "../messages/Message.h"
 
@@ -13,15 +14,32 @@ QTfsm::QTfsm(QObject* parent, const std::string& name)
     automaton->addTransition(this->automaton, &QState::finished, this->end);
     automaton->addTransition(this, &QTfsm::stopSignal, this->end);
     machine.setInitialState(this->automaton);
+    this->moveToThread(QCoreApplication::instance()->thread());
+    this->getMachine()->moveToThread(QCoreApplication::instance()->thread());
 }
 
 QState* QTfsm::addState(const QString& name) {
-    QState* state = new QState(this->automaton); 
+    if (!this->automaton) {
+        qWarning() << "Automaton is null. Cannot add state.";
+        return nullptr;
+    }
+
+    // Ensure we're in the same thread
+    if (this->thread() != this->automaton->thread()) {
+        qWarning() << "QTfsm and automaton are in different threads!";
+    }
+
+    QState* state = new QState(this->automaton);  // owned by automaton
     if (!name.isEmpty()) {
         state->setObjectName(name);
+        qDebug() << "Added state:" << name;
+    } else {
+        qDebug() << "Added unnamed state";
     }
+
     return state;
 }
+
 
 void QTfsm::setInitialState(QAbstractState* state) {
     this->automaton->setInitialState(state);
@@ -80,7 +98,7 @@ void QTfsm::addStateJsAction(QState* state, const QString& jsCode) {
         QVariantMap map; // todo add current map
         this->postEvent(new JsConditionEvent(map, empty));
 
-    });
+    }, Qt::QueuedConnection);
 
     QObject::connect(state, &QState::exited, this, [state]() {
     for (auto* t : state->transitions()) {
@@ -126,7 +144,13 @@ void QTfsm::addJsTransition(QState* from, QAbstractState* to, const QString& con
 
 void QTfsm::postEvent(QEvent* event) {
     qDebug() << "POSTED";
-    machine.postEvent(event);
+    // Using QMetaObject::invokeMethod to post the event to the state machine
+    QMetaObject::invokeMethod(
+        this->getMachine(),                  // The object (QStateMachine) to which the event is posted
+        "postEvent",                         // The method we want to invoke (postEvent)
+        Qt::QueuedConnection,                // Ensures the method is called in the event loop
+        Q_ARG(QEvent*, event)                // Pass the event as the argument using Q_ARG
+    );
 }
 
 std::string QTfsm::getName() {
@@ -140,14 +164,20 @@ void QTfsm::emitStopSignal() {
 void QTfsm::start() {
     initializeJsEngine();
     this->connected = this->networkHandler.connectToServer();
-    machine.start();
+    if (!this->connected) {
+        qWarning() << "Failed to connect to host. State machine will not start.";
+        return;
+    }
+    // Start state machine after moving it to the main thread
+    QMetaObject::invokeMethod(&machine, "start", Qt::QueuedConnection);
 }
 
 void QTfsm::stop() {
     this->stopSignal();
-    machine.stop();
+    QMetaObject::invokeMethod(&machine, "stop", Qt::QueuedConnection);
     this->networkHandler.closeConnection();
 }
+
 
 QStateMachine* QTfsm::getMachine() {
     return &this->machine;

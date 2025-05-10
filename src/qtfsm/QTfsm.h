@@ -43,6 +43,7 @@ public:
     void postEvent(QEvent* event);
 signals:
     void stopSignal();
+    
 
 private:
     std::string jsonName;

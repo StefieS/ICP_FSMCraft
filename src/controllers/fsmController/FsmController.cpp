@@ -1,5 +1,7 @@
 #include "FsmController.h"
 #include "../../qtfsm/QTConditionEvent.h"
+#include <QEventLoop>
+#include <QCoreApplication>
 
 FsmController::FsmController() {}
 
@@ -32,10 +34,21 @@ const Message FsmController::performAction(Message &msg) {
         }
 
         std::unique_ptr<QTfsmBuilder> builder = std::make_unique<QTfsmBuilder>();
-        builder->buildQTfsm(jsonDoc);
+        QEventLoop loop;
+        bool builtOk = false;
+
+        QMetaObject::invokeMethod(QCoreApplication::instance(), [&]() {
+            builder->buildQTfsm(jsonDoc);
+            builtOk = true;
+            loop.quit();
+        }, Qt::QueuedConnection);
+
+        // Wait for FSM build to complete on the main thread
+        loop.exec();
+
         this->qtfsm = builder->getBuiltFsm();
 
-        if (!this->qtfsm) {
+        if (!this->qtfsm || !builtOk) {
             response.buildRejectMessage("Failed to build FSM.");
             return response;
         }

@@ -258,9 +258,8 @@ void MainWindow::onNewStateButtonClicked() {
 
 void MainWindow::onRunClicked() {
     onSaveClicked();
-    FsmController controller;
-    this->listenerThread = std::thread([this, &controller]() {
-        this->networkHandler.listen(8080, controller);
+    this->listenerThread = std::thread([this]() {
+        this->networkHandler.listen(8080);
     });
     std::this_thread::sleep_for(std::chrono::seconds(1));
     networkHandler.connectToServer();
