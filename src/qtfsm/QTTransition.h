@@ -126,7 +126,9 @@ protected:
 
     }
 
-    void onTransition(QEvent*) override {}
+    void onTransition(QEvent*) override {
+        //TODO send Log
+    }
 
 private:
     QJSEngine* jsEngine;

@@ -9,7 +9,9 @@ QTfsm::QTfsm(QObject* parent, const std::string& name)
     this->end = new QFinalState(&machine); 
     automaton->addTransition(this->automaton, &QState::finished, this->end);
     automaton->addTransition(this, &QTfsm::stopSignal, this->end);
-
+    QObject::connect(this->automaton, &QState::entered, this, [this]() {
+        //TODO send log
+    });
     machine.setInitialState(this->automaton);
 }
 

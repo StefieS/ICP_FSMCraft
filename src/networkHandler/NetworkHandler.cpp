@@ -70,12 +70,19 @@ void NetworkHandler::listen(int port) {
                 }
             }
 
-            // Only send a response to the first client
-            int targetSocket = firstClientSocket;
-            if (targetSocket == clientSocket) {
-                Message message(msg);
-                Message processed = controller.performAction(message);
-                std::string responseStr = "Echo: " + processed.toMessageString(); 
+            // Process message from any client
+            Message message(msg);
+            Message processed = controller.performAction(message);
+            std::string responseStr = "Echo: " + processed.toMessageString(); 
+
+            // Send processed result only to first client
+            int targetSocket;
+            {
+                std::lock_guard<std::mutex> lock(socketMutex);
+                targetSocket = firstClientSocket;
+            }
+
+            if (targetSocket != -1) {
                 ::send(targetSocket, responseStr.c_str(), responseStr.size(), 0);
             }
             

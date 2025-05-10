@@ -1,62 +1,81 @@
 #include "FsmController.h"
 #include "../../qtfsm/QTConditionEvent.h"
 
-FsmController::FsmController() {}
+FsmController::FsmController() : qtfsm(nullptr) {}
 
-const Message& FsmController::performAction(Message &msg) {
-
+const Message FsmController::performAction(Message &msg) {
     EMessageType type = msg.getType();
-    Message response = Message();
-    switch (type)
-    {
-    case (EMessageType::JSON) : {
-        // creating running QTfsm
-        std::string name = msg.getJsonName();
-        QTfsmBuilder* builder = new QTfsmBuilder();
+    Message response;
 
+    switch (type) {
+    case EMessageType::JSON: {
+        std::string name = msg.getJsonName();
         QString fileName = QString::fromStdString(name);
         QFile file(fileName);
-    
+
         if (!file.open(QIODevice::ReadOnly)) {
-        qWarning() << "Couldn't open the file for reading:" << file.errorString();
-        response.buildRejectMessage("Couldn't open the file for reading");
-        return response;
+            qWarning() << "Couldn't open the file for reading:" << file.errorString();
+            response.buildRejectMessage("Couldn't open the file for reading");
+            return response;
         }
-        
+
         QByteArray jsonData = file.readAll();
         file.close();
-        
+
         QJsonParseError parseError;
         QJsonDocument jsonDoc = QJsonDocument::fromJson(jsonData, &parseError);
-        const QJsonDocument& jsonRef = jsonDoc;
-        builder->buildQTfsm(jsonRef);
-    
+
+        if (parseError.error != QJsonParseError::NoError || jsonDoc.isNull()) {
+            std::string errorMsg = "JSON parse error: " + parseError.errorString().toStdString();
+            response.buildRejectMessage(errorMsg);
+            return response;
+        }
+
+        std::unique_ptr<QTfsmBuilder> builder = std::make_unique<QTfsmBuilder>();
+        builder->buildQTfsm(jsonDoc);
         this->qtfsm = builder->getBuiltFsm();
+
+        if (!this->qtfsm) {
+            response.buildRejectMessage("Failed to build FSM.");
+            return response;
+        }
+
         response.buildAcceptMessage();
         this->qtfsm->start();
         return response;
     }
 
-    case (EMessageType::INPUT) : {
-        // posting input event
+    case EMessageType::INPUT: {
+        if (!this->qtfsm) {
+            response.buildRejectMessage("FSM not initialized.");
+            return response;
+        }
+
         std::string name = msg.getInputName();
         std::string value = msg.getInputValue();
         QVariantMap data;
         QString qName = QString::fromStdString(name);
         QString qValue = QString::fromStdString(value);
         data[qName] = qValue;
+
         this->qtfsm->postEvent(new JsConditionEvent(data, qName));
-        
+        response.buildAcceptMessage();
         return response;
     }
 
-    case (EMessageType:: STOP) : {
-        response.buildAcceptMessage();
+    case EMessageType::STOP: {
+        if (!this->qtfsm) {
+            response.buildRejectMessage("FSM not initialized.");
+            return response;
+        }
+
         this->qtfsm->stop();
+        response.buildAcceptMessage();
         return response;
     }
-    
+
     default:
+        response.buildRejectMessage("Unknown message type.");
         return response;
     }
 }
