@@ -40,6 +40,7 @@ private slots:
     void onRunClicked();
     void onClearClicked();
     void onSaveClicked();
+    void onStopClicked();
     std::tuple<QString, QString, QString> askForTransitionDetails();
     std::pair<QString, QString> askForStateDetails();
     QString askToEditAction(const QString& currentCode);
