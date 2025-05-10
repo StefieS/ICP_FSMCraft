@@ -132,18 +132,18 @@ protected:
         QString timeStr = now.toString("yyyy-MM-dd hh:mm:ss");  // or any format you want
         std::string timeStamp = timeStr.toStdString();
         // Elem State
-        EItemType elementType = EItemType::STATE;
+        EItemType elementType = EItemType::TRANSITION;
         // currentElem
-        const std::string currentElement = state->objectName().toStdString();
+        const std::string currentElement = jsCondition.toStdString();
         Message log = Message();
         log.buildLogMessage(timeStamp,
             elementType,
             currentElement,
-            getStringMap(this->inputValues),
-            getStringMap(this->outputValues),
-            getStringMap(this->internalValues));
+            automaton->getStringMap(automaton->getInputs()),
+            automaton->getStringMap(automaton->getOutputs()),
+            automaton->getStringMap(automaton->getVars()));
 
-        this->networkHandler.sendToHost(log.toMessageString());
+        automaton->getNetworkHandler().sendToHost(log.toMessageString());
     }
 
 private:
