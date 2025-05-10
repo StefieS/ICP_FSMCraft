@@ -65,4 +65,12 @@ public:
      * @return A reference to the activable item wanted.
      */
     virtual IActivable& getActivableItem(EItemType type, std::string itemID) = 0;
+
+
+    /**
+     * @brief Loads json to GUI and shows it.
+     * 
+     * @param pathToJson Path to Json file
+     */
+    virtual void loadFSMFromJson(std::string pathToJson) = 0;
 };
