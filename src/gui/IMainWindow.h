@@ -64,5 +64,5 @@ public:
      * 
      * @return A reference to the activable item wanted.
      */
-    virtual IActivable& getActivableItem(EItemType type, std::string itemID);
+    virtual IActivable& getActivableItem(EItemType type, std::string itemID) = 0;
 };

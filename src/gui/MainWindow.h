@@ -14,6 +14,9 @@
 #include "InternalVarItem.h"
 #include "QFlowLayout.h"
 #include "FSM.h"
+#include <QPlainTextEdit>
+#include "IMainWindow.h"
+
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -21,6 +24,12 @@ class MainWindow : public QMainWindow {
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
+
+    void printLog(std::string logMessage) ;
+    void highlightItem(bool on, IActivable& item) ;
+     void setRunning() ;
+     void showError(std::string errorMessage) ;
+     void showOutput(std::string outputID, std::string outputValue) ;
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event) override;
@@ -61,6 +70,7 @@ private slots:
     QFlowLayout* internalVarsFlow;
     QMap<QString, InternalVarItem*> internalVarMap;
 
+    QPlainTextEdit* logBox;
 
     // State creation logic
     bool addingNewState = false;

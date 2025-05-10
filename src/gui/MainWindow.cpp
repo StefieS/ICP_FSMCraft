@@ -181,6 +181,34 @@ MainWindow::MainWindow(QWidget *parent)
                                     
     ghostCircle->setOpacity(0.5);
     ghostCircle->setVisible(false);
+
+    logBox = new QPlainTextEdit(this);
+    logBox->setReadOnly(true);
+    logBox->setStyleSheet("background-color: #f9f9f9; border: 1px solid #ccc;");
+    logBox->setMaximumHeight(120);
+    logBox->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+
+    layout->addWidget(logBox);
+}
+
+void MainWindow::printLog(std::string logMessage) {
+    QString msg = QString::fromStdString(logMessage);
+    logBox->appendPlainText(msg);
+}
+
+void MainWindow::highlightItem(bool on, IActivable& item) {
+    return;
+}
+
+void MainWindow::setRunning() {
+    return;
+}
+void showError(std::string errorMessage) {
+    return;
+}
+
+void showOutput(std::string outputID, std::string outputValue) {
+    return;
 }
 
 static std::string detectTypeFromValue(const QString& value) {
