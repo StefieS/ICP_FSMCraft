@@ -16,6 +16,8 @@ private:
     QTimer* delayTimer = nullptr;
     bool ready = false;
     QTfsm* automaton;
+    QJSEngine* jsEngine;
+    QString jsCondition;
 public:
     JsConditionTransition(QJSEngine* engine, 
         const QString& condition, 
@@ -108,8 +110,7 @@ protected:
 
         QJSValue result = jsEngine->evaluate(jsCondition);
         if (result.isError()) {
-            qWarning() <<jsCondition;
-            qWarning() << "JavaScript error:" << result.toString();
+            
             return false;
         }
         
@@ -132,12 +133,12 @@ protected:
     void onTransition(QEvent*) override {
         //TODO send Log
         QDateTime now = QDateTime::currentDateTime();
-        QString timeStr = now.toString("yyyy-MM-dd hh:mm:ss");  // or any format you want
+        QString timeStr = now.toString("yyyy-MM-dd hh:mm:ss");
         std::string timeStamp = timeStr.toStdString();
         // Elem State
         EItemType elementType = EItemType::TRANSITION;
-        // currentElem
-        const std::string currentElement = jsCondition.toStdString();
+        // currentElem todo check if correct order of condition/key
+        const std::string currentElement = jsCondition.toStdString() + "/" + inputKey.toStdString();
         Message log = Message();
         log.buildLogMessage(timeStamp,
             elementType,
@@ -148,8 +149,4 @@ protected:
 
         automaton->getNetworkHandler().sendToHost(log.toMessageString());
     }
-
-private:
-    QJSEngine* jsEngine;
-    QString jsCondition;
 };
