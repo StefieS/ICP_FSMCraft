@@ -14,6 +14,12 @@ void QTBuiltinHandler::output(const QString& name, const QString& value) {
 }
 
 int QTBuiltinHandler::elapsed() {
-  // return time elapsed in current state;
-  return 1;
+    return stateTimer.isValid() ? stateTimer.elapsed() : 0;
+}
+
+void QTBuiltinHandler::stateEntered(QState* newState) {
+    if (newState != lastActiveState) {
+        stateTimer.restart();
+        lastActiveState = newState;
+    }
 }

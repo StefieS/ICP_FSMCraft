@@ -37,7 +37,8 @@ QJSEngine* QTfsm::getJsEngine(){
 }
 
 void QTfsm::initializeJsEngine() {
-    QTBuiltinHandler* builtinHandler = new QTBuiltinHandler(this);
+    QTBuiltinHandler* builtinHandler = new QTBuiltinHandler(nullptr, this);
+    this->builtinHandler = builtinHandler;
     QJSValue builtinHandlerJs = engine.newQObject(builtinHandler);
     engine.globalObject().setProperty("fsm", builtinHandlerJs);
 }
@@ -46,9 +47,9 @@ void QTfsm::initializeJsEngine() {
 void QTfsm::addStateJsAction(QState* state, const QString& jsCode) {
     qDebug() << "Added action with code:" << jsCode;
 
-    QObject::connect(state, &QState::entered, this, [this, jsCode]() {
+    QObject::connect(state, &QState::entered, this, [this, jsCode, state]() {
 
-
+        builtinHandler->stateEntered(state);
         QJSValue result = this->engine.evaluate(jsCode);
         if (result.isError()) {
             qWarning() << "JavaScript error in state entry action:" << result.toString();
@@ -115,7 +116,7 @@ void QTfsm::emitStopSignal() {
 
 void QTfsm::start() {
     initializeJsEngine();
-    this->connected = this->networkHandler.connectToServer();
+    //this->connected = this->networkHandler.connectToServer();
     machine.start();
 }
 

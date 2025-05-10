@@ -3,6 +3,8 @@
 #include <QObject>
 #include <QString>
 #include "QTfsm.h"
+#include <QElapsedTimer>
+class QTfsm; // forward declar
 class QTBuiltinHandler : public QObject {
     Q_OBJECT
 public:
@@ -11,6 +13,9 @@ public:
 public slots:
     void output(const QString& name, const QString& value);
     int elapsed();
+    void stateEntered(QState* newState);
 private:
     QTfsm* fsm;
+    QElapsedTimer stateTimer;
+    QState* lastActiveState = nullptr;
 };

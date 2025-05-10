@@ -5,7 +5,8 @@
 #include <QObject>
 #include <QJSEngine>
 #include "../networkHandler/NetworkHandler.h"
-
+#include "QTBuiltinHandler.h"
+class QTBuiltinHandler; // forward delcar
 class QTfsm : public QObject {
     Q_OBJECT
 
@@ -47,5 +48,6 @@ private:
     NetworkHandler networkHandler;
     std::map<std::string, QJSValue> outputValues;
     std::map<std::string, QJSValue> internalValues;
-
+    std::map<std::string, QJSValue> inputValues;
+    QTBuiltinHandler* builtinHandler;
 };
