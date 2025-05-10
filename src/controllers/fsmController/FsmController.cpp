@@ -39,7 +39,6 @@ const Message FsmController::performAction(Message &msg) {
             response.buildRejectMessage("Failed to build FSM.");
             return response;
         }
-
         response.buildAcceptMessage();
         this->qtfsm->start();
         return response;
@@ -59,7 +58,6 @@ const Message FsmController::performAction(Message &msg) {
         data[qName] = qValue;
 
         this->qtfsm->postEvent(new JsConditionEvent(data, qName));
-        response.buildAcceptMessage();
         return response;
     }
 
@@ -70,12 +68,29 @@ const Message FsmController::performAction(Message &msg) {
         }
 
         this->qtfsm->stop();
-        response.buildAcceptMessage();
+        return response;
+    }
+
+    case EMessageType::REQUEST: {
+        if (!this->qtfsm) {
+            response.buildRejectMessage("FSM not initialized.");
+            return response;
+        }
+
+        response.buildJsonMessage(this->qtfsm->getName());
+        return response;
+
+    }
+
+    case EMessageType::REJECT: {
+        if (!this->qtfsm) {
+            return response;
+        }
+        this->qtfsm->stop();
         return response;
     }
 
     default:
-        response.buildRejectMessage("Unknown message type.");
         return response;
     }
 }

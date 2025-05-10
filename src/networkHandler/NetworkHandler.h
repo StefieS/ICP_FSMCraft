@@ -80,6 +80,7 @@ private:
     int sock = -1;
     sockaddr_in server;
     std::string host;
+    std::string recvBuffer;
     int port;
 };
 

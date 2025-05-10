@@ -42,18 +42,27 @@ bool TCPSender::connectToServer() {
 }
 
 std::string TCPSender::recvMessage() {
-    std::lock_guard<std::mutex> lock(sockMutex);  // Protect socket access
+    std::lock_guard<std::mutex> lock(sockMutex);
 
     char buffer[1024];
-    memset(buffer, 0, sizeof(buffer));
+    size_t delimiterPos;
 
-    int bytesRead = recv(sock, buffer, sizeof(buffer), 0);
-    if (bytesRead <= 0) {
-        std::cerr << "Receive failed or connection closed!" << std::endl;
-        return "";
+    // Keep reading until we find a newline in recvBuffer
+    while ((delimiterPos = recvBuffer.find("\r\n")) == std::string::npos) {
+        int bytesRead = recv(sock, buffer, sizeof(buffer), 0);
+        if (bytesRead <= 0) {
+            std::cerr << "Receive failed or connection closed!" << std::endl;
+            return "";
+        }
+        recvBuffer.append(buffer, bytesRead);
     }
 
-    return std::string(buffer, bytesRead);
+    // Extract the message up to the newline (exclude)
+    std::string message = recvBuffer.substr(0, delimiterPos);
+    // Remove the extracted message from the buffer
+    recvBuffer.erase(0, delimiterPos + 2);
+
+    return message;
 }
 
 void TCPSender::closeConnection() {
@@ -74,12 +83,15 @@ bool TCPSender::sendMessage(const std::string& msg) {
         return false;
     }
 
-    ssize_t bytesSent = send(sock, msg.c_str(), msg.size(), 0);
+    std::string fullMessage = msg + "\r\n";
+
+    ssize_t bytesSent = send(sock, fullMessage.c_str(), fullMessage.size(), 0);
     if (bytesSent == -1) {
         std::cerr << "Send failed: " << strerror(errno) << " (" << errno << ")" << std::endl;
         closeConnection();
         return false;
     }
+
     safePrint("Message sent from socket " + std::to_string(sock) + ": " + msg);
     return true;
 }
