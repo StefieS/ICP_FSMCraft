@@ -21,6 +21,7 @@
     ACCEPT,
     REJECT,
     EMPTY,
+    REQUEST,
  };
  
  /**
@@ -37,6 +38,7 @@
         case EMessageType::ACCEPT: return "ACCEPT";
         case EMessageType::REJECT: return "REJECT";
         case EMessageType::EMPTY: return "EMPTY";
+        case EMessageType::REQUEST: return "REQUEST";
         default: return "UNKNOWN";
      }
  }
@@ -55,5 +57,6 @@
     if (str == "ACCEPT") return EMessageType::ACCEPT;
     if (str == "REJECT") return EMessageType::REJECT;
     if (str == "EMPTY") return EMessageType::EMPTY;
+    if (str == "REQUEST") return EMessageType::REQUEST;
     throw std::invalid_argument("Invalid EMessageType string: " + str);
  }
