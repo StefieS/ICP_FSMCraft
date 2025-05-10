@@ -16,6 +16,7 @@ StateItem::StateItem(const QPointF& position, const QString& name) : initial(fal
     circle->setBrush(QBrush(Qt::white));
 
     label = new QGraphicsTextItem(name, this);
+    label->setDefaultTextColor(Qt::black);
     label->setPos(-label->boundingRect().width() / 2,
                   -label->boundingRect().height() / 2);
 
