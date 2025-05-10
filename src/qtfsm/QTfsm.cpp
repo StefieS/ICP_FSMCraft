@@ -111,6 +111,9 @@ void QTfsm::setJsVariable(const QString& name, const QJSValue& value) {
 void QTfsm::setOutput(const QString& name, const QJSValue& value) {
     this->outputValues[name.toStdString()] = value;
 }
+void QTfsm::setInput(const QString& name, const QJSValue& value) {
+    this->inputValues[name.toStdString()] = value;
+}
 
 
 void QTfsm::addJsTransition(QState* from, QAbstractState* to, const QString& condition, const QString& expectedInput, const QString& timeout) {

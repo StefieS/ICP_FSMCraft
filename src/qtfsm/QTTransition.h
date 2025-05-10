@@ -6,6 +6,9 @@
 #include <QEvent>
 #include "QTConditionEvent.h"
 #include <QTimer>
+#include <QDateTime>
+#include "../common/EItemType.h"
+#include "../messages/Message.h"
 class JsConditionTransition : public QAbstractTransition {
 private:
     QString inputKey;
