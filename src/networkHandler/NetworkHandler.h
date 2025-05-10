@@ -30,7 +30,7 @@ public:
 class NetworkSender {
 public:
     virtual bool sendMessage(const std::string& msg) = 0;
-    virtual void connectToServer() = 0;
+    virtual bool connectToServer() = 0;
     virtual std::string recvMessage() = 0;
     virtual void closeConnection() = 0;
     virtual ~NetworkSender() = default;
@@ -54,7 +54,7 @@ public:
     void sendToHost(const std::string& msg);
     void listen(int port);
     std::string recvFromHost();
-    void connectToServer();
+    bool connectToServer();
     void closeConnection();
 
 private:
@@ -70,7 +70,7 @@ private:
 class TCPSender : public NetworkSender {
 public:
     bool sendMessage(const std::string& msg) override;
-    void connectToServer() override;
+    bool connectToServer() override;
     std::string recvMessage();
     void closeConnection() override;
 

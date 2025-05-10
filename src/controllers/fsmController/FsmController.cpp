@@ -32,13 +32,12 @@ const Message& FsmController::performAction(Message &msg) {
         builder->buildQTfsm(jsonRef);
     
         this->qtfsm = builder->getBuiltFsm();
-        this->qtfsm->start();
         response.buildAcceptMessage();
+        this->qtfsm->start();
         return response;
     }
 
     case (EMessageType::INPUT) : {
-
         // posting input event
         std::string name = msg.getInputName();
         std::string value = msg.getInputValue();
@@ -52,8 +51,9 @@ const Message& FsmController::performAction(Message &msg) {
     }
 
     case (EMessageType:: STOP) : {
-        
-        break;
+        response.buildAcceptMessage();
+        this->qtfsm->stop();
+        return response;
     }
     
     default:
