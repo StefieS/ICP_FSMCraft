@@ -21,6 +21,7 @@
 #include "IMainWindow.h"
 #include "../io/JsonLoader.h"
 #include "../networkHandler/NetworkHandler.h"
+#include "../common/EMessageType.h"
 
 
 class MainWindow : public QMainWindow, public IMainWindow {
@@ -40,6 +41,7 @@ public:
     void loadFSMFromJson(std::string pathToJson) override;
 
     std::thread listenerThread;
+    std::thread recvThread;
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event) override;

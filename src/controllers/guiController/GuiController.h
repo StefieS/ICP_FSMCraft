@@ -6,8 +6,8 @@
  */
 
 #pragma once
-#include "IMainWindow.h"
-#include "../messages/Message.h"
+#include "../../gui/IMainWindow.h"
+#include "../../messages/Message.h"
 
 /**
  * @class GuiController
@@ -19,14 +19,13 @@ private:
      * GUI window to control
      */
     IMainWindow* gui;
-    std::string buffer;
 public:
     /**
      * @brief Constructor for the controller
      * @param gui Window to control
      */
     GuiController(IMainWindow* gui);
-
+    std::string buffer;
     /**
      * @brief Based on the received message type
      * performs action on GUI

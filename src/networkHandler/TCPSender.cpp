@@ -48,21 +48,25 @@ std::string TCPSender::recvMessage() {
 
     char buffer[1024];
     size_t delimiterPos;
-
+    safePrint("DAKSDASKDASODAKDSAKOODASKDASKDADKKDASKDASKDKSAADK" "\n");
     // Keep reading until we find a newline in recvBuffer
     while ((delimiterPos = recvBuffer.find("\r\n")) == std::string::npos) {
+        safePrint("DVA STIHACKY LETIA NESTIHAJU" "\n");
         int bytesRead = recv(sock, buffer, sizeof(buffer), 0);
         if (bytesRead <= 0) {
             std::cerr << "Receive failed or connection closed!" << std::endl;
             return "";
-        }
+        } safePrint("POTKANY ROZPRAVAJU" "\n");
         recvBuffer.append(buffer, bytesRead);
+        safePrint("HADI LUDIA NAGY" "\n");
     }
 
     // Extract the message up to the newline (exclude)
     std::string message = recvBuffer.substr(0, delimiterPos);
+    safePrint("TOTO JE SPRAVA" + message+ "\n");
     // Remove the extracted message from the buffer
     recvBuffer.erase(0, delimiterPos + 2);
+    safePrint("Moj had NAGY");
 
     return message;
 }

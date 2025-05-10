@@ -77,8 +77,7 @@ const Message FsmController::performAction(Message &msg) {
             response.buildRejectMessage("FSM not initialized.");
             return response;
         }
-
-        this->qtfsm->stop();
+        response.buildStopMessage();
         return response;
     }
 
@@ -104,4 +103,8 @@ const Message FsmController::performAction(Message &msg) {
     default:
         return response;
     }
+}
+
+QTfsm* FsmController::getFsm() {
+    return this->qtfsm;
 }

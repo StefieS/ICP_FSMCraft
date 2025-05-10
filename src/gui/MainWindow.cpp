@@ -30,6 +30,8 @@
 #include "../io/JsonLoader.h"
 #include "../messages/Message.h"
 #include "../controllers/fsmController/FsmController.h"
+#include "../controllers/guiController/GuiController.h"
+
 constexpr int CircleDiameter = 80; 
 constexpr int CircleRadius = CircleDiameter / 2; 
 
@@ -442,7 +444,7 @@ void MainWindow::printLog(std::string logMessage) {
 }
 
 void MainWindow::setRunning() {
-    return;
+    safePrint("nIE");
 }
 
 void MainWindow::highlightItem(bool on, IActivable& item) {
@@ -522,24 +524,33 @@ void MainWindow::onRunClicked() {
 
         // TODO: Start FSM logic here
         qDebug() << "FSM Started";
+        // todo setup receiver thread
+        GuiController controller(this);
 
         this->listenerThread = std::thread([this]() {
             this->networkHandler.listen(8080);
         });
+
         std::this_thread::sleep_for(std::chrono::seconds(1));
+        std::thread([&controller, this]() {
+            while (true) {
+                std::string buffer = this->networkHandler.recvFromHost();
+                safePrint("LORESADJA DANFJKAB FASB DSB ");
+                safePrint(buffer);
+                safePrint("IDU DVAJA PO MESTE A NEJDU");
+                Message toProcess(buffer);
+                if (toProcess.getType() == EMessageType::STOP) break;
+                
+                controller.performAction(toProcess);
+            }
+        }).detach();
+
         networkHandler.connectToServer();
         std::this_thread::sleep_for(std::chrono::seconds(1));
         Message msg;
         msg.buildJsonMessage("generated_fsm.json"); // TODO NAME
         networkHandler.sendToHost(msg.toMessageString());
-        // todo controller stuff for starting server...
-        // for (auto it = inputMap.begin(); it != inputMap.end(); ++it) {
-        //     QString name = it.key();
-        //     QString value = it.value()->text().trimmed();
-        //     Message m;
-        //     m.buildInputMessage(name.toStdString(), value.toStdString());
-        //     socket->sendMessage(m); // or controller->send(m);
-        // }
+        
 
     } else {
         isRunning = false;
