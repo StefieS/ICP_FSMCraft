@@ -58,5 +58,5 @@
     if (str == "REJECT") return EMessageType::REJECT;
     if (str == "EMPTY") return EMessageType::EMPTY;
     if (str == "REQUEST") return EMessageType::REQUEST;
-    throw std::invalid_argument("Invalid EMessageType string: " + str);
+    else {return EMessageType::EMPTY;}
  }
