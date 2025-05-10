@@ -9,7 +9,10 @@ int main(int argc, char *argv[]) {
     window.show();
 
     app.exec();
+    if (window.listenerThread.joinable()) {
     window.listenerThread.join();
+    }
+
     return 0;
 }
 

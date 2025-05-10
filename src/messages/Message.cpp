@@ -192,6 +192,7 @@ void Message::buildLogMessage(const std::string& timestamp,
         this->type = EMessageType::LOG;
         this->timestamp = timestamp;
         this->elementType = elementType;
+        this->currentElement = currentElement;
         this->inputValues = inputValues;
         this->outputValues = outputValues;
         this->internalValues = internalValues;
