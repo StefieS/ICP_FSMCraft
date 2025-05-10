@@ -62,6 +62,7 @@ private:
     std::unique_ptr<NetworkListener> listener;
     std::atomic<int> firstClientSocket{-1};
     std::mutex socketMutex;
+    std::mutex sockMutex2;
     std::string host;
     int port;
 };

@@ -66,7 +66,7 @@ std::string TCPSender::recvMessage() {
 }
 
 void TCPSender::closeConnection() {
-    std::lock_guard<std::mutex> lock(sockMutex);  // Protect socket access
+    std::lock_guard<std::mutex> lock(sockMutex2);  // Protect socket access
 
     if (sock != -1) {
         close(sock);
