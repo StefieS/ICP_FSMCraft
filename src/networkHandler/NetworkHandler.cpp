@@ -11,6 +11,7 @@
 #include <memory>
 
 std::mutex coutMutex;
+std::mutex responseMutex;
 
 void safePrint(const std::string& msg) {
     std::lock_guard<std::mutex> lock(coutMutex);
@@ -74,7 +75,7 @@ void NetworkHandler::listen(int port) {
             Message message(msg);
             Message processed = controller.performAction(message);
             std::string responseStr = processed.toMessageString() + "\r\n"; 
-
+            safePrint(responseStr);
             // Send processed result only to first client
             int targetSocket;
             {
