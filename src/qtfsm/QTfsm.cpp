@@ -133,3 +133,14 @@ void QTfsm::stop() {
 QStateMachine* QTfsm::getMachine() {
     return &this->machine;
 }
+
+std::map<std::string, std::string> QTfsm::getStringMap(std::map<std::string, QJSValue> map) {
+    std::map<std::string, std::string> newMap = {};
+
+    for (auto i : map) {
+        QString qstr = i.second.toString();
+        newMap[i.first] = qstr.toStdString();
+    }
+
+    return newMap;
+}

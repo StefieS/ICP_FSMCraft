@@ -35,6 +35,7 @@ public:
     QJSEngine* getJsEngine();
     QStateMachine* getMachine();
     QAbstractState* getStateByName(const QString& name) const;
+    std::map<std::string, std::string> getStringMap(std::map<std::string, QJSValue> map);
     void postEvent(QEvent* event);
 signals:
     void stopSignal();
