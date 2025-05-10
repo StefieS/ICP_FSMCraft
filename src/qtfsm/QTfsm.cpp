@@ -2,6 +2,9 @@
 #include <QDebug>
 #include "QTTransition.h"
 #include "QTBuiltinHandler.h"
+#include <QDateTime>
+#include "../common/EItemType.h"
+#include "../messages/Message.h"
 
 QTfsm::QTfsm(QObject* parent, const std::string& name) 
     : QObject(parent), jsonName(name), networkHandler("127.0.0.1", 8080), connected(false) {
@@ -55,7 +58,23 @@ void QTfsm::addStateJsAction(QState* state, const QString& jsCode) {
             qWarning() << "JavaScript error in state entry action:" << result.toString();
         }
         // TODO send Logs
-        
+        // TimeStamp
+        QDateTime now = QDateTime::currentDateTime();
+        QString timeStr = now.toString("yyyy-MM-dd hh:mm:ss");  // or any format you want
+        std::string timeStamp = timeStr.toStdString();
+        // Elem State
+        EItemType elementType = EItemType::STATE;
+        // currentElem
+        const std::string currentElement = state->objectName().toStdString();
+        Message log = Message();
+        log.buildLogMessage(timeStamp,
+            elementType,
+            currentElement,
+            getStringMap(this->inputValues),
+            getStringMap(this->outputValues),
+            getStringMap(this->internalValues));
+
+        this->networkHandler.sendToHost(log.toMessageString());
         // epsilon
         QString empty = "";
         QVariantMap map; // todo add current map
@@ -91,10 +110,6 @@ void QTfsm::setJsVariable(const QString& name, const QJSValue& value) {
 
 void QTfsm::setOutput(const QString& name, const QJSValue& value) {
     this->outputValues[name.toStdString()] = value;
-}
-
-void QTfsm::setInput(const QString& name, const QJSValue& value) {
-    this->inputValues[name.toStdString()] = value;
 }
 
 

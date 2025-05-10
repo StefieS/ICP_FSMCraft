@@ -128,6 +128,22 @@ protected:
 
     void onTransition(QEvent*) override {
         //TODO send Log
+        QDateTime now = QDateTime::currentDateTime();
+        QString timeStr = now.toString("yyyy-MM-dd hh:mm:ss");  // or any format you want
+        std::string timeStamp = timeStr.toStdString();
+        // Elem State
+        EItemType elementType = EItemType::STATE;
+        // currentElem
+        const std::string currentElement = state->objectName().toStdString();
+        Message log = Message();
+        log.buildLogMessage(timeStamp,
+            elementType,
+            currentElement,
+            getStringMap(this->inputValues),
+            getStringMap(this->outputValues),
+            getStringMap(this->internalValues));
+
+        this->networkHandler.sendToHost(log.toMessageString());
     }
 
 private:

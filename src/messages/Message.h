@@ -45,7 +45,7 @@ public:
     void buildStopMessage();
     void buildAcceptMessage();
     void buildRejectMessage(const std::string& otherInfo);
-    void buildLogMessage(const std::string& timestamp,
+    void buildLogMessage(const std::string& timestamp, 
         EItemType elementType,
         const std::string& currentElement, 
         const std::map<std::string, std::string>& inputValues, 
