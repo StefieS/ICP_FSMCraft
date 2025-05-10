@@ -100,6 +100,12 @@ const Message FsmController::performAction(Message &msg) {
         return response;
     }
 
+    case EMessageType::LOG: {
+        std::string str = msg.toMessageString();
+        Message forward(str);
+        return forward;
+    }
+
     default:
         return response;
     }

@@ -168,7 +168,9 @@ void QTfsm::start() {
 
 void QTfsm::stop() {
     this->stopSignal();
-    QMetaObject::invokeMethod(&machine, "stop", Qt::QueuedConnection);
+    safePrint("STOP BOL ZAVOLANY");
+    emit stopSignal();
+    getMachine()->stop();
     this->networkHandler.closeConnection();
 }
 

@@ -55,9 +55,10 @@ void GuiController::performAction(Message &msg) {
         }
 
         case (EMessageType::ACCEPT) : {
-            
+            this->gui->setRunning();
             break;
         }
+        
 
         default:
             break;
