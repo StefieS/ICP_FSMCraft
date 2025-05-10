@@ -144,3 +144,19 @@ std::map<std::string, std::string> QTfsm::getStringMap(std::map<std::string, QJS
 
     return newMap;
 }
+
+
+NetworkHandler& QTfsm::getNetworkHandler() {
+    return this->networkHandler;
+}
+
+std::map<std::string, QJSValue> QTfsm::getInputs(){
+    return this->inputValues;
+}
+
+std::map<std::string, QJSValue> QTfsm::getOutputs(){
+    return this->outputValues;
+}
+std::map<std::string, QJSValue> QTfsm::getVars(){
+    return this->internalValues;
+}

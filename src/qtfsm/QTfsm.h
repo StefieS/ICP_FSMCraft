@@ -35,6 +35,10 @@ public:
     QJSEngine* getJsEngine();
     QStateMachine* getMachine();
     QAbstractState* getStateByName(const QString& name) const;
+    NetworkHandler& getNetworkHandler();
+    std::map<std::string, QJSValue> getInputs();
+    std::map<std::string, QJSValue> getOutputs();
+    std::map<std::string, QJSValue> getVars();
     std::map<std::string, std::string> getStringMap(std::map<std::string, QJSValue> map);
     void postEvent(QEvent* event);
 signals:
