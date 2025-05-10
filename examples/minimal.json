@@ -1,0 +1,31 @@
+{
+    "inputs": [
+    ],
+    "internals": [
+    ],
+    "name": "fsm_gen",
+    "outputs": [
+    ],
+    "states": [
+      {
+        "action": "fsm.output(\"outputName\", \"outputValue\")",
+        "isFinal": false,
+        "isInitial": true,
+        "name": "IDLE"
+      },
+      {
+        "action": "fsm.output(\"outputName\", \"Secondo here\")",
+        "isFinal": false,
+        "isInitial": false,
+        "name": "SECOND"
+      }
+    ],
+    "transitions": [
+      {
+        "src": "IDLE",
+        "dst": "SECOND",
+        "input": "in",
+        "cond": "true"
+      }
+    ]
+}

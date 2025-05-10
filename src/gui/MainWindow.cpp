@@ -25,10 +25,12 @@
 #include <QRegularExpression>
 #include "TransitionItem.h"
 #include "QFlowLayout.h"
+#include <QFileDialog>
+#include <QDir>
+#include "../io/JsonLoader.h"
 #include "../messages/Message.h"
 #include "../controllers/fsmController/FsmController.h"
-
-constexpr int CircleDiameter = 100; 
+constexpr int CircleDiameter = 80; 
 constexpr int CircleRadius = CircleDiameter / 2; 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -38,12 +40,22 @@ MainWindow::MainWindow(QWidget *parent)
     for (int i = 0; i < MAX_STATES; ++i) {
         stateList[i] = nullptr;
     }
-    
 
     QWidget *centralWidget = new QWidget(this);
     centralWidget->setObjectName("centralWidget");
     setCentralWidget(centralWidget);
-    QVBoxLayout *layout = new QVBoxLayout(centralWidget);
+    QHBoxLayout* mainLayout = new QHBoxLayout(centralWidget);
+
+    // Left column: toolbar, inputs, logs, etc.
+    QVBoxLayout* leftLayout = new QVBoxLayout();
+    leftLayout->setSpacing(4);
+
+    // Right column: FSM editor (graphics view)
+    QVBoxLayout* rightLayout = new QVBoxLayout();
+    rightLayout->setSpacing(6);
+
+    mainLayout->addLayout(leftLayout, 3);   // 3/12
+    mainLayout->addLayout(rightLayout, 9);  // 9/12
 
     setFixedSize(1420, 800);
 
@@ -60,26 +72,12 @@ MainWindow::MainWindow(QWidget *parent)
     toolbarLayout->setSpacing(5);
 
     // Run Button
-    QToolButton *runButton = new QToolButton(toolbarWidget);
+    runButton = new QToolButton(toolbarWidget);
     runButton->setText("▶");
     runButton->setToolTip("Run FSM");
     runButton->setFixedSize(32, 32);
     toolbarLayout->addWidget(runButton);
 
-    // Save Button
-    QToolButton *saveButton = new QToolButton(toolbarWidget);
-    saveButton->setText("SAVE");
-    saveButton->setToolTip("Save FSM");
-    saveButton->setFixedSize(32, 32);
-    toolbarLayout->addWidget(saveButton);
-
-    // Stop Button
-    QToolButton *stopButton = new QToolButton(toolbarWidget);
-    stopButton->setText("⏹");
-    stopButton->setToolTip("Stop FSM");
-    stopButton->setFixedSize(32, 32);
-    toolbarLayout->addWidget(stopButton);
-    
     // New State Button
     QToolButton *newStateButton = new QToolButton(toolbarWidget);
     newStateButton->setText("◯");
@@ -87,65 +85,185 @@ MainWindow::MainWindow(QWidget *parent)
     newStateButton->setFixedSize(32, 32);
     toolbarLayout->addWidget(newStateButton);
     
+    // Clear Button
     QToolButton *clearButton = new QToolButton(toolbarWidget);
     clearButton->setText("Clear"); 
     clearButton->setToolTip("Clear canvas");
-    clearButton->setFixedSize(45, 32);
+    clearButton->setFixedSize(50, 32);
     toolbarLayout->addWidget(clearButton);
+    
+    // Save Button
+    QToolButton *saveButton = new QToolButton(toolbarWidget);
+    saveButton->setText("Save");
+    saveButton->setToolTip("Save FSM");
+    saveButton->setFixedSize(50, 32);
+    toolbarLayout->addWidget(saveButton);
+
+    // Upload Button
+    QToolButton *uploadButton = new QToolButton(toolbarWidget);
+    uploadButton->setText("Upload");
+    uploadButton->setToolTip("Upload FSM");
+    uploadButton->setFixedSize(50, 32);
+    toolbarLayout->addWidget(uploadButton);
 
     connect(runButton, &QToolButton::clicked, this, &MainWindow::onRunClicked);
-    connect(saveButton, &QToolButton::clicked, this, &MainWindow::onSaveClicked);
-    connect(stopButton, &QToolButton::clicked, this, &MainWindow::onStopClicked);
     connect(newStateButton, &QToolButton::clicked, this, &MainWindow::onNewStateButtonClicked);
     connect(clearButton, &QToolButton::clicked, this, &MainWindow::onClearClicked);
+    connect(saveButton, &QToolButton::clicked, this, &MainWindow::onSaveClicked);
+    connect(uploadButton, &QToolButton::clicked, this, &MainWindow::onUploadClicked);
 
-    layout->addWidget(toolbarWidget, 0, Qt::AlignLeft);
+    leftLayout->addWidget(toolbarWidget, 0, Qt::AlignLeft);
 
-    // Add environment variable input row under toolbar
+    // Add env variable input container --
     QWidget* envInputRow = new QWidget(this);
-
-    QHBoxLayout* envLayout = new QHBoxLayout(envInputRow);
+    QGridLayout* envLayout = new QGridLayout(envInputRow);
     envLayout->setContentsMargins(0, 0, 0, 0);
     envLayout->setSpacing(6);
 
-    QLineEdit* keyEdit = new QLineEdit(this);
-    keyEdit->setPlaceholderText("key");
-    keyEdit->setFixedWidth(120);
+    QLineEdit* envKeyEdit = new QLineEdit(this);
+    QLineEdit* envValueEdit = new QLineEdit(this);
+    envKeyEdit->setPlaceholderText("Key");
+    envValueEdit->setPlaceholderText("Value");
+    envKeyEdit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    envValueEdit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
-    QLabel* colonLabel = new QLabel(":", this);
+    QLabel* inputLabel1 = new QLabel("Declare internals:");
+    inputLabel1->setContentsMargins(0, 0, 0, 0);
+    leftLayout->addWidget(inputLabel1);
+    
+    QLabel* colonLabel1 = new QLabel(":", this);
 
-    QLineEdit* valueEdit = new QLineEdit(this);
-    valueEdit->setPlaceholderText("value");
-    valueEdit->setFixedWidth(120);
-
+    // Add env addition button
     QPushButton* addEnvButton = new QPushButton("Add", this);
-    addEnvButton->setFixedWidth(50);
-    keyEdit->setFixedHeight(32);
-    valueEdit->setFixedHeight(32);
-    addEnvButton->setFixedHeight(32);
+    addEnvButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
 
-    envLayout->addWidget(keyEdit);
-    envLayout->addWidget(colonLabel);
-    envLayout->addWidget(valueEdit);
-    envLayout->addWidget(addEnvButton);
-    envLayout->addStretch();  // Pushes row to left
+    // Column stretch factors (total 12)
+    envLayout->setColumnStretch(0, 4);  // key
+    envLayout->setColumnStretch(1, 0);  // colon
+    envLayout->setColumnStretch(2, 4);  // value
+    envLayout->setColumnStretch(3, 4);  // button
 
-    layout->addWidget(envInputRow, 0, Qt::AlignLeft);
+    // Add widgets in row 0
+    envLayout->addWidget(envKeyEdit,     0, 0);
+    envLayout->addWidget(colonLabel1, 0, 1, Qt::AlignCenter);
+    envLayout->addWidget(envValueEdit,   0, 2);
+    envLayout->addWidget(addEnvButton,   0, 3);
 
-    // Internal variable container
+    leftLayout->addWidget(envInputRow);
+    leftLayout->addSpacing(2);
+
     internalVarsContainer = new QWidget(this);
     internalVarsFlow = new QFlowLayout(internalVarsContainer);
     internalVarsFlow->setContentsMargins(5, 5, 5, 5);
     internalVarsFlow->setSpacing(8);
+    leftLayout->addWidget(internalVarsContainer);
 
-    layout->addWidget(internalVarsContainer);
+    // Input container --
+    QLabel* inputLabel2 = new QLabel("Define inputs:");
+    inputLabel2->setContentsMargins(0, 0, 0, 0);
+    leftLayout->addWidget(inputLabel2);
+
+    // Create input row with grid layout
+    QWidget* inputRow = new QWidget(this);
+    QGridLayout* inputGridLayout = new QGridLayout(inputRow);
+    inputGridLayout->setContentsMargins(0, 0, 0, 0);
+    inputGridLayout->setSpacing(6);
+
+    QLineEdit* inputNameEdit = new QLineEdit(this);
+    inputNameEdit->setPlaceholderText("Input name");
+    inputNameEdit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+
+    QLabel* colonLabel2 = new QLabel(":", this);
+
+    QLineEdit* inputInitialValueEdit = new QLineEdit(this);
+    inputInitialValueEdit->setPlaceholderText("Initial value");
+    inputInitialValueEdit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+
+    QPushButton* addInputButton = new QPushButton("Add", this);
+    addInputButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+
+    // Column stretch factors (total 12)
+    inputGridLayout->setColumnStretch(0, 4);  // name
+    inputGridLayout->setColumnStretch(1, 0);  // colon
+    inputGridLayout->setColumnStretch(2, 4);  // value
+    inputGridLayout->setColumnStretch(3, 4);  // button
+
+    // Add widgets to grid row 0
+    inputGridLayout->addWidget(inputNameEdit,  0, 0);
+    inputGridLayout->addWidget(colonLabel2,    0, 1, Qt::AlignCenter);
+    inputGridLayout->addWidget(inputInitialValueEdit, 0, 2);
+    inputGridLayout->addWidget(addInputButton, 0, 3);
+
+    leftLayout->addWidget(inputRow);
+
+    QScrollArea* inputScrollArea = new QScrollArea(this);
+    inputScrollArea->setWidgetResizable(true);
+    inputScrollArea->setFixedHeight(150); // Optional: set max height
+
+    inputListContainer = new QWidget(this);
+    inputListLayout = new QVBoxLayout(inputListContainer);
+    inputListLayout->setContentsMargins(5, 5, 5, 5);
+    inputListLayout->setSpacing(8);
+    inputListLayout->addStretch();
+
+    inputScrollArea->setWidget(inputListContainer);
+    leftLayout->addWidget(inputScrollArea);
+    leftLayout->addSpacing(2);
+
+    // Outputs Container
+    QLabel* outputLabel = new QLabel("Define outputs:");
+    outputLabel->setContentsMargins(0, 0, 0, 0);
+    leftLayout->addWidget(outputLabel);
+
+    QWidget* outputRow = new QWidget(this);
+    QGridLayout* outputGridLayout = new QGridLayout(outputRow);
+    outputGridLayout->setContentsMargins(0, 0, 0, 0);
+    outputGridLayout->setSpacing(6);
+
+    QLineEdit* outputNameEdit = new QLineEdit(this);
+    outputNameEdit->setPlaceholderText("Output name");
+    outputNameEdit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+
+    QLabel* colonLabel3 = new QLabel(":", this);
+
+    QLineEdit* outputValueEdit = new QLineEdit(this);
+    outputValueEdit->setPlaceholderText("Initial value");
+    outputValueEdit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+
+    QPushButton* addOutputButton = new QPushButton("Add", this);
+    addOutputButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+
+    outputGridLayout->setColumnStretch(0, 4);
+    outputGridLayout->setColumnStretch(1, 0);
+    outputGridLayout->setColumnStretch(2, 4);
+    outputGridLayout->setColumnStretch(3, 4);
+
+    outputGridLayout->addWidget(outputNameEdit,  0, 0);
+    outputGridLayout->addWidget(colonLabel3,     0, 1, Qt::AlignCenter);
+    outputGridLayout->addWidget(outputValueEdit, 0, 2);
+    outputGridLayout->addWidget(addOutputButton, 0, 3);
+
+    leftLayout->addWidget(outputRow);
+
+    QScrollArea* outputScrollArea = new QScrollArea(this);
+    outputScrollArea->setWidgetResizable(true);
+    outputScrollArea->setFixedHeight(150);
+
+    outputListContainer = new QWidget(this);
+    outputListLayout = new QVBoxLayout(outputListContainer);
+    outputListLayout->setContentsMargins(5, 5, 5, 5);
+    outputListLayout->setSpacing(8);
+    outputListLayout->addStretch();
+
+    outputScrollArea->setWidget(outputListContainer);
+    leftLayout->addWidget(outputScrollArea);
 
     // Create scene and view
     scene = new QGraphicsScene(this);
     scene->setBackgroundBrush(QColor("#ffffff"));
 
     view = new QGraphicsView(scene, this);
-    layout->addWidget(view);
+    rightLayout->addWidget(view);
 
     view->setMouseTracking(true);
     view->viewport()->installEventFilter(this);
@@ -154,8 +272,8 @@ MainWindow::MainWindow(QWidget *parent)
     view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
     connect(addEnvButton, &QPushButton::clicked, this, [=]() {
-        QString key = keyEdit->text().trimmed();
-        QString val = valueEdit->text().trimmed();
+        QString key = envKeyEdit->text().trimmed();
+        QString val = envValueEdit->text().trimmed();
 
         if (key.isEmpty())
             return;
@@ -178,8 +296,82 @@ MainWindow::MainWindow(QWidget *parent)
         internalVarsFlow->addWidget(item);
         internalVarMap[key] = item;
 
-        keyEdit->clear();
-        valueEdit->clear();
+        envKeyEdit->clear();
+        envValueEdit->clear();
+    });
+
+    connect(addInputButton, &QPushButton::clicked, this, [=]() {
+        QString name = inputNameEdit->text().trimmed();
+        QString val = inputInitialValueEdit->text().trimmed();
+
+        if (name.isEmpty()) return;
+
+        if (inputMap.contains(name)) {
+            QMessageBox::warning(this, "Duplicate Input", "Input already exists.");
+            return;
+        }
+
+        QLineEdit* valField = new QLineEdit(val, this);
+        valField->setFixedWidth(120);
+        QHBoxLayout* row = new QHBoxLayout();
+        QLabel* label = new QLabel(name + ":");
+        QPushButton* removeButton = new QPushButton("✕");
+        removeButton->setFixedSize(20, 20);
+
+        row->addWidget(label);
+        row->addWidget(valField);
+        row->addWidget(removeButton);
+        inputListLayout->insertLayout(inputListLayout->count() - 1, row);
+
+        inputMap[name] = valField;
+
+        connect(removeButton, &QPushButton::clicked, this, [=]() {
+            label->deleteLater();
+            valField->deleteLater();
+            removeButton->deleteLater();
+            row->deleteLater();
+            inputMap.remove(name);
+        });
+
+        inputNameEdit->clear();
+        inputInitialValueEdit->clear();
+    });
+    
+    connect(addOutputButton, &QPushButton::clicked, this, [=]() {
+        QString name = outputNameEdit->text().trimmed();
+        QString val = outputValueEdit->text().trimmed();
+
+        if (name.isEmpty()) return;
+
+        if (outputMap.contains(name)) {
+            QMessageBox::warning(this, "Duplicate Output", "Output already exists.");
+            return;
+        }
+
+        QLineEdit* valField = new QLineEdit(val, this);
+        valField->setFixedWidth(120);
+        QHBoxLayout* row = new QHBoxLayout();
+        QLabel* label = new QLabel(name + ":");
+        QPushButton* removeButton = new QPushButton("✕");
+        removeButton->setFixedSize(20, 20);
+
+        row->addWidget(label);
+        row->addWidget(valField);
+        row->addWidget(removeButton);
+        outputListLayout->insertLayout(outputListLayout->count() - 1, row);
+
+        outputMap[name] = valField;
+
+        connect(removeButton, &QPushButton::clicked, this, [=]() {
+            label->deleteLater();
+            valField->deleteLater();
+            removeButton->deleteLater();
+            row->deleteLater();
+            outputMap.remove(name);
+        });
+
+        outputNameEdit->clear();
+        outputValueEdit->clear();
     });
 
     scene->setSceneRect(0, 0, view->width(), view->height());
@@ -197,7 +389,36 @@ MainWindow::MainWindow(QWidget *parent)
     logBox->setMaximumHeight(120);
     logBox->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
 
-    layout->addWidget(logBox);
+    rightLayout->addWidget(logBox);
+
+    QLabel* injectLabel = new QLabel("Inject input:");
+    injectLabel->setContentsMargins(0, 2, 0, 0);  // "Inject input"
+    leftLayout->addWidget(injectLabel);
+
+    QWidget* injectRow = new QWidget(this);
+    QGridLayout* injectLayout = new QGridLayout(injectRow);
+    injectLayout->setContentsMargins(0, 0, 0, 0);
+    injectLayout->setSpacing(6);
+
+    inputComboBox = new QComboBox(this);
+    inputValueEdit = new QLineEdit(this);
+    injectInputButton = new QPushButton("Inject", this);
+    QLabel* injectColon = new QLabel(":", this);
+
+    // Stretch setup: 4 + 0 + 4 + 4 = 12
+    injectLayout->setColumnStretch(0, 4);
+    injectLayout->setColumnStretch(1, 0);
+    injectLayout->setColumnStretch(2, 4);
+    injectLayout->setColumnStretch(3, 4);
+
+    injectLayout->addWidget(inputComboBox,     0, 0);
+    injectLayout->addWidget(injectColon,       0, 1, Qt::AlignCenter);
+    injectLayout->addWidget(inputValueEdit,    0, 2);
+    injectLayout->addWidget(injectInputButton, 0, 3);
+
+    leftLayout->addWidget(injectRow);
+    leftLayout->addSpacing(2);
+    connect(injectInputButton, &QPushButton::clicked, this, &MainWindow::onInjectInputClicked);
 
 
     this->connected = networkHandler.connectToServer();
@@ -214,19 +435,23 @@ void MainWindow::printLog(std::string logMessage) {
     logBox->appendPlainText(msg);
 }
 
-void MainWindow::highlightItem(bool on, IActivable& item) {
-    return;
-}
-
 void MainWindow::setRunning() {
     return;
 }
-void showError(std::string errorMessage) {
-    return;
+
+void MainWindow::highlightItem(bool on, IActivable& item) {
+    item.setActive(on);
 }
 
-void showOutput(std::string outputID, std::string outputValue) {
-    return;
+void MainWindow::showError(std::string errorMessage) {
+    QString msg = QString::fromStdString(errorMessage);
+    QMessageBox::critical(this, "Error", msg);
+}
+
+void MainWindow::showOutput(std::string outputID, std::string outputValue) {
+    QString id = QString::fromStdString(outputID);
+    QString val = QString::fromStdString(outputValue);
+    logBox->appendPlainText("[Output] " + id + " = " + val);
 }
 
 static std::string detectTypeFromValue(const QString& value) {
@@ -276,6 +501,40 @@ void MainWindow::onStopClicked() {
     networkHandler.sendToHost(msg.toMessageString());
     // todo disconnect
     QMessageBox::information(this, "FSM Stopped", "FSM Stopped.");
+}
+
+void MainWindow::onRunClicked() {
+    if (!isRunning) {
+        onSaveClicked();
+
+        inputComboBox->clear();
+        for (const auto& name : inputMap.keys()) {
+            inputComboBox->addItem(name);
+        }
+
+        isRunning = true;
+        runButton->setText("⏸");  // Pause icon
+        runButton->setToolTip("Pause FSM");
+
+        // TODO: Start FSM logic here
+        qDebug() << "FSM Started";
+
+        // todo controller stuff for starting server...
+        // for (auto it = inputMap.begin(); it != inputMap.end(); ++it) {
+        //     QString name = it.key();
+        //     QString value = it.value()->text().trimmed();
+        //     Message m;
+        //     m.buildInputMessage(name.toStdString(), value.toStdString());
+        //     socket->sendMessage(m); // or controller->send(m);
+        // }
+
+    } else {
+        isRunning = false;
+        runButton->setText("▶");  // Play icon
+        runButton->setToolTip("Run FSM");
+
+        onStopClicked();  // Trigger stop logic
+    }
 }
 
 void MainWindow::onSaveClicked() {
@@ -350,6 +609,184 @@ void MainWindow::onSaveClicked() {
     file.close();
 
     QMessageBox::information(this, "FSM Saved", "FSM saved.");
+}
+
+void MainWindow::onUploadClicked() {
+    QString examplesPath = QDir("..").filePath("examples");
+    QDir dir(QDir(examplesPath).absolutePath());
+
+    if (!dir.exists()) {
+        QMessageBox::warning(this, "Missing Directory", "The ~/examples/ directory does not exist.");
+        return;
+    }
+
+    QStringList jsonFiles = dir.entryList(QStringList() << "*.json", QDir::Files);
+    if (jsonFiles.isEmpty()) {
+        QMessageBox::information(this, "No Files", "No .json FSM files found in ~/examples/");
+        return;
+    }
+
+    // Let the user choose one from the list
+    bool ok = false;
+    QString selectedFile = QInputDialog::getItem(
+        this,
+        "Select FSM File",
+        "Available FSMs:",
+        jsonFiles,
+        0,
+        false,
+        &ok
+    );
+
+    if (!ok || selectedFile.isEmpty())
+        return;
+
+    QString filePath = dir.filePath(selectedFile);
+
+    QFile file(filePath);
+    if (!file.open(QIODevice::ReadOnly)) {
+        QMessageBox::critical(this, "Error", "Unable to open selected file.");
+        return;
+    }
+
+    QByteArray fileData = file.readAll();
+    file.close();
+
+    QJsonParseError parseError;
+    QJsonDocument doc = QJsonDocument::fromJson(fileData, &parseError);
+    if (parseError.error != QJsonParseError::NoError) {
+        QMessageBox::critical(this, "Parse Error", "Invalid JSON format.");
+        return;
+    }
+
+    JsonLoader loader;
+    FSM* loadedFsm = loader.fromJson(doc);
+
+    if (!loadedFsm) {
+        QMessageBox::critical(this, "Error", "Failed to load FSM from JSON.");
+        return;
+    }
+
+    // Pass loadedFsm to your existing population logic
+    onClearClicked();
+
+    // Clear old internal variable widgets
+    for (auto it = internalVarMap.begin(); it != internalVarMap.end(); ++it) {
+        internalVarsFlow->removeWidget(it.value());
+        it.value()->deleteLater();
+    }
+    internalVarMap.clear();
+
+    // Populate internal variables
+    for (const auto& var : loadedFsm->getInternalVars()) {
+        QString key = QString::fromStdString(var.getName());
+        QString val = QString::fromStdString(var.getInitialValue());
+
+        qDebug() << "[DEBUG] InternalVar:" << key << "=" << val; 
+
+        auto* item = new InternalVarItem(key, val, this);
+        connect(item, &InternalVarItem::removeRequested, this, [=](const QString& keyToRemove) {
+            auto it = internalVarMap.find(keyToRemove);
+            if (it != internalVarMap.end()) {
+                internalVarsFlow->removeWidget(it.value());
+                it.value()->deleteLater();
+                internalVarMap.erase(it);
+            }
+        });
+
+        internalVarsFlow->addWidget(item);
+        internalVarMap[key] = item;
+    }
+
+    // Populate inputs
+    for (const auto& name : loadedFsm->getInputNames()) {
+        QString qName = QString::fromStdString(name);
+        QLineEdit* valField = new QLineEdit(this);
+        valField->setFixedWidth(120);
+        QHBoxLayout* row = new QHBoxLayout();
+        QLabel* label = new QLabel(qName + ":");
+        QPushButton* removeButton = new QPushButton("✕");
+        removeButton->setFixedSize(20, 20);
+
+        row->addWidget(label);
+        row->addWidget(valField);
+        row->addWidget(removeButton);
+        inputListLayout->insertLayout(inputListLayout->count() - 1, row);
+        inputMap[qName] = valField;
+
+        connect(removeButton, &QPushButton::clicked, this, [=]() {
+            label->deleteLater();
+            valField->deleteLater();
+            removeButton->deleteLater();
+            row->deleteLater();
+            inputMap.remove(qName);
+        });
+    }
+
+    inputComboBox->clear();
+    for (const QString& inputName : inputMap.keys()) {
+        inputComboBox->addItem(inputName);
+    }
+
+    // Populate states and transitions
+    int index = 0;
+    const int cols = 5;
+    const int spacing = 180;
+    const int stateSize = CircleDiameter; // assuming same as your circle size
+
+    // Calculate starting point (center the grid)
+    int totalCols = std::min(cols, static_cast<int>(loadedFsm->getStates().size()));
+    int totalRows = (loadedFsm->getStates().size() + cols - 1) / cols;
+    QPointF center = view->mapToScene(view->viewport()->rect().center());
+    QPointF start = center - QPointF((totalCols - 1) * spacing / 2, (totalRows - 1) * spacing / 2);
+
+    for (const auto& pair : loadedFsm->getStates()) {
+        std::shared_ptr<State> state = pair.second;
+        QString qName = QString::fromStdString(state->getName());
+
+        int row = index / cols;
+        int col = index % cols;
+        QPointF pos = start + QPointF(col * spacing, row * spacing);
+
+        StateItem* stateItem = new StateItem(pos, qName);
+        stateItem->setInitial(state->isInitialState());
+        stateItem->setFinal(state->isFinalState());
+        scene->addItem(stateItem);
+
+        stateList[stateCount++] = new State(*state);
+        ++index;
+    }
+
+
+    for (const auto& t : loadedFsm->getTransitions()) {
+        QString from = QString::fromStdString(t->getSource());
+        QString to   = QString::fromStdString(t->getTarget());
+        StateItem* sourceItem = nullptr;
+        StateItem* targetItem = nullptr;
+
+        for (QGraphicsItem* item : scene->items()) {
+            auto* s = dynamic_cast<StateItem*>(item);
+            if (s) {
+                if (s->getName() == from) sourceItem = s;
+                else if (s->getName() == to) targetItem = s;
+            }
+        }
+
+        if (sourceItem && targetItem) {
+            auto* line = new TransitionItem(sourceItem->sceneCenter(), targetItem->sceneCenter());
+            line->setLabel(QString::fromStdString(t->getInputEvent()));
+            line->markConfirmed();
+            scene->addItem(line);
+
+            for (int i = 0; i < stateCount; ++i) {
+                if (stateList[i]->getName() == t->getSource()) {
+                    stateList[i]->addTransition(*t);
+                }
+            }
+        }
+    }
+
+    QMessageBox::information(this, "Upload Complete", "FSM loaded successfully.");
 }
 
 void MainWindow::onClearClicked() {
@@ -757,9 +1194,58 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* event) {
     return QMainWindow::eventFilter(watched, event);
 }
 
-
 void MainWindow::onInjectInputClicked() {
+    QString inputName = inputComboBox->currentText().trimmed();
+    QString value = inputValueEdit->text().trimmed();
+
+    if (inputName.isEmpty()) return;
+
+    if (!inputMap.contains(inputName)) {
+        QMessageBox::warning(this, "Injection Failed", "No input field found for: " + inputName);
+        return;
+    }
+
+    QLineEdit* field = inputMap.value(inputName, nullptr);
+    if (!field) {
+        QMessageBox::critical(this, "Error", "Input mapping broken for: " + inputName);
+        return;
+    }
+
+    qDebug() << "Injecting input:" << inputName << " = " << value;
+    field->setText(value);  // Set injected value visibly
+
+    // Message msg;
+    // msg.buildInputMessage(inputName.toStdString(), value.toStdString());
+    // controller->sendMessage(msg);  // or socket->sendMessage(msg);
+}
+
+IActivable& MainWindow::getActivableItem(EItemType type, std::string itemID) {
+    QString qid = QString::fromStdString(itemID);
+    
+    if (type == EItemType::STATE) {
+        for (QGraphicsItem* item : scene->items()) {
+            if (auto* state = dynamic_cast<StateItem*>(item)) {
+                if (state->getName() == qid) {
+                    return *state;
+                }
+            }
+        }
+    } else if (type == EItemType::TRANSITION) {
+        for (QGraphicsItem* item : scene->items()) {
+            if (auto* transition = dynamic_cast<TransitionItem*>(item)) {
+                if (transition->labelText() == qid) { // You'll need to implement labelText()
+                    return *transition;
+                }
+            }
+        }
+    }
+    
+    throw std::runtime_error("Activable item not found: " + itemID);
+}
+
+void MainWindow::loadFSMFromJson(std::string pathToJson) {
     // TODO
+    printLog("loadFSMFromJson called with: " + pathToJson);
 }
 
 void MainWindow::debugPrintStateList() const {

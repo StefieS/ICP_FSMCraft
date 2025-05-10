@@ -59,7 +59,7 @@ public:
      * @brief Gets the name of the internal variable.
      * @return The variable's name.
      */
-    std::string getName();
+    std::string getName() const;
 
     /**
      * @brief Gets the data type of the internal variable.
@@ -71,5 +71,5 @@ public:
      * @brief Gets the initial value of the internal variable.
      * @return The variable's initial value.
      */
-    std::string getInitialValue();
+    std::string getInitialValue() const;
 };

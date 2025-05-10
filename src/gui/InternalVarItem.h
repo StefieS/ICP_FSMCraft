@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QString>
 #include <QPushButton>
+#include <QLineEdit>
 #include <QLabel>
 
 class InternalVarItem : public QFrame {
@@ -13,6 +14,7 @@ public:
     explicit InternalVarItem(const QString& name, const QString& value, QWidget* parent = nullptr);
     QString getName() const;
     QString getValue() const;
+    
 
 signals:
     void removeRequested(const QString& name);
@@ -21,4 +23,6 @@ private:
     QString varName;
     QLabel* label;
     QPushButton* removeButton;
+    QLabel* keyLabel;
+    QLineEdit* valueEdit;
 };

@@ -17,7 +17,7 @@ TransitionItem::TransitionItem(QPointF start, QPointF end, QGraphicsItem* parent
 }
 
 void TransitionItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) {
-    constexpr int CircleRadius = 40;  // 100 diameter / 2
+    constexpr int CircleRadius = 30;
     constexpr qreal arrowSize = 12.0;
 
     QLineF fullLine = line();
@@ -87,18 +87,19 @@ void TransitionItem::updateLine(QPointF start, QPointF end) {
 }
 
 
-void TransitionItem::setActive(bool active) {
-    
+void TransitionItem::setActive(bool isNowActive) {
+    active = isNowActive;
     if (active) {
-        QPen pen(Qt::red, 3);
-        setPen(pen);
+        setPen(QPen(Qt::red, 3));
     } else {
-        QPen pen(Qt::black, 2);
-        setPen(pen);
+        setPen(QPen(Qt::black, 2));
     }
-    
-
 }
+
 bool TransitionItem::isActive() const {
-    return true;
-}   
+    return active;
+}
+
+QString TransitionItem::labelText() const {
+    return label->toPlainText();
+}

@@ -15,15 +15,14 @@ std::string InternalVar::setInitialValue(std::string initialValue) {
     return this->initialValue;
 }
 
-std::string InternalVar::getName() {
-    return this->name;
+std::string InternalVar::getName() const {
+    return name;
 }
 
 std::string InternalVar::getType() {
     return this->type;
 }
 
-std::string InternalVar::getInitialValue() {
-    return this->initialValue;
+std::string InternalVar::getInitialValue() const {
+    return initialValue;
 }
-

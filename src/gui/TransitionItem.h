@@ -13,9 +13,11 @@ public:
     void markConfirmed();
     void setActive(bool active) override;
     bool isActive() const override;
-
+    QString labelText() const;
+    
 private:
     QGraphicsTextItem* label = nullptr;
+    bool active = false;
     bool confirmed = false;
     void updateLabelPosition();
 };

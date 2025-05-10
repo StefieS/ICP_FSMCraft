@@ -8,6 +8,8 @@
 
 #include "GuiController.h"
 #include "../common/EMessageType.h"
+#include <iostream>
+
 GuiController::GuiController(IMainWindow* gui) {
     this->gui = gui;
 }
@@ -51,4 +53,9 @@ void GuiController::performAction(Message &msg) {
         default:
             break;
     };
+}
+
+void GuiController::sendInput(const std::string& name, const std::string& value) {
+    // TODO: Replace this with actual message sending logic
+    std::cout << "[SEND INPUT] " << name << " = " << value << std::endl;
 }

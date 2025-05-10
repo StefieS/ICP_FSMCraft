@@ -1,4 +1,3 @@
-// InternalVarItem.cpp
 #include "InternalVarItem.h"
 #include <QHBoxLayout>
 #include <QFrame>
@@ -10,14 +9,20 @@ InternalVarItem::InternalVarItem(const QString& name, const QString& value, QWid
     layout->setContentsMargins(6, 4, 6, 4);
     layout->setSpacing(8);
 
-    label = new QLabel(name + ": " + value, this);
+    keyLabel = new QLabel(name + ":", this);
+
+    valueEdit = new QLineEdit(this);
+    valueEdit->setText(value);
+    valueEdit->setFixedWidth(60);
+    valueEdit->setReadOnly(true);
+
     removeButton = new QPushButton("✕", this);
     removeButton->setFixedSize(24, 24);
 
-    layout->addWidget(label);
+    layout->addWidget(keyLabel);
+    layout->addWidget(valueEdit);
     layout->addWidget(removeButton);
 
-    // Optional visual separator
     this->setFrameStyle(QFrame::StyledPanel | QFrame::Raised);
     this->setStyleSheet("background-color: #f4f4f4; border-radius: 4px;");
 
@@ -31,6 +36,5 @@ QString InternalVarItem::getName() const {
 }
 
 QString InternalVarItem::getValue() const {
-    return label->text().section(": ", 1);  // extracts "value" from "key: value"
+    return valueEdit->text();
 }
-

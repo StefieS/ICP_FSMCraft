@@ -5,7 +5,7 @@
 #include <QColor>
 #include <QMessageBox>
 
-constexpr int CircleDiameter = 100;
+constexpr int CircleDiameter = 80;
 constexpr int CircleRadius = CircleDiameter / 2;
 
 StateItem::StateItem(const QPointF& position, const QString& name) : initial(false) {
@@ -92,7 +92,8 @@ void StateItem::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidge
     Q_UNUSED(painter);
 }
 
-void StateItem::setActive(bool active) {
+void StateItem::setActive(bool isNowActive) {
+    active = isNowActive;
     if (active) {
         circle->setBrush(QBrush(Qt::red));
     } else {
@@ -101,5 +102,5 @@ void StateItem::setActive(bool active) {
 }
 
 bool StateItem::isActive() const {
-    return true; // todo
+    return active;
 }
