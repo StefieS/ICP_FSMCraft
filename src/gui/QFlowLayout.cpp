@@ -44,10 +44,6 @@ QLayoutItem *QFlowLayout::takeAt(int index) {
     return nullptr;
 }
 
-Qt::Orientations QFlowLayout::expandingDirections() const {
-    return 0;
-}
-
 bool QFlowLayout::hasHeightForWidth() const {
     return true;
 }

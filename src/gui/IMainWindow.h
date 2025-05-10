@@ -43,6 +43,14 @@ public:
     virtual void showOutput(std::string outputID, std::string outputValue) = 0;
 
     /**
+     * @brief Show the input of the FSM.
+     * @param inputID The ID of the input to show.
+     * @param inputValue The value of the input to show.
+     */
+    virtual void showInput(std::string inputID, std::string inputValue) = 0;
+
+
+    /**
      * @brief Shows an error message on screen.
      * @param errorMessage The message to show.
      */

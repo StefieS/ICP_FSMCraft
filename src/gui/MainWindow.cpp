@@ -173,11 +173,11 @@ MainWindow::MainWindow(QWidget *parent)
     inputNameEdit->setPlaceholderText("Input name");
     inputNameEdit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
-    QLabel* colonLabel2 = new QLabel(":", this);
+    QLabel* colonLabel2 = new QLabel(this);
 
-    QLineEdit* inputInitialValueEdit = new QLineEdit(this);
-    inputInitialValueEdit->setPlaceholderText("Initial value");
-    inputInitialValueEdit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    //QLineEdit* inputInitialValueEdit = new QLineEdit(this);
+    //nputInitialValueEdit->setPlaceholderText("Initial value");
+    //inputInitialValueEdit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
     QPushButton* addInputButton = new QPushButton("Add", this);
     addInputButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
@@ -191,7 +191,7 @@ MainWindow::MainWindow(QWidget *parent)
     // Add widgets to grid row 0
     inputGridLayout->addWidget(inputNameEdit,  0, 0);
     inputGridLayout->addWidget(colonLabel2,    0, 1, Qt::AlignCenter);
-    inputGridLayout->addWidget(inputInitialValueEdit, 0, 2);
+    //inputGridLayout->addWidget(inputInitialValueEdit, 0, 2);
     inputGridLayout->addWidget(addInputButton, 0, 3);
 
     leftLayout->addWidget(inputRow);
@@ -224,11 +224,11 @@ MainWindow::MainWindow(QWidget *parent)
     outputNameEdit->setPlaceholderText("Output name");
     outputNameEdit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
-    QLabel* colonLabel3 = new QLabel(":", this);
+    QLabel* colonLabel3 = new QLabel(this);
 
-    QLineEdit* outputValueEdit = new QLineEdit(this);
-    outputValueEdit->setPlaceholderText("Initial value");
-    outputValueEdit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    //QLineEdit* outputValueEdit = new QLineEdit(this);
+    //outputValueEdit->setPlaceholderText("Initial value");
+    //outputValueEdit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
     QPushButton* addOutputButton = new QPushButton("Add", this);
     addOutputButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
@@ -240,7 +240,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     outputGridLayout->addWidget(outputNameEdit,  0, 0);
     outputGridLayout->addWidget(colonLabel3,     0, 1, Qt::AlignCenter);
-    outputGridLayout->addWidget(outputValueEdit, 0, 2);
+    //outputGridLayout->addWidget(outputValueEdit, 0, 2);
     outputGridLayout->addWidget(addOutputButton, 0, 3);
 
     leftLayout->addWidget(outputRow);
@@ -302,7 +302,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(addInputButton, &QPushButton::clicked, this, [=]() {
         QString name = inputNameEdit->text().trimmed();
-        QString val = inputInitialValueEdit->text().trimmed();
+        //QString val = inputInitialValueEdit->text().trimmed();
 
         if (name.isEmpty()) return;
 
@@ -311,10 +311,13 @@ MainWindow::MainWindow(QWidget *parent)
             return;
         }
 
-        QLineEdit* valField = new QLineEdit(val, this);
+        QLineEdit* valField = new QLineEdit("?", this);
+        valField->setReadOnly(true);
         valField->setFixedWidth(120);
+        valField->setStyleSheet("QLineEdit { border: none; background: transparent; }");
+        
         QHBoxLayout* row = new QHBoxLayout();
-        QLabel* label = new QLabel(name + ":");
+        QLabel* label = new QLabel(name);
         QPushButton* removeButton = new QPushButton("✕");
         removeButton->setFixedSize(20, 20);
 
@@ -334,12 +337,12 @@ MainWindow::MainWindow(QWidget *parent)
         });
 
         inputNameEdit->clear();
-        inputInitialValueEdit->clear();
+        //inputInitialValueEdit->clear();
     });
     
     connect(addOutputButton, &QPushButton::clicked, this, [=]() {
         QString name = outputNameEdit->text().trimmed();
-        QString val = outputValueEdit->text().trimmed();
+        //QString val = outputValueEdit->text().trimmed();
 
         if (name.isEmpty()) return;
 
@@ -348,10 +351,13 @@ MainWindow::MainWindow(QWidget *parent)
             return;
         }
 
-        QLineEdit* valField = new QLineEdit(val, this);
+        QLineEdit* valField = new QLineEdit("?", this);
+        valField->setStyleSheet("QLineEdit { border: none; background: transparent; }");
         valField->setFixedWidth(120);
+        valField->setReadOnly(true);
+
         QHBoxLayout* row = new QHBoxLayout();
-        QLabel* label = new QLabel(name + ":");
+        QLabel* label = new QLabel(name);
         QPushButton* removeButton = new QPushButton("✕");
         removeButton->setFixedSize(20, 20);
 
@@ -371,7 +377,7 @@ MainWindow::MainWindow(QWidget *parent)
         });
 
         outputNameEdit->clear();
-        outputValueEdit->clear();
+        //outputValueEdit->clear();
     });
 
     scene->setSceneRect(0, 0, view->width(), view->height());
@@ -451,8 +457,19 @@ void MainWindow::showError(std::string errorMessage) {
 void MainWindow::showOutput(std::string outputID, std::string outputValue) {
     QString id = QString::fromStdString(outputID);
     QString val = QString::fromStdString(outputValue);
-    logBox->appendPlainText("[Output] " + id + " = " + val);
+    if (outputMap.contains(id)) {
+        outputMap[id]->setText(val);
+    }
 }
+
+void MainWindow::showInput(std::string inputID, std::string inputValue) {
+    QString id = QString::fromStdString(inputID);
+    QString val = QString::fromStdString(inputValue);
+    if (inputFieldMap.contains(id)) {
+        inputFieldMap[id]->setText(val);
+    }
+}
+
 
 static std::string detectTypeFromValue(const QString& value) {
     bool okInt = false;

@@ -12,7 +12,6 @@ public:
     void addItem(QLayoutItem *item) override;
     int horizontalSpacing() const;
     int verticalSpacing() const;
-    Qt::Orientations expandingDirections() const override;
     bool hasHeightForWidth() const override;
     int heightForWidth(int) const override;
     int count() const override;

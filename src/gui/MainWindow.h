@@ -31,11 +31,12 @@ public:
     ~MainWindow();
 
     IActivable& getActivableItem(EItemType type, std::string itemID) override;
-    void printLog(std::string logMessage);
-    void highlightItem(bool on, IActivable& item);
-    void setRunning();
-    void showError(std::string errorMessage);
-    void showOutput(std::string outputID, std::string outputValue);
+    void printLog(std::string logMessage) override;
+    void highlightItem(bool on, IActivable& item) override;
+    void setRunning() override;
+    void showError(std::string errorMessage) override;
+    void showOutput(std::string outputID, std::string outputValue) override;
+    void showInput(std::string inputID, std::string inputValue) override;
     void loadFSMFromJson(std::string pathToJson) override;
 
     std::thread listenerThread;
