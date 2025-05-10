@@ -19,6 +19,7 @@
 #include <unistd.h>
 #include <cstring>
 
+class FsmController;
 // Abstract base class for parsing messages
 class NetworkParser {
 public:
@@ -52,7 +53,7 @@ public:
     
     // Methods
     void sendToHost(const std::string& msg);
-    void listen(int port);
+    void listen(int port, FsmController& controller);
     std::string recvFromHost();
     bool connectToServer();
     void closeConnection();

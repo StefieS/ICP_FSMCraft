@@ -51,7 +51,7 @@ void QTfsm::addStateJsAction(QState* state, const QString& jsCode) {
     qDebug() << "Added action with code:" << jsCode;
 
     QObject::connect(state, &QState::entered, this, [this, jsCode, state]() {
-
+        qDebug() << "STATE ENTERED";
         builtinHandler->stateEntered(state);
         QJSValue result = this->engine.evaluate(jsCode);
         if (result.isError()) {
@@ -125,6 +125,7 @@ void QTfsm::addJsTransition(QState* from, QAbstractState* to, const QString& con
 
 
 void QTfsm::postEvent(QEvent* event) {
+    qDebug() << "POSTED";
     machine.postEvent(event);
 }
 
@@ -138,7 +139,7 @@ void QTfsm::emitStopSignal() {
 
 void QTfsm::start() {
     initializeJsEngine();
-    //this->connected = this->networkHandler.connectToServer();
+    this->connected = this->networkHandler.connectToServer();
     machine.start();
 }
 

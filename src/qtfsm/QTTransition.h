@@ -85,7 +85,6 @@ protected:
         }
 
         auto* jsEvent = static_cast<JsConditionEvent*>(event);
-
         // check if the expected input trigger
         if (jsEvent->inputKey != this->inputKey) {
             return false;

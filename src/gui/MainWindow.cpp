@@ -25,13 +25,14 @@
 #include <QRegularExpression>
 #include "TransitionItem.h"
 #include "QFlowLayout.h"
-
+#include "../messages/Message.h"
+#include "../controllers/fsmController/FsmController.h"
 
 constexpr int CircleDiameter = 100; 
 constexpr int CircleRadius = CircleDiameter / 2; 
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent), addingNewState(false), ghostCircle(nullptr) {
+    : QMainWindow(parent), addingNewState(false), ghostCircle(nullptr), networkHandler("127.0.0.1", 8080) {
 
     // Initialize state list
     for (int i = 0; i < MAX_STATES; ++i) {
@@ -197,6 +198,15 @@ MainWindow::MainWindow(QWidget *parent)
     logBox->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
 
     layout->addWidget(logBox);
+
+
+    this->connected = networkHandler.connectToServer();
+    runButton->setEnabled(!connected); // only allow run if disconnected
+    if (this->connected) {
+        // send request message TODO
+    }
+
+
 }
 
 void MainWindow::printLog(std::string logMessage) {
@@ -248,12 +258,24 @@ void MainWindow::onNewStateButtonClicked() {
 
 void MainWindow::onRunClicked() {
     onSaveClicked();
-    // todo controller stuff for starting server...
+    FsmController controller;
+    this->listenerThread = std::thread([this, &controller]() {
+        this->networkHandler.listen(8080, controller);
+    });
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    networkHandler.connectToServer();
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    Message msg;
+    msg.buildJsonMessage("generated_fsm.json"); // TODO NAME
+    networkHandler.sendToHost(msg.toMessageString());
 }
 
 void MainWindow::onStopClicked() {
     // todo send message of stop
-    // disconnect
+    Message msg;
+    msg.buildStopMessage();
+    networkHandler.sendToHost(msg.toMessageString());
+    // todo disconnect
     QMessageBox::information(this, "FSM Stopped", "FSM Stopped.");
 }
 

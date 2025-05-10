@@ -7,8 +7,8 @@
 
 #include "NetworkHandler.h"
 #include "../messages/Message.h"
-#include "../controllers/fsmController/FsmController.h"
 #include <memory>
+#include "../controllers/fsmController/FsmController.h"
 
 std::mutex coutMutex;
 std::mutex responseMutex;
@@ -58,9 +58,8 @@ void NetworkHandler::sendToHost(const std::string& msg) {
 }
 
 // Listen for incoming messages
-void NetworkHandler::listen(int port) {
+void NetworkHandler::listen(int port, FsmController& controller) {
     if (listener) {
-        FsmController controller;
         listener->startListening(port, [this, &controller](const std::string& msg, int clientSocket) {
                 // Register the first client socket
             {

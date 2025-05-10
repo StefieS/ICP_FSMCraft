@@ -16,6 +16,7 @@
 #include "FSM.h"
 #include <QPlainTextEdit>
 #include "IMainWindow.h"
+#include "../networkHandler/NetworkHandler.h"
 
 
 class MainWindow : public QMainWindow {
@@ -27,9 +28,11 @@ public:
 
     void printLog(std::string logMessage) ;
     void highlightItem(bool on, IActivable& item) ;
-     void setRunning() ;
-     void showError(std::string errorMessage) ;
-     void showOutput(std::string outputID, std::string outputValue) ;
+    void setRunning() ;
+    void showError(std::string errorMessage) ;
+    void showOutput(std::string outputID, std::string outputValue) ;
+
+    std::thread listenerThread;
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event) override;
@@ -77,6 +80,9 @@ private slots:
     bool addingNewState = false;
     QGraphicsEllipseItem* ghostCircle = nullptr;
     
+    NetworkHandler networkHandler;
+    bool connected = false;
+
     // Helpers
     void debugPrintStateList() const;
 };
