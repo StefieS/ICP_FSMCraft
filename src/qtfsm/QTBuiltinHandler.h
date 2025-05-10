@@ -6,7 +6,7 @@
 class QTBuiltinHandler : public QObject {
     Q_OBJECT
 public:
-    explicit QTBuiltinHandler(QObject* parent = nullptr, QTfsm* fsm);
+    explicit QTBuiltinHandler(QObject* parent = nullptr, QTfsm* fsm = nullptr);
 
 public slots:
     void output(const QString& name, const QString& value);
