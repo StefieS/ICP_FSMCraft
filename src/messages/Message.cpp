@@ -229,6 +229,10 @@ std::map<std::string, std::string> Message::getOutputValues() const {
     return this->outputValues;
 }
 
+std::map<std::string, std::string> Message::getInputValues() const {
+    return this->inputValues;
+}
+
 std::string Message::getLogString() const {
     // TODO implement this
     return "";

@@ -11,7 +11,7 @@
 #include <utility>
 #include "../fsm/Transition.h"
 #include "../messages/Message.h"
-void QTfsmBuilder::buildQTfsm(const QJsonDocument& jsonDoc) {
+bool QTfsmBuilder::buildQTfsm(const QJsonDocument& jsonDoc) {
     JsonLoader loader = JsonLoader();
     bool addedInitial = false;
     this->innerFsm = loader.fromJson(jsonDoc);
@@ -24,7 +24,7 @@ void QTfsmBuilder::buildQTfsm(const QJsonDocument& jsonDoc) {
         QState* toBeSet;
         if (state.second->isFinalState()) {
             this->built->addFinalState(stateName);
-            return;
+            continue;
         } else if (state.second->isInitialState()) {
             qDebug("Added initial");
             addedInitial = true;
@@ -35,11 +35,9 @@ void QTfsmBuilder::buildQTfsm(const QJsonDocument& jsonDoc) {
         }
         this->built->addStateJsAction(toBeSet, stateAction);
     }
-
+    
     if (!addedInitial) {
-        Message msg = Message();
-        msg.buildRejectMessage("No initial state!");
-        this->built->getNetworkHandler().sendToHost(msg.toMessageString());
+        return false;
     }
 
     auto transitions = this->innerFsm->getTransitions();
@@ -72,7 +70,8 @@ void QTfsmBuilder::buildQTfsm(const QJsonDocument& jsonDoc) {
         QString name = QString::fromStdString(input);
         this->built->setInput(name, "");
     }
-
+    
+    return true;
 }
 
  QTfsm* QTfsmBuilder::getBuiltFsm() {

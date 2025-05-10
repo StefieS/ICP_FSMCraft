@@ -61,5 +61,6 @@ public:
     std::string getCurrentElement() const;
     EItemType getElementType() const;
     std::map<std::string, std::string> getOutputValues() const;
+    std::map<std::string, std::string> getInputValues() const;
     std::string getOtherInfo() const;
 };

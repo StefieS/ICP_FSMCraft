@@ -144,7 +144,6 @@ void QTfsm::addJsTransition(QState* from, QAbstractState* to, const QString& con
 
 void QTfsm::postEvent(QEvent* event) {
     qDebug() << "POSTED";
-    // Using QMetaObject::invokeMethod to post the event to the state machine
     getMachine()->postEvent(event);
 }
 

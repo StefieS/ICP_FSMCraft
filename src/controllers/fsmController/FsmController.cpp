@@ -36,10 +36,8 @@ const Message FsmController::performAction(Message &msg) {
         std::unique_ptr<QTfsmBuilder> builder = std::make_unique<QTfsmBuilder>();
         QEventLoop loop;
         bool builtOk = false;
-
         QMetaObject::invokeMethod(QCoreApplication::instance(), [&]() {
-            builder->buildQTfsm(jsonDoc);
-            builtOk = true;
+            builtOk = builder->buildQTfsm(jsonDoc);
             loop.quit();
         }, Qt::QueuedConnection);
 

@@ -39,6 +39,14 @@ void GuiController::performAction(Message &msg) {
             
                 this->gui->showOutput(name, value);
             }
+            auto inputs = msg.getInputValues();
+
+            for (const auto& input : inputs) {
+                std::string name = input.first;
+                std::string value = input.second;
+            
+                this->gui->showInput(name, value);
+            }
             // TODO MAYBE SHOW INTERNAL
             this->gui->highlightItem(true, toActivate);
             this->gui->printLog(msg.getLogString());

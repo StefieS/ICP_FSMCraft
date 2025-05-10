@@ -21,8 +21,8 @@ public:
     /**
      * @brief Builds QTfsm from json representation of the FSM.
      * @param jsonDoc json representation
-     * @returns Built QTfsm
+     * @returns True if no problem, false if problem
      */
-    void buildQTfsm(const QJsonDocument& jsonDoc);
+    bool buildQTfsm(const QJsonDocument& jsonDoc);
     QTfsm* getBuiltFsm();
 };
