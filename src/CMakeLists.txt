@@ -4,6 +4,7 @@ file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
     io/*.cpp
     messages/*.cpp
     controllers/*/*.cpp
+    networkHandler/*.cpp
     qtfsm/*.cpp
     main.cpp
 )

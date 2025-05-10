@@ -4,6 +4,7 @@
 #include <QFinalState>
 #include <QObject>
 #include <QJSEngine>
+#include "../networkHandler/NetworkHandler.h"
 
 class QTfsm : public QObject {
     Q_OBJECT
@@ -37,8 +38,13 @@ signals:
 
 private:
     std::string jsonName;
+    bool connected;
     QStateMachine machine;
     QState* automaton;
     QFinalState* end;
     QJSEngine engine;
+    NetworkHandler networkHandler;
+    std::map<std::string, QJSValue> outputValues;
+    std::map<std::string, QJSValue> internalValues;
+
 };

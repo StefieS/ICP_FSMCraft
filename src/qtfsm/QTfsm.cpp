@@ -4,14 +4,11 @@
 #include "QTBuiltinHandler.h"
 
 QTfsm::QTfsm(QObject* parent, const std::string& name) 
-    : QObject(parent), jsonName(name) {
+    : QObject(parent), jsonName(name), networkHandler("127.0.0.1", 8080), connected(false) {
     this->automaton = new QState(&machine);
     this->end = new QFinalState(&machine); 
     automaton->addTransition(this->automaton, &QState::finished, this->end);
     automaton->addTransition(this, &QTfsm::stopSignal, this->end);
-    QObject::connect(this->automaton, &QState::entered, this, [this]() {
-        //TODO send log
-    });
     machine.setInitialState(this->automaton);
 }
 
@@ -56,7 +53,8 @@ void QTfsm::addStateJsAction(QState* state, const QString& jsCode) {
         if (result.isError()) {
             qWarning() << "JavaScript error in state entry action:" << result.toString();
         }
-
+        // TODO send Logs
+        
         // epsilon
         QString empty = "";
         QVariantMap map; // todo add current map
@@ -86,6 +84,7 @@ QAbstractState* QTfsm::getStateByName(const QString& name) const {
 }
 
 void QTfsm::setJsVariable(const QString& name, const QJSValue& value) {
+    this->internalValues[name.toStdString()] = value;
     engine.globalObject().setProperty(name, value);
 }
 
@@ -112,11 +111,14 @@ void QTfsm::emitStopSignal() {
 
 void QTfsm::start() {
     initializeJsEngine();
+    this->connected = this->networkHandler.connectToServer();
     machine.start();
 }
 
 void QTfsm::stop() {
+    this->stopSignal();
     machine.stop();
+    this->networkHandler.closeConnection();
 }
 
 QStateMachine* QTfsm::getMachine() {
