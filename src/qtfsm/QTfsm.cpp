@@ -37,7 +37,7 @@ QJSEngine* QTfsm::getJsEngine(){
 }
 
 void QTfsm::initializeJsEngine() {
-    QTBuiltinHandler* builtinHandler = new QTBuiltinHandler();
+    QTBuiltinHandler* builtinHandler = new QTBuiltinHandler(this);
     QJSValue builtinHandlerJs = engine.newQObject(builtinHandler);
     engine.globalObject().setProperty("fsm", builtinHandlerJs);
 }
@@ -86,6 +86,10 @@ QAbstractState* QTfsm::getStateByName(const QString& name) const {
 void QTfsm::setJsVariable(const QString& name, const QJSValue& value) {
     this->internalValues[name.toStdString()] = value;
     engine.globalObject().setProperty(name, value);
+}
+
+void QTfsm::setOutput(const QString& name, const QJSValue& value) {
+    this->outputValues[name.toStdString()] = value;
 }
 
 

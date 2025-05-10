@@ -26,6 +26,7 @@ public:
         const QString& expectedInput, 
         const QString& timeout);
     void setJsVariable(const QString& name, const QJSValue& value);
+    void setOutput(const const QString& name, const QJSValue& value);
     void initializeJsEngine();
     // getters
     std::string getName();

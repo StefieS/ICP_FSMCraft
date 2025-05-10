@@ -52,6 +52,12 @@ void QTfsmBuilder::buildQTfsm(const QJsonDocument& jsonDoc) {
         this->built->setJsVariable(name, val);
     }
 
+    auto outputs = this->innerFsm->getOutputNames();
+    for (auto output : outputs) {
+        QString name = QString::fromStdString(output);
+        this->built->setOutput(name, "");
+    }
+
 }
 
  QTfsm* QTfsmBuilder::getBuiltFsm() {

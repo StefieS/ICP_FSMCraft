@@ -1,14 +1,19 @@
 #include "QTBuiltinHandler.h"
 #include <QDebug>
+#include "QTfsm.h"
 
-QTBuiltinHandler::QTBuiltinHandler(QObject* parent)
-    : QObject(parent) {
-    // Any initialization code can go here
+QTBuiltinHandler::QTBuiltinHandler(QObject* parent, QTfsm* fsm)
+    : QObject(parent), fsm(fsm) {
 }
 
-// Slot implementation
+
 void QTBuiltinHandler::output(const QString& name, const QString& value) {
     qDebug() << "JS output:" << name << "=" << value;
     
-    // TODO: Handle the output (e.g., storing or processing it further)
+   fsm->setOutput(name, value);
+}
+
+int QTBuiltinHandler::elapsed() {
+  // return time elapsed in current state;
+  return 1;
 }
