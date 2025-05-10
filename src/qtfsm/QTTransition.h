@@ -76,6 +76,7 @@ public:
 
 protected:
     bool eventTest(QEvent* event) override {
+        qDebug() <<  "HERE I AM WORKING LIKE A HURRICANE";
         if (ready) { // in case of retrigger by timeout
             return ready;
         }
