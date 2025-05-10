@@ -71,6 +71,13 @@ MainWindow::MainWindow(QWidget *parent)
     saveButton->setToolTip("Save FSM");
     saveButton->setFixedSize(32, 32);
     toolbarLayout->addWidget(saveButton);
+
+    // Stop Button
+    QToolButton *stopButton = new QToolButton(toolbarWidget);
+    stopButton->setText("⏹");
+    stopButton->setToolTip("Stop FSM");
+    stopButton->setFixedSize(32, 32);
+    toolbarLayout->addWidget(stopButton);
     
     // New State Button
     QToolButton *newStateButton = new QToolButton(toolbarWidget);
@@ -87,6 +94,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(runButton, &QToolButton::clicked, this, &MainWindow::onRunClicked);
     connect(saveButton, &QToolButton::clicked, this, &MainWindow::onSaveClicked);
+    connect(stopButton, &QToolButton::clicked, this, &MainWindow::onStopClicked);
     connect(newStateButton, &QToolButton::clicked, this, &MainWindow::onNewStateButtonClicked);
     connect(clearButton, &QToolButton::clicked, this, &MainWindow::onClearClicked);
 
@@ -241,6 +249,12 @@ void MainWindow::onNewStateButtonClicked() {
 void MainWindow::onRunClicked() {
     onSaveClicked();
     // todo controller stuff for starting server...
+}
+
+void MainWindow::onStopClicked() {
+    // todo send message of stop
+    // disconnect
+    QMessageBox::information(this, "FSM Stopped", "FSM Stopped.");
 }
 
 void MainWindow::onSaveClicked() {
