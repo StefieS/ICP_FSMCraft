@@ -85,6 +85,8 @@ void NetworkHandler::listen(int port) {
 
             if (targetSocket != -1) {
                 ::send(targetSocket, responseStr.c_str(), responseStr.size(), 0);
+                Message isStop(responseStr);
+                if (isStop.getType() == EMessageType::STOP) controller.getFsm()->stop();
             }
             
         },

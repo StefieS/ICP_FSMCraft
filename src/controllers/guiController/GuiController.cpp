@@ -9,6 +9,7 @@
 #include "GuiController.h"
 #include "../common/EMessageType.h"
 #include <iostream>
+#include "../networkHandler/NetworkHandler.h"
 
 GuiController::GuiController(IMainWindow* gui) {
     this->gui = gui;
@@ -54,7 +55,7 @@ void GuiController::performAction(Message &msg) {
         }
 
         case (EMessageType::ACCEPT) : {
-            this->gui->setRunning();
+            
             break;
         }
 

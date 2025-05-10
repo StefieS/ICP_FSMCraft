@@ -19,4 +19,5 @@ class FsmController {
     public:
     FsmController();
     const Message performAction(Message &msg);
+    QTfsm* getFsm();
 };
