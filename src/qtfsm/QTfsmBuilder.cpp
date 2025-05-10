@@ -58,6 +58,12 @@ void QTfsmBuilder::buildQTfsm(const QJsonDocument& jsonDoc) {
         this->built->setOutput(name, "");
     }
 
+    auto inputs = this->innerFsm->getInputNames();
+    for (auto input : inputs) {
+        QString name = QString::fromStdString(input);
+        this->built->setInput(name, "");
+    }
+
 }
 
  QTfsm* QTfsmBuilder::getBuiltFsm() {

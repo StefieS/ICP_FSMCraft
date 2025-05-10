@@ -696,7 +696,7 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* event) {
                 return true;
             }
         
-            auto *state = new StateItem(finalPos, name);
+            StateItem *state = new StateItem(finalPos, name);
             scene->addItem(state);
             qDebug() << "Created state at:" << finalPos;
         

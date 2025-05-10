@@ -4,8 +4,9 @@
 #include <QGraphicsEllipseItem>
 #include <QGraphicsTextItem>
 #include <QGraphicsSceneHoverEvent>
+#include "IActivable.h"
 
-class StateItem : public QGraphicsObject {
+class StateItem : public QGraphicsObject, public IActivable {
     Q_OBJECT
 
 public:
@@ -18,6 +19,8 @@ public:
     void updatePen();
     QString getName() const;
     QPointF sceneCenter() const;
+    void setActive(bool active) override;
+    bool isActive() const override;
 
 protected:
     void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override;

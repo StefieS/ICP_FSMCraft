@@ -91,3 +91,15 @@ void StateItem::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidge
     // No painting here since sub-items (circle, label) handle their own painting
     Q_UNUSED(painter);
 }
+
+void StateItem::setActive(bool active) {
+    if (active) {
+        circle->setBrush(QBrush(Qt::red));
+    } else {
+        circle->setBrush(QBrush(Qt::white));
+    }
+}
+
+bool StateItem::isActive() const {
+    return true; // todo
+}

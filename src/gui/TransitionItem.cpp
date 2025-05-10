@@ -85,3 +85,20 @@ void TransitionItem::updateLine(QPointF start, QPointF end) {
     setLine(QLineF(start, end));
     updateLabelPosition(); // Keep label in sync
 }
+
+
+void TransitionItem::setActive(bool active) {
+    
+    if (active) {
+        QPen pen(Qt::red, 3);
+        setPen(pen);
+    } else {
+        QPen pen(Qt::black, 2);
+        setPen(pen);
+    }
+    
+
+}
+bool TransitionItem::isActive() const {
+    return true;
+}   
