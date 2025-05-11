@@ -14,10 +14,17 @@
 #include "FSM.h"
 
 
-
+/**
+ * @class JsonMaker
+ * @brief Implements making of json document from inner fsm
+ */
 class JsonMaker {
 public:
-
+	/**
+	 * @brief Builds json representation of the fsm
+	 * @param fsm The fsm to transform
+	 * @return Json object representing the FSM
+	 */
 	QJsonObject toJson(FSM* fsm);
 };
 

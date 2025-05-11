@@ -11,6 +11,7 @@
  #include <stdexcept>
  
  /**
+  * @enum EMessageType
   * @brief Enumeration for message types
   */
  enum class EMessageType {
@@ -47,7 +48,6 @@
   * @brief Convert string to EMessageType.
   * @param str The string to convert.
   * @return The corresponding EMessageType.
-  * @throws std::invalid_argument if the string does not match any EMessageType.
   */
  inline EMessageType messageTypeFromString(const std::string& str) {
     if (str == "LOG") return EMessageType::LOG;

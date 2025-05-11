@@ -35,5 +35,4 @@ public:
      * @param msg Message to perform action based on
      */
     void performAction(Message &msg);
-    void sendInput(const std::string& name, const std::string& value);
 };

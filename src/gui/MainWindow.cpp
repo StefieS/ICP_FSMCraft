@@ -929,7 +929,7 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* event) {
                 target = dynamic_cast<StateItem*>(under->parentItem());
             }
         
-            if (target && transitionStart && target != transitionStart) {
+            if (target && transitionStart) {
                 currentLine->updateLine(transitionStart->sceneCenter(), target->sceneCenter());
         
                 std::string src = transitionStart->getName().toStdString();

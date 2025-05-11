@@ -1,3 +1,10 @@
+/**
+ * @file Transition.cpp
+ * @brief Implements the Transition class used in FSM modeling.
+ * @author xnovakf00
+ * @date 07.05.2025
+ */
+
 #include "Transition.h"
 
 Transition::Transition(const std::string& src,

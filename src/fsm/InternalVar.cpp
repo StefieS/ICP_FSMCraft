@@ -1,3 +1,11 @@
+/**
+ * @file InternalVar.cpp
+ * @brief Implements the InternalVar class representing a variable internal to the FSM.
+ * @author xnovakf00
+ * @date 07.05.2025
+ */
+
+
 #include "InternalVar.h"
 std::string InternalVar::setName(std::string name) {
     this->name = name;

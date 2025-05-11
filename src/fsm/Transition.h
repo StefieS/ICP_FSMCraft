@@ -1,6 +1,8 @@
 /**
  * @file Transition.h
  * @brief Declares the Transition class used in FSM modeling.
+ * @author xnovakf00
+ * @date 07.05.2025
  */
 
 #pragma once

@@ -1,3 +1,12 @@
+/**
+ * @file FSM.cpp
+ * @brief Implementation file for the common representation of the FSM
+ * @author xnovakf00
+ * @author xmarina00
+ * @date 07.05.2025
+ */
+
+
 #include "FSM.h"
 #include "InternalVar.h"
 #include <iostream>

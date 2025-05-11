@@ -1,3 +1,10 @@
+/**
+ * @file State.cpp
+ * @brief Implements the State class used in the FSM model.
+ * @author xnovakf00
+ * @date 07.05.2025
+ */
+
 #include "State.h"
 
 State::State(const std::string& name, const std::string& actionCode, bool isInitial, bool isFinal)

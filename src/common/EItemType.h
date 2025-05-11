@@ -11,6 +11,7 @@
 #include <stdexcept>
 
 /**
+ * @enum EItemType
  * @brief Enumeration for item types in the FSM GUI.
  * Used to differentiate between states and transitions.
  */

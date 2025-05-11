@@ -1,3 +1,11 @@
+/**
+ * @file FsmController.cpp
+ * @brief Implementation file for the FsmController class
+ * @author xnovakf00
+ * @author xlesigm00
+ * @date 09.05.2025
+ */
+
 #include "FsmController.h"
 #include "../../qtfsm/QTConditionEvent.h"
 #include <QEventLoop>
