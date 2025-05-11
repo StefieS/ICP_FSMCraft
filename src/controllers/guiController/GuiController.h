@@ -8,6 +8,7 @@
 #pragma once
 #include "../../gui/IMainWindow.h"
 #include "../../messages/Message.h"
+#include <QObject>
 
 /**
  * @class GuiController
