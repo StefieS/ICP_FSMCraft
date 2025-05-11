@@ -1,7 +1,20 @@
-PROJECT_NAME           = FSMCraft
-OUTPUT_DIRECTORY       = doc
-GENERATE_HTML          = YES
-SOURCE_BROWSER         = YES
-RECURSIVE              = YES
-INPUT                  = src
-FILE_PATTERNS          = *.cpp *.h
+PROJECT_NAME           = FSMCraft        
+OUTPUT_DIRECTORY       = doc            
+GENERATE_HTML          = YES            
+SOURCE_BROWSER         = YES            
+RECURSIVE              = YES            
+INPUT                  = src            
+GENERATE_LATEX         = NO             
+FILE_PATTERNS          = *.cpp *.h      
+
+
+EXTRACT_ALL            = YES             
+EXTRACT_PRIVATE        = YES            
+EXTRACT_STATIC         = YES            
+EXTRACT_LOCAL_CLASSES  = YES           
+
+INLINE_SOURCES         = YES             
+REFERENCED_BY_RELATION = YES            
+REFERENCES_RELATION    = YES             
+
+USE_MDFILE_AS_MAINPAGE = README.txt
