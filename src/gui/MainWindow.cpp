@@ -1001,7 +1001,7 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* event) {
                     timeoutToSet = timeout.toStdString();
                 }
 
-                Transition t(src, dst, inputToSet, condToSet, timeoutToSet);
+                Transition t(src, dst, inputToSet, condToSet, timeoutToSet, this->TransitionId);
 
                 for (int i = 0; i < stateCount; ++i) {
                     if (stateList[i]->getName() == src) {
@@ -1409,6 +1409,7 @@ void MainWindow::loadFSMFromJson(std::string pathToJson) {
     for (const auto& t : loadedFsm->getTransitions()) {
         QString from = QString::fromStdString(t->getSource());
         QString to   = QString::fromStdString(t->getTarget());
+        int id = t->getId();
         StateItem* sourceItem = nullptr;
         StateItem* targetItem = nullptr;
 
@@ -1421,7 +1422,7 @@ void MainWindow::loadFSMFromJson(std::string pathToJson) {
         }
 
         if (sourceItem && targetItem) {
-            auto* line = new TransitionItem(sourceItem->sceneCenter(), targetItem->sceneCenter());
+            auto* line = new TransitionItem(sourceItem->sceneCenter(), targetItem->sceneCenter(), nullptr, id);
             line->setLabel(QString::fromStdString(t->getInputEvent()) +" / "+ QString::fromStdString(t->getGuardCondition()));
             line->markConfirmed();
             scene->addItem(line);

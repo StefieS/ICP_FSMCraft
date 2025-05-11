@@ -6,7 +6,7 @@
 
 class TransitionItem : public QGraphicsLineItem, public IActivable {
 public:
-    TransitionItem(QPointF start, QPointF end, QGraphicsItem* parent = nullptr, int id);
+    TransitionItem(QPointF start, QPointF end, QGraphicsItem* parent = nullptr, int id = 9999);
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
     void updateLine(QPointF start, QPointF end);
     void setLabel(const QString& text);
