@@ -446,8 +446,14 @@ MainWindow::MainWindow(QWidget *parent)
     connect(injectInputButton, &QPushButton::clicked, this, &MainWindow::onInjectInputClicked);
 
 
-    this->connected = networkHandler.connectToServer();
+    this->connected = false;
+    for (int i = 0; i < 5 && !connected; ++i) {
+        this->connected = networkHandler.connectToServer();
+        if (!connected)
+            QThread::sleep(1);  // small delay between retries
+    }
     if (this->connected) {
+        this->isRunning = true;
         Message msg = Message();
         msg.buildRequestMessage();
         this->networkHandler.sendToHost(msg.toMessageString());
@@ -582,7 +588,6 @@ void MainWindow::onRunClicked() {
             if (!controller) {
                 controller = new GuiController(this);
             }
-
             // Check if listener thread is already running, if not, create one
             if (!listenerRunning) {
                 listenerRunning = true;
@@ -591,9 +596,11 @@ void MainWindow::onRunClicked() {
                 });
                 QTimer::singleShot(1000, this, &MainWindow::startReceivingMessages);
             }
+            QTimer::singleShot(750, this, [this]() {
+                this->connected = networkHandler.connectToServer();
+            });
             
 
-            networkHandler.connectToServer();
             QTimer::singleShot(1000, this, &MainWindow::sendInitialMessage);
             
         } else {
@@ -627,7 +634,6 @@ void MainWindow::startReceivingMessages() {
     }
 
 void MainWindow::sendInitialMessage() {
-        this->connected = networkHandler.connectToServer();
         Message msg;
         auto name = this->automatonName.toStdString();
         msg.buildJsonMessage("../examples/" + name + ".json");
@@ -1299,7 +1305,37 @@ void MainWindow::loadFSMFromJson(std::string pathToJson) {
     for (const QString& inputName : inputMap.keys()) {
         inputComboBox->addItem(inputName);
     }
-    safePrint("AFTER INPUTS");
+
+    // Populate outputs
+    for (const auto& name : loadedFsm->getOutputNames()) {
+        QString qName = QString::fromStdString(name);
+        QLineEdit* valField = new QLineEdit("?", this);
+        valField->setReadOnly(true);
+        valField->setFixedWidth(120);
+        valField->setStyleSheet("QLineEdit { border: none; background: transparent; }");
+
+        QHBoxLayout* row = new QHBoxLayout();
+        QLabel* label = new QLabel(qName + ":");
+        QPushButton* removeButton = new QPushButton("✕");
+        removeButton->setFixedSize(20, 20);
+
+        row->addWidget(label);
+        row->addWidget(valField);
+        row->addWidget(removeButton);
+        outputListLayout->insertLayout(outputListLayout->count() - 1, row);
+        outputMap[qName] = valField;
+
+        connect(removeButton, &QPushButton::clicked, this, [=]() {
+            label->deleteLater();
+            valField->deleteLater();
+            removeButton->deleteLater();
+            row->deleteLater();
+            outputMap.remove(qName);
+        });
+    }
+
+
+    safePrint("AFTER OUTPUTS");
     // Populate states and transitions
     int index = 0;
     const int cols = 5;
@@ -1371,4 +1407,8 @@ void MainWindow::debugPrintStateList() const {
                  << " | transitions:" << s->getTransitions().size();
     }
     qDebug() << "===========================";
+}
+
+void MainWindow::closeEvent(QCloseEvent *event) {
+    if (this->connected) this->networkHandler.closeConnection();
 }
