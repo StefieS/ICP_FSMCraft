@@ -65,6 +65,7 @@ void GuiController::performAction(Message &msg) {
             safePrint( "Yes, I have accepted going to accept");
             break;
         }
+
         
         case (EMessageType::JSON): {
             this->gui->loadFSMFromJson(msg.getJsonName());

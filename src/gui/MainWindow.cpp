@@ -16,6 +16,7 @@
 #include <QMenu>
 #include <QMessageBox>
 #include <QIcon>
+#include <QTimer>
 #include <QAction>
 #include <QDebug>
 #include <QTextEdit>
@@ -542,6 +543,9 @@ MainWindow::~MainWindow() {
         delete stateList[i];
         stateList[i] = nullptr;
     }
+    if (listenerThread.joinable()) {
+            listenerThread.join();
+        }
 }
 
 void MainWindow::onNewStateButtonClicked() {
@@ -553,63 +557,83 @@ void MainWindow::onStopClicked() {
     Message msg;
     msg.buildStopMessage();
     networkHandler.sendToHost(msg.toMessageString());
-    setInterfaceLocked(false);
+    setInterfaceLocked(true);
     QMessageBox::information(this, "FSM Stopped", "FSM Stopped.");
 }
 
+
 void MainWindow::onRunClicked() {
     if (!isRunning) {
-        onSaveClicked();
-        setInterfaceLocked(true);
+            // Start FSM logic
+            onSaveClicked();
+            setInterfaceLocked(true);
 
-        inputComboBox->clear();
-        for (const auto& name : inputMap.keys()) {
-            inputComboBox->addItem(name);
+            inputComboBox->clear();
+            for (const auto& name : inputMap.keys()) {
+                inputComboBox->addItem(name);
+            }
+
+            isRunning = true;
+            runButton->setText("⏸");  // Pause icon
+            runButton->setToolTip("Pause FSM");
+
+            qDebug() << "FSM Started";
+
+            if (!controller) {
+                controller = new GuiController(this);
+            }
+
+            // Check if listener thread is already running, if not, create one
+            if (!listenerRunning) {
+                listenerRunning = true;
+                listenerThread = std::thread([this]() {
+                    this->networkHandler.listen(8080);
+                });
+
+                // Set up message receiving with a timer instead of sleep
+                QTimer::singleShot(1000, this, &MainWindow::startReceivingMessages);
+            }
+
+            networkHandler.connectToServer();
+            QTimer::singleShot(1000, this, &MainWindow::sendInitialMessage);
+
+        } else {
+            // Pause FSM logic
+            isRunning = false;
+            runButton->setText("▶");  // Play icon
+            runButton->setToolTip("Run FSM");
+            // Trigger stop logic to pause FSM
+            onStopClicked();
+
+            // Set the listener flag to false and join the thread
+            listenerRunning = false;
+            if (listenerThread.joinable()) {
+                listenerThread.join();  // Wait for the listener thread to finish
+            }
         }
-
-        isRunning = true;
-        runButton->setText("⏸");  // Pause icon
-        runButton->setToolTip("Pause FSM");
-
-        qDebug() << "FSM Started";
-        if (!controller)
-            controller = new GuiController(this);
-
-        this->listenerThread = std::thread([this]() {
-            this->networkHandler.listen(8080);
-        });
-
-        std::this_thread::sleep_for(std::chrono::seconds(1));
+    }
+void MainWindow::startReceivingMessages() {
         std::thread([this]() {
-            while (true) {
+            while (listenerRunning) {
                 std::string buffer = this->networkHandler.recvFromHost();
-                safePrint("LORESADJA DANFJKAB FASB DSB ");
-                safePrint(buffer);
-                safePrint("IDU DVAJA PO MESTE A NEJDU");
                 Message toProcess(buffer);
-                if (toProcess.getType() == EMessageType::STOP) break;
-                
+                if (toProcess.getType() == EMessageType::STOP) {
+                    this->networkHandler.closeConnection();
+                    listenerRunning = false;  // Stop listening
+                    break;
+                }
                 controller->performAction(toProcess);
             }
         }).detach();
-
-        networkHandler.connectToServer();
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-        Message msg;
-        auto name = this->automatonName.toStdString();
-        msg.buildJsonMessage(name + ".json");
-        networkHandler.sendToHost(msg.toMessageString());
-        
-
-    } else {
-        isRunning = false;
-        runButton->setText("▶");  // Play icon
-        runButton->setToolTip("Run FSM");
-
-        onStopClicked();  // Trigger stop logic
-        setInterfaceLocked(false);
     }
-}
+
+void MainWindow::sendInitialMessage() {
+        this->connected = networkHandler.connectToServer();
+        Message msg;
+        msg.buildJsonMessage("generated_fsm.json"); // TODO: Replace with appropriate name
+        networkHandler.sendToHost(msg.toMessageString());
+    }
+
 
 void MainWindow::onSaveClicked() {
     fsm = new FSM(this->automatonName.toStdString());

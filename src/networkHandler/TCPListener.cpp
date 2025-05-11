@@ -1,16 +1,18 @@
 #include "NetworkHandler.h"
-
 #include <thread>
 #include <mutex>
 #include <vector>
 #include <atomic>
+#include <functional>
 #include "../messages/Message.h"
 
 std::atomic<int> firstClientSocket{-1};  // Shared socket ID of the first client
 std::mutex clientMutex;
 
-void handleClient(int client_socket, std::function<void(const std::string&, int)> onMessage) {
+void handleClientCommunication(int client_socket, std::function<void(const std::string&, int)> onMessage, std::atomic<bool>& stopReceived) {
     char buffer[1024];
+    std::string recvBuffer;
+
     while (true) {
         memset(buffer, 0, sizeof(buffer));
         int bytesRead = recv(client_socket, buffer, sizeof(buffer), 0);
@@ -18,14 +20,29 @@ void handleClient(int client_socket, std::function<void(const std::string&, int)
         if (bytesRead <= 0) {
             safePrint("Client " + std::to_string(client_socket) + " disconnected.");
             close(client_socket);
-            return;
+            break;
         }
 
-        std::string msg(buffer, bytesRead);
-        try {
-            onMessage(msg, client_socket);  // Can log, filter, or process differently per client
-        } catch (const std::exception& e) {
-            std::cerr << "Error processing message: " << e.what() << std::endl;
+        recvBuffer.append(buffer, bytesRead);
+
+        size_t pos;
+        while ((pos = recvBuffer.find("\r\n")) != std::string::npos) {
+            std::string msg = recvBuffer.substr(0, pos);
+            recvBuffer.erase(0, pos + 2);
+
+            safePrint("Received message from socket " + std::to_string(client_socket) + ": " + msg);
+
+            try {
+                onMessage(msg, client_socket);
+                Message isStop(msg);
+                if (isStop.getType() == EMessageType::STOP) {
+                    stopReceived.store(true);
+                    safePrint("STOP message received.");
+                    break;
+                }
+            } catch (const std::exception& e) {
+                std::cerr << "Error processing message: " << e.what() << std::endl;
+            }
         }
     }
 }
@@ -33,6 +50,7 @@ void handleClient(int client_socket, std::function<void(const std::string&, int)
 void TCPListener::startListening(int port,
     std::function<void(const std::string&, int)> onMessage,
     std::function<void(int)> onDisconnect) {
+
     int server_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (server_fd < 0) {
         perror("socket");
@@ -61,7 +79,23 @@ void TCPListener::startListening(int port,
 
     std::cout << "Listening for clients on port " << port << "..." << std::endl;
 
-    while (true) {
+    std::atomic<bool> stopReceived(false);
+    std::vector<std::thread> clientThreads;
+
+    // To simulate unblocking the accept() method when it's time to stop
+    std::thread unblockerThread([&]() {
+        while (!stopReceived.load()) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(100)); // Check periodically
+        }
+        // When it's time to stop, we connect to the server to unblock accept()
+        int unblockSocket = socket(AF_INET, SOCK_STREAM, 0);
+        if (unblockSocket >= 0) {
+            connect(unblockSocket, (sockaddr*)&address, sizeof(address));
+            close(unblockSocket);  // Immediately close it
+        }
+    });
+
+    while (!stopReceived.load()) {
         int client_socket = accept(server_fd, nullptr, nullptr);
         if (client_socket < 0) {
             perror("accept");
@@ -71,39 +105,24 @@ void TCPListener::startListening(int port,
 
         safePrint("Client connected! Socket: " + std::to_string(client_socket));
 
-        std::thread([client_socket, onMessage, onDisconnect]() {
-        char buffer[1024];
-        std::string recvBuffer;
+        // Start client thread to handle communication
+        std::thread t([client_socket, onMessage, onDisconnect, &stopReceived]() {
+            handleClientCommunication(client_socket, onMessage, stopReceived);
+            onDisconnect(client_socket);  // Call the disconnect handler after communication
+        });
+        clientThreads.push_back(std::move(t));  // Store the thread
+    }
 
-        while (true) {
-            memset(buffer, 0, sizeof(buffer));
-            int bytesRead = recv(client_socket, buffer, sizeof(buffer), 0);
-
-            if (bytesRead <= 0) {
-                safePrint("Client " + std::to_string(client_socket) + " disconnected.");
-                onDisconnect(client_socket); // notify disconnection
-                close(client_socket);
-                break;
-            }
-
-            recvBuffer.append(buffer, bytesRead);
-
-            size_t pos;
-            while ((pos = recvBuffer.find("\r\n")) != std::string::npos) {
-                std::string msg = recvBuffer.substr(0, pos);
-                recvBuffer.erase(0, pos + 2);
-
-                safePrint("Received message from socket " + std::to_string(client_socket) + ": " + msg);
-
-                try {
-                    onMessage(msg, client_socket);
-                    Message isStop(msg);
-                    if (isStop.getType() == EMessageType::STOP) return;
-                } catch (const std::exception& e) {
-                    std::cerr << "Error processing message: " << e.what() << std::endl;
-                }
-            }
+    // After stopReceived is set, join all threads
+    for (auto& t : clientThreads) {
+        if (t.joinable()) {
+            t.join();
         }
-        }).detach();  // Run client in background
-    }   
+    }
+
+    safePrint("Server has stopped accepting clients.");
+    close(server_fd);
+
+    // Join the unblocker thread as well
+    unblockerThread.join();
 }
