@@ -115,6 +115,7 @@ private:
     QGraphicsEllipseItem* ghostCircle = nullptr;
     
     NetworkHandler networkHandler;
+    NetworkHandler networkHandler2;
     bool connected = false;
 
     GuiController* controller = nullptr;

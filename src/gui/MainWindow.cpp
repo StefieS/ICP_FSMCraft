@@ -38,7 +38,8 @@ constexpr int CircleDiameter = 80;
 constexpr int CircleRadius = CircleDiameter / 2; 
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent), addingNewState(false), ghostCircle(nullptr), networkHandler("127.0.0.1", 8080) {
+    : QMainWindow(parent), addingNewState(false), ghostCircle(nullptr), networkHandler("127.0.0.1", 8080),
+    networkHandler2("127.0.0.1", 8080) {
 
     // Initialize state list
     for (int i = 0; i < MAX_STATES; ++i) {
@@ -454,9 +455,25 @@ MainWindow::MainWindow(QWidget *parent)
     }
     if (this->connected) {
         this->isRunning = true;
+        std::thread([this]() {
+            while (listenerRunning) {
+                Message empty;
+                networkHandler.sendToHost(empty.toMessageString());
+                std::string buffer = this->networkHandler.recvFromHost();
+                Message toProcess(buffer);
+                if (toProcess.getType() == EMessageType::STOP) {
+                    this->networkHandler2.closeConnection();
+                    this->networkHandler.closeConnection();
+                    listenerRunning = false;  // Stop listening
+                    break;
+                }
+                controller->performAction(toProcess);
+            }
+        }).detach();
+        this->networkHandler2.connectToServer();
         Message msg = Message();
         msg.buildRequestMessage();
-        this->networkHandler.sendToHost(msg.toMessageString());
+        this->networkHandler2.sendToHost(msg.toMessageString());
     }
 }
 
@@ -584,13 +601,18 @@ void MainWindow::onRunClicked() {
             runButton->setToolTip("Pause FSM");
 
             qDebug() << "FSM Started";
-
+            
             if (!controller) {
                 controller = new GuiController(this);
             }
             // Check if listener thread is already running, if not, create one
             if (!listenerRunning) {
                 listenerRunning = true;
+                QTimer::singleShot(900, this, [this]() {
+                    this->connected = networkHandler2.connectToServer();
+                    Message empty;
+                    networkHandler2.sendToHost(empty.toMessageString());
+                });
                 listenerThread = std::thread([this]() {
                     this->networkHandler.listen(8080);
                 });
@@ -613,6 +635,7 @@ void MainWindow::onRunClicked() {
             
             // Set the listener flag to false and join the thread
             listenerRunning = false;
+            this->networkHandler2.closeConnection();
             if (listenerThread.joinable()) {
                 listenerThread.join();  // Wait for the listener thread to finish
             }
@@ -621,10 +644,11 @@ void MainWindow::onRunClicked() {
 void MainWindow::startReceivingMessages() {
         std::thread([this]() {
             while (listenerRunning) {
-                std::string buffer = this->networkHandler.recvFromHost();
+                std::string buffer = this->networkHandler2.recvFromHost();
                 Message toProcess(buffer);
                 if (toProcess.getType() == EMessageType::STOP) {
                     this->networkHandler.closeConnection();
+                    this->networkHandler2.closeConnection();
                     listenerRunning = false;  // Stop listening
                     break;
                 }

@@ -19,7 +19,7 @@ bool TCPSender::connectToServer() {
         return false;
     }
 
-    sock = socket(AF_INET, SOCK_STREAM, 0);
+    this->sock = socket(AF_INET, SOCK_STREAM, 0);
     if (sock == -1) {
         std::cerr << "Socket creation failed!" << std::endl;
         return false;
@@ -48,26 +48,27 @@ std::string TCPSender::recvMessage() {
 
     char buffer[1024];
     size_t delimiterPos;
-    safePrint("DAKSDASKDASODAKDSAKOODASKDASKDADKKDASKDASKDKSAADK" "\n");
     // Keep reading until we find a newline in recvBuffer
     while ((delimiterPos = recvBuffer.find("\r\n")) == std::string::npos) {
-        safePrint("DVA STIHACKY LETIA NESTIHAJU" "\n");
+        if (sock < 0) {
+            std::cerr << "Invalid socket, cannot receive data!" << std::endl;
+            return "";  // Or handle the error appropriately
+        }
+
         int bytesRead = recv(sock, buffer, sizeof(buffer), 0);
         if (bytesRead <= 0) {
             std::cerr << "Receive failed or connection closed!" << std::endl;
+            if (bytesRead < 0) perror("recv failed");
             return "";
-        } safePrint("POTKANY ROZPRAVAJU" "\n");
+        } 
         recvBuffer.append(buffer, bytesRead);
-        safePrint("HADI LUDIA NAGY" "\n");
+        
     }
 
     // Extract the message up to the newline (exclude)
     std::string message = recvBuffer.substr(0, delimiterPos);
-    safePrint("TOTO JE SPRAVA" + message+ "\n");
     // Remove the extracted message from the buffer
     recvBuffer.erase(0, delimiterPos + 2);
-    safePrint("Moj had NAGY");
-
     return message;
 }
 
@@ -78,7 +79,7 @@ void TCPSender::closeConnection() {
         safePrint("Connection closed for sock: " + std::to_string(sock));
         close(sock);
         sock = -1;
-        safePrint("Connection closed.");
+        
     }
 }
 

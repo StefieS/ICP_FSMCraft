@@ -34,10 +34,10 @@ void GuiController::performAction(Message &msg) {
             
             EItemType activableType = msg.getElementType();
             std::string activableID = msg.getCurrentElement();
-            IActivable* toActivate;
-            QMetaObject::invokeMethod(this, [this, activableID, activableType, &toActivate]() {
-                toActivate = &this->gui->getActivableItem(activableType, activableID);
-                this->gui->highlightItem(true, *toActivate);
+        
+            QMetaObject::invokeMethod(this, [this, activableID, activableType]() {
+                IActivable& toActivate = this->gui->getActivableItem(activableType, activableID);
+                this->gui->highlightItem(true, toActivate);
             }, Qt::QueuedConnection);
             safePrint("GOT ACTIVE ELE");
 

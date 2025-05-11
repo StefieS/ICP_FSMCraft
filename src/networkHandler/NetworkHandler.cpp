@@ -61,43 +61,53 @@ void NetworkHandler::sendToHost(const std::string& msg) {
 void NetworkHandler::listen(int port) {
     if (listener) {
         FsmController controller;
-        listener->startListening(port, [this, &controller](const std::string& msg, int clientSocket) {
-                // Register the first client socket
+        std::vector<int> connectedClients;
+        listener->startListening(port, [this, &controller, &connectedClients](const std::string& msg, int clientSocket) {
+                // Register the client socket
             {
                 std::lock_guard<std::mutex> lock(socketMutex);
-                if (firstClientSocket == -1 || firstClientSocket == clientSocket) {
-                    firstClientSocket = clientSocket;
-                    safePrint("Registered client as first: " + std::to_string(firstClientSocket));
-                }
+                // Add the new client to the list of connected clients
+                connectedClients.push_back(clientSocket);
+                safePrint("Registered client: " + std::to_string(clientSocket));
             }
 
-            // Process message from any client
+            // Process message from the client
             Message message(msg);
             Message processed = controller.performAction(message);
             std::string responseStr = processed.toMessageString() + "\r\n"; 
             safePrint(responseStr);
-            // Send processed result only to first client
-            int targetSocket;
+            
+            // Send the response to all connected clients
             {
                 std::lock_guard<std::mutex> lock(socketMutex);
-                targetSocket = firstClientSocket;
+                for (int targetSocket : connectedClients) {
+                    int result = ::send(targetSocket, responseStr.c_str(), responseStr.size(), 0);
+                    if (result <= 0) {
+                        // If the send fails (or the socket is closed), reset that socket
+                        safePrint("Failed to send to client " + std::to_string(targetSocket) + ", removing from list.");
+                        connectedClients.erase(std::remove(connectedClients.begin(), connectedClients.end(), targetSocket), connectedClients.end());
+                    }
+                }
             }
 
-            if (targetSocket != -1) {
-                ::send(targetSocket, responseStr.c_str(), responseStr.size(), 0);
-                Message isStop(responseStr);
-                if (isStop.getType() == EMessageType::STOP) controller.getFsm()->stop();
+            // If the message is a STOP type, stop the FSM
+            Message isStop(responseStr);
+            if (isStop.getType() == EMessageType::STOP) {
+                controller.getFsm()->stop();
             }
-            
+
         },
         // Add optional onDisconnect callback
-        [this](int clientSocket) {
+        [this, &connectedClients](int clientSocket) {
             std::lock_guard<std::mutex> lock(socketMutex);
-            if (clientSocket == firstClientSocket) {
-                safePrint("First client disconnected. Resetting slot.");
-                firstClientSocket = -1;
+            // Remove the client from the connectedClients list when they disconnect
+            auto it = std::find(connectedClients.begin(), connectedClients.end(), clientSocket);
+            if (it != connectedClients.end()) {
+                connectedClients.erase(it);
+                safePrint("Client " + std::to_string(clientSocket) + " disconnected.");
             }
         });
     }
 }
+
 
