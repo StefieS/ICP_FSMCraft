@@ -4,6 +4,8 @@
  *
  * This class is responsible for rendering individual states (nodes) in the FSM graph.
  * Each state has a name, can be marked as initial or final, and can respond to hover events which are handled in MainWindow.cpp.
+ * 
+ * Author: xmarina00
  */
 
 #pragma once

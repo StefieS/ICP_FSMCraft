@@ -5,7 +5,7 @@
  * Similar to how text flows in a paragraph, QFlowLayout automatically arranges
  * child widgets left-to-right and wraps them onto the next line when there's not enough space.
  * 
- *  * Authors: xmarina00
+ * Author: xmarina00
  */
 
 #pragma once

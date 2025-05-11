@@ -6,7 +6,7 @@
  * allowing the user to build FSMs visually, simulate them in real time, and monitor inputs/outputs.
  * It connects to a running interpreter via sockets and displays current state and transitions.
  * 
- * Authors: xmarina00, xnovakf00, xlesigm00
+ * @authors xmarina00, xnovakf00, xlesigm00
  */
 
 #pragma once
@@ -117,10 +117,10 @@ public:
      */
     void loadFSMFromJson(std::string pathToJson) override;
 
-    std::thread listenerThread;   ///< Thread listening for runtime messages
-    std::thread recvThread;       ///< Additional thread for receiving async messages
+    std::thread listenerThread;                ///< Thread listening for runtime messages
+    std::thread recvThread;                    ///< Additional thread for receiving async messages
     std::atomic<bool> listenerRunning = false; ///< Whether the listener is active
-    int TransitionId = 1;         ///< ID counter for transitions
+    int TransitionId = 1;                      ///< ID counter for transitions
 
 protected:
     /**
@@ -132,15 +132,15 @@ protected:
     bool eventFilter(QObject *watched, QEvent *event) override;
 
 private slots:
-    void onInjectInputClicked();         ///< Slot for handling input injection
-    void onNewStateButtonClicked();      ///< Slot for creating a new state
-    void onRunClicked();                 ///< Slot for toggling FSM run mode
-    void onClearClicked();               ///< Slot for clearing the diagram
-    void onStopClicked();                ///< Slot for stopping the FSM
-    void onSaveClicked();                ///< Slot for saving the FSM
-    void onUploadClicked();              ///< Slot for uploading and loading a saved FSM
-    void sendInitialMessage();           ///< Sends initial request to backend
-    void startReceivingMessages();       ///< Begins asynchronous message reception
+    void onInjectInputClicked();          ///< Slot for handling input injection
+    void onNewStateButtonClicked();       ///< Slot for creating a new state
+    void onRunClicked();                  ///< Slot for toggling FSM run mode
+    void onClearClicked();                ///< Slot for clearing the diagram
+    void onStopClicked();                 ///< Slot for stopping the FSM
+    void onSaveClicked();                 ///< Slot for saving the FSM
+    void onUploadClicked();               ///< Slot for uploading and loading a saved FSM
+    void sendInitialMessage();            ///< Sends initial request to backend
+    void startReceivingMessages();        ///< Begins asynchronous message reception
 
     /**
      * @brief Prompts the user to define transition properties.
@@ -162,58 +162,55 @@ private slots:
     QString askToEditAction(const QString& currentCode);
 
 private:
-    FSM* fsm = nullptr;               ///< Pointer to the FSM logic model
+    FSM* fsm = nullptr;                         ///< Pointer to the FSM logic model
     static const int MAX_STATES = 100;
-    State* stateList[MAX_STATES];     ///< Fixed-size array of state logic
-    int stateCount = 0;               ///< Number of currently added states
-    bool connectingMode = false;      ///< Whether user is creating a transition
-    bool isRunning = false;           ///< Whether FSM is running
+    State* stateList[MAX_STATES];               ///< Fixed-size array of state logic
+    int stateCount = 0;                         ///< Number of currently added states
+    bool connectingMode = false;                ///< Whether user is creating a transition
+    bool isRunning = false;                     ///< Whether FSM is running
 
-    // Buttons and input
-    QToolButton* runButton = nullptr;
-    QToolButton* newStateButton = nullptr;
+    QToolButton* runButton = nullptr;           ///< Button for running/stopping FSM
+    QToolButton* newStateButton = nullptr;      ///< Button for creating a new state
 
-    StateItem* transitionStart = nullptr;    ///< Pointer to state where transition started
-    TransitionItem* currentLine = nullptr;   ///< Pointer to temporary transition line
+    StateItem* transitionStart = nullptr;       ///< Pointer to state where transition starts
+    TransitionItem* currentLine = nullptr;      ///< Pointer to temporary transition line
 
-    QWidget* inputListContainer;
-    QVBoxLayout* inputListLayout;
+    QWidget* inputListContainer;                ///< Container for list of inputs
+    QVBoxLayout* inputListLayout;               ///< Layout managing input rows
 
-    QLabel* stateLabel = nullptr;
+    QLabel* stateLabel = nullptr;               ///< Optional state indicator label
 
-    // Graphics
-    QGraphicsScene* scene = nullptr;
-    QGraphicsView* view = nullptr;
-    QWidget* internalVarsContainer;
-    QFlowLayout* internalVarsFlow;
-    QMap<QString, InternalVarItem*> internalVarMap;
+    QGraphicsScene* scene = nullptr;            ///< Graphics scene for diagram
+    QGraphicsView* view = nullptr;              ///< Viewport showing the FSM scene
+    QWidget* internalVarsContainer;             ///< Container widget for internal vars
+    QFlowLayout* internalVarsFlow;              ///< Layout for internal variable chips
+    QMap<QString, InternalVarItem*> internalVarMap; ///< Map of internal variable name to widgets
 
-    QMap<QString, QLineEdit*> inputMap;
-    QComboBox* inputComboBox = nullptr;
-    QLineEdit* inputValueEdit = nullptr;
-    QPushButton* injectInputButton = nullptr;
+    QMap<QString, QLineEdit*> inputMap;         ///< Maps input names to their edit fields
+    QComboBox* inputComboBox = nullptr;         ///< Combo box for injecting inputs
+    QLineEdit* inputValueEdit = nullptr;        ///< Field to input new value
+    QPushButton* injectInputButton = nullptr;   ///< Button to inject input into FSM
 
-    QMap<QString, QLineEdit*> outputMap;
-    QWidget* outputListContainer;
-    QVBoxLayout* outputListLayout;
+    QMap<QString, QLineEdit*> outputMap;        ///< Maps output names to display fields
+    QWidget* outputListContainer;               ///< Container for output value fields
+    QVBoxLayout* outputListLayout;              ///< Layout managing output rows
 
-    QWidget* inputInjectionContainer = nullptr;
-    QMap<QString, QLineEdit*> inputFieldMap;
+    QWidget* inputInjectionContainer = nullptr; ///< Container for input injection UI
+    QMap<QString, QLineEdit*> inputFieldMap;    ///< Maps inputs for runtime editing
 
-    QPlainTextEdit* logBox;
+    QPlainTextEdit* logBox;                     ///< Debug log output field
 
-    // FSM creation and input tracking
-    bool addingNewState = false;
-    QGraphicsEllipseItem* ghostCircle = nullptr;
+    bool addingNewState = false;                ///< Whether the user is placing a new state
+    QGraphicsEllipseItem* ghostCircle = nullptr;///< Temporary "ghost" preview circle
 
-    NetworkHandler networkHandler;     ///< Socket client to simulator
-    NetworkHandler networkHandler2;    ///< Secondary connection for async data
-    bool connected = false;
+    NetworkHandler networkHandler;              ///< Socket handler for interpreter
+    NetworkHandler networkHandler2;             ///< Secondary handler for runtime data
+    bool connected = false;                     ///< Whether the FSM is currently connected
 
-    GuiController* controller = nullptr;
-    IActivable* lastActive = nullptr;
+    GuiController* controller = nullptr;        ///< Pointer to main controller class
+    IActivable* lastActive = nullptr;           ///< Last highlighted item in scene
 
-    QString automatonName = "basic";
+    QString automatonName = "basic";            ///< Name of the current FSM
 
     /**
      * @brief Outputs debug information about current states.
