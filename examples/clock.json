@@ -1,0 +1,187 @@
+{
+    "inputs": [
+    ],
+    "internals": [
+        {
+            "initial": "0",
+            "name": "hour",
+            "type": "int"
+        }
+    ],
+    "name": "clock",
+    "outputs": [
+        "clock"
+    ],
+    "states": [
+        {
+            "action": "fsm.output(\"clock\", hour);\nhour++;",
+            "isFinal": false,
+            "isInitial": false,
+            "name": "1"
+        },
+        {
+            "action": "fsm.output(\"clock\", hour);\nhour++;",
+            "isFinal": false,
+            "isInitial": false,
+            "name": "10"
+        },
+        {
+            "action": "fsm.output(\"clock\", hour);\nhour++;",
+            "isFinal": false,
+            "isInitial": false,
+            "name": "11"
+        },
+        {
+            "action": "fsm.output(\"clock\", hour);\nhour++;",
+            "isFinal": false,
+            "isInitial": true,
+            "name": "12"
+        },
+        {
+            "action": "fsm.output(\"clock\", hour);\nhour++;",
+            "isFinal": false,
+            "isInitial": false,
+            "name": "2"
+        },
+        {
+            "action": "fsm.output(\"clock\", hour);\nhour++;",
+            "isFinal": false,
+            "isInitial": false,
+            "name": "3"
+        },
+        {
+            "action": "fsm.output(\"clock\", hour);\nhour++;",
+            "isFinal": false,
+            "isInitial": false,
+            "name": "4"
+        },
+        {
+            "action": "fsm.output(\"clock\", hour);\nhour++;",
+            "isFinal": false,
+            "isInitial": false,
+            "name": "5"
+        },
+        {
+            "action": "fsm.output(\"clock\", hour);\nhour++;",
+            "isFinal": false,
+            "isInitial": false,
+            "name": "6"
+        },
+        {
+            "action": "fsm.output(\"clock\", hour);\nhour++;",
+            "isFinal": false,
+            "isInitial": false,
+            "name": "7"
+        },
+        {
+            "action": "fsm.output(\"clock\", hour);\nhour++;",
+            "isFinal": false,
+            "isInitial": false,
+            "name": "8"
+        },
+        {
+            "action": "fsm.output(\"clock\", hour);\nhour++;",
+            "isFinal": false,
+            "isInitial": false,
+            "name": "9"
+        }
+    ],
+    "transitions": [
+        {
+            "cond": "",
+            "dst": "1",
+            "id": 2,
+            "input": "",
+            "src": "12",
+            "timeout": "2000"
+        },
+        {
+            "cond": "",
+            "dst": "2",
+            "id": 3,
+            "input": "",
+            "src": "1",
+            "timeout": "2000"
+        },
+        {
+            "cond": "",
+            "dst": "3",
+            "id": 4,
+            "input": "",
+            "src": "2",
+            "timeout": "2000"
+        },
+        {
+            "cond": "",
+            "dst": "4",
+            "id": 5,
+            "input": "",
+            "src": "3",
+            "timeout": "2000"
+        },
+        {
+            "cond": "",
+            "dst": "5",
+            "id": 6,
+            "input": "",
+            "src": "4",
+            "timeout": "2000"
+        },
+        {
+            "cond": "",
+            "dst": "6",
+            "id": 7,
+            "input": "",
+            "src": "5",
+            "timeout": "2000"
+        },
+        {
+            "cond": "",
+            "dst": "7",
+            "id": 8,
+            "input": "",
+            "src": "6",
+            "timeout": "2000"
+        },
+        {
+            "cond": "",
+            "dst": "8",
+            "id": 9,
+            "input": "",
+            "src": "7",
+            "timeout": "2000"
+        },
+        {
+            "cond": "",
+            "dst": "9",
+            "id": 10,
+            "input": "",
+            "src": "8",
+            "timeout": "2000"
+        },
+        {
+            "cond": "",
+            "dst": "10",
+            "id": 11,
+            "input": "",
+            "src": "9",
+            "timeout": "2000"
+        },
+        {
+            "cond": "",
+            "dst": "11",
+            "id": 12,
+            "input": "",
+            "src": "10",
+            "timeout": "2000"
+        },
+        {
+            "cond": "",
+            "dst": "12",
+            "id": 13,
+            "input": "",
+            "src": "11",
+            "timeout": "2000"
+        }
+    ]
+}
