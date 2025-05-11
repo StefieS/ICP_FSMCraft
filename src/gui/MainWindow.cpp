@@ -171,7 +171,7 @@ MainWindow::MainWindow(QWidget *parent)
     envKeyEdit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     envValueEdit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
-    QLabel* inputLabel1 = new QLabel("Declare internals:");
+    QLabel* inputLabel1 = new QLabel("Define internals:");
     inputLabel1->setContentsMargins(0, 0, 0, 0);
     leftLayout->addWidget(inputLabel1);
     
@@ -204,7 +204,7 @@ MainWindow::MainWindow(QWidget *parent)
     leftLayout->addWidget(internalVarsContainer);
 
     // Input container --
-    QLabel* inputLabel2 = new QLabel("Define inputs:");
+    QLabel* inputLabel2 = new QLabel("Declare inputs:");
     inputLabel2->setContentsMargins(0, 0, 0, 0);
     leftLayout->addWidget(inputLabel2);
 
@@ -255,7 +255,7 @@ MainWindow::MainWindow(QWidget *parent)
     leftLayout->addSpacing(2);
 
     // Outputs Container
-    QLabel* outputLabel = new QLabel("Define outputs:");
+    QLabel* outputLabel = new QLabel("Declare outputs:");
     outputLabel->setContentsMargins(0, 0, 0, 0);
     leftLayout->addWidget(outputLabel);
 
