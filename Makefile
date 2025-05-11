@@ -16,7 +16,7 @@ run: build
 clean:
 	@rm -rf $(BUILD_DIR) $(ZIP_NAME) doc
 
-doc:
+doxygen:
 	doxygen Doxyfile
 
 pack: clean
