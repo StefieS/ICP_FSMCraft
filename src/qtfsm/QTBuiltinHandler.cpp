@@ -17,6 +17,10 @@ int QTBuiltinHandler::elapsed() {
     return stateTimer.isValid() ? stateTimer.elapsed() : 0;
 }
 
+bool QTBuiltinHandler::defined(const QString& name) {
+    return fsm->map.contains(name);
+}
+
 void QTBuiltinHandler::stateEntered(QState* newState) {
     if (newState != lastActiveState) {
         stateTimer.restart();

@@ -13,6 +13,7 @@ public:
 public slots:
     void output(const QString& name, const QString& value);
     int elapsed();
+    bool defined(const QString& name);
     void stateEntered(QState* newState);
 private:
     QTfsm* fsm;
