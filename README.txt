@@ -29,4 +29,18 @@ Interpetation of the run:
     Custom transitions and state actions perform the expected behaviour.
 
 Message protocol:
-    For sending TCP messages to communicate between the server
+    For sending TCP messages to communicate between the server and client,
+    specialised Json protocol was used, having multiple types and associated 
+    information needed for performing actions:
+    enum:
+         LOG,
+         INPUT,
+         STOP,
+         JSON,
+         ACCEPT,
+         REJECT,
+         EMPTY,
+         REQUEST.
+
+Controllers:
+    Two controllers were implemented for reacting to the message:
