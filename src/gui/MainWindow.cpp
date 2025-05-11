@@ -1229,8 +1229,9 @@ IActivable& MainWindow::getActivableItem(EItemType type, std::string itemID) {
             }
         } else if (type == EItemType::TRANSITION) {
             if (auto* transition = dynamic_cast<TransitionItem*>(item)) {
-                if (transition->labelText() == qid) {
-                    return *transition;  // Return reference to the transition item
+                qDebug() << transition->getId() << "LABEL";
+                if (QString::fromStdString(std::to_string(transition->getId())) == qid) { 
+                    return *transition;
                 }
             }
         }
