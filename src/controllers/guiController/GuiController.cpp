@@ -37,8 +37,15 @@ void GuiController::performAction(Message &msg) {
             IActivable* toActivate;
             QMetaObject::invokeMethod(this, [this, activableID, activableType, &toActivate]() {
                 toActivate = &this->gui->getActivableItem(activableType, activableID);
+                this->gui->highlightItem(true, *toActivate);
             }, Qt::QueuedConnection);
             safePrint("GOT ACTIVE ELE");
+
+            std::string log = msg.getLogString();
+            QMetaObject::invokeMethod(this, [log, this]() {
+                this->gui->printLog(log);
+            }, Qt::QueuedConnection);
+
             auto outputs = msg.getOutputValues();
 
             for (const auto& output : outputs) {
@@ -58,15 +65,7 @@ void GuiController::performAction(Message &msg) {
                     this->gui->showInput(name, value);
                 }, Qt::QueuedConnection);
             }
-            safePrint("GOT before highlight");
-            QMetaObject::invokeMethod(this, [=]() {
-                this->gui->highlightItem(true, *toActivate);
-            }, Qt::QueuedConnection);
-            safePrint("GOT AFter highlight");
-            std::string log = msg.getLogString();
-            QMetaObject::invokeMethod(this, [log, this]() {
-                this->gui->printLog(log);
-            }, Qt::QueuedConnection);
+
             break;
         }
 
