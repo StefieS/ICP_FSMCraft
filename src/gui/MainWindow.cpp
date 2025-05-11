@@ -630,7 +630,7 @@ void MainWindow::sendInitialMessage() {
         this->connected = networkHandler.connectToServer();
         Message msg;
         auto name = this->automatonName.toStdString();
-        msg.buildJsonMessage(name + ".json");
+        msg.buildJsonMessage("../examples/" + name + ".json");
         networkHandler.sendToHost(msg.toMessageString());
     }
 
@@ -697,7 +697,7 @@ void MainWindow::onSaveClicked() {
     QJsonObject json = maker.toJson(fsm);
 
     QJsonDocument doc(json);
-    QString fileName = this->automatonName + ".json";
+    QString fileName = "../examples/" + this->automatonName + ".json";
     QFile file(fileName);
     if (!file.open(QIODevice::WriteOnly)) {
         QMessageBox::critical(this, "Error", "Failed to write FSM JSON.");
