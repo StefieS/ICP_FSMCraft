@@ -503,7 +503,7 @@ void MainWindow::printLog(std::string logMessage) {
 }
 
 void MainWindow::setRunning() {
-    runButton->isEnabled();
+    runButton->setEnabled(true);
     safePrint("I am in running");
 
 }
@@ -651,6 +651,8 @@ void MainWindow::onRunClicked() {
 
             qDebug() << "FSM Started";
             
+            runButton->setEnabled(false);
+
             if (!controller) {
                 controller = new GuiController(this);
             }
@@ -1061,7 +1063,6 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* event) {
                 QMenu menu;
                 
                 QAction* setInit = menu.addAction(state->isInitial() ? "Unset Initial" : "Set Initial");
-                QAction* setFinal = menu.addAction(state->isFinal()   ? "Unset Final"   : "Set Final");
                 QAction* connect = menu.addAction("Connect");
                 QAction* editAct = menu.addAction("Edit Action");
 
@@ -1095,29 +1096,6 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* event) {
                     state->setInitial(newStateInit);
                 }
 
-                else if (act == setFinal) {
-                    bool newStateFinal = !state->isFinal();
-            
-                    // Unset final on all other states
-                    for (QGraphicsItem* item : scene->items()) {
-                        auto* s = dynamic_cast<StateItem*>(item);
-                        if (s && s != state && s->isFinal()) {
-                            s->setFinal(false);
-                        }
-                    }
-            
-                    for (int i = 0; i < stateCount; ++i) {
-                        stateList[i]->setFinal(false);
-                    }
-            
-                    for (int i = 0; i < stateCount; ++i) {
-                        if (stateList[i]->getName() == state->getName().toStdString()) {
-                            stateList[i]->setFinal(newStateFinal);
-                        }
-                    }
-            
-                    state->setFinal(newStateFinal);
-                }
                 
                 else if (act == connect) {
                     transitionStart = state;
