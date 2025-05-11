@@ -39,14 +39,14 @@ public:
             QJSValue result = jsEngine->evaluate(delayExpression);
 
             // cannot be converted to int, just ignore it
-            if (result.isError() || !result.isNumber()) {
+            if (result.isError()) {
                 qWarning() << "Invalid delay expression:" << delayExpression << "->" << result.toString();
                 ready = false;
                 return false;
             }
-
+            
             int delayMs = result.toInt();
-
+            qDebug() << "WAITING FOR" << delayMs;
             // dont have to wait
             if (delayMs <= 0) {
                 ready = true;

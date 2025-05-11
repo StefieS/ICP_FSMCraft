@@ -141,6 +141,7 @@ QAbstractState* QTfsm::getStateByName(const QString& name) const {
 void QTfsm::setJsVariable(const QString& name, const QJSValue& value) {
     this->internalValues[name.toStdString()] = value;
     engine.globalObject().setProperty(name, value);
+    qDebug() << "set" << name << "value" << value.toString();
 }
 
 void QTfsm::setOutput(const QString& name, const QJSValue& value) {

@@ -623,8 +623,9 @@ void MainWindow::onSaveClicked() {
         var.setName(key.toStdString());
         std::string detected = detectTypeFromValue(value);
         var.setType(detected);
-        var.setInitialValue(value.toStdString());
-
+        qDebug()<<"INITIAL VAR SET FOR *****" ;
+        auto str = var.setInitialValue(value.toStdString());
+        qDebug()<< QString::fromStdString(str);
         fsm->addInternalVar(var);
     }
 
@@ -793,11 +794,10 @@ std::pair<QString, QString> MainWindow::askForStateDetails() {
     // Action block
     QLabel* actionLabel = new QLabel("State action (JavaScript-style code):", &dialog);
     QTextEdit* actionEdit = new QTextEdit(&dialog);
-    actionEdit->setPlainText(R"(if (defined("set_to")) {
-        timeout = atoi(valueof("set_to"));
-    }
-    output("out", 0);
-    output("rt", 0);)");
+    actionEdit->setPlaceholderText(
+    R"(
+    fsm.output("out", 1);
+    fsm.output("out2", fsm.elapsed());)");
     
 
     // Buttons
@@ -868,26 +868,26 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* event) {
         auto *me = static_cast<QMouseEvent*>(event);
         QPointF scenePos = view->mapToScene(me->pos());
 
-        // ─── Hover debug ──────────────────────────────────────────────
-        if (event->type() == QEvent::MouseMove) {
-            QGraphicsItem* under = scene->itemAt(scenePos, QTransform());
-            qDebug() << " raw under =" << under;
+       
+        // if (event->type() == QEvent::MouseMove) {
+        //     QGraphicsItem* under = scene->itemAt(scenePos, QTransform());
+        //     qDebug() << " raw under =" << under;
 
-            StateItem* state = nullptr;
-            if (auto *g = dynamic_cast<StateItem*>(under)) {
-                state = g;
-            } else if (under && under->parentItem()) {
-                state = dynamic_cast<StateItem*>(under->parentItem());
-            }                  
+        //     StateItem* state = nullptr;
+        //     if (auto *g = dynamic_cast<StateItem*>(under)) {
+        //         state = g;
+        //     } else if (under && under->parentItem()) {
+        //         state = dynamic_cast<StateItem*>(under->parentItem());
+        //     }                  
 
-            if (state) {
-                QPointF center = state->scenePos();
-                qDebug() << " Found StateItem at center=" << center
-                         << " cursor=" << scenePos;
-            } else {
-                qDebug() << " Hovering over empty at" << scenePos;
-            }
-        }
+        //     if (state) {
+        //         QPointF center = state->scenePos();
+        //         qDebug() << " Found StateItem at center=" << center
+        //                  << " cursor=" << scenePos;
+        //     } else {
+        //         qDebug() << " Hovering over empty at" << scenePos;
+        //     }
+        // }
 
         if (event->type() == QEvent::MouseMove && connectingMode && transitionStart && currentLine) {
             QPointF scenePos = view->mapToScene(static_cast<QMouseEvent*>(event)->pos());
@@ -1198,7 +1198,7 @@ void MainWindow::loadFSMFromJson(std::string pathToJson) {
 
     JsonLoader loader;
     FSM* loadedFsm = loader.fromJson(doc);
-
+    this->fsm = loadedFsm;
     if (!loadedFsm) {
         QMessageBox::critical(this, "Error", "Failed to load FSM from JSON.");
         return;
@@ -1311,7 +1311,7 @@ void MainWindow::loadFSMFromJson(std::string pathToJson) {
 
         if (sourceItem && targetItem) {
             auto* line = new TransitionItem(sourceItem->sceneCenter(), targetItem->sceneCenter());
-            line->setLabel(QString::fromStdString(t->getInputEvent()));
+            line->setLabel(QString::fromStdString(t->getInputEvent()) +" / "+ QString::fromStdString(t->getGuardCondition()));
             line->markConfirmed();
             scene->addItem(line);
 

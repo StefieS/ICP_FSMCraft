@@ -32,12 +32,12 @@ FSM* JsonLoader::fromJson(const QJsonDocument& jsonDoc) {
     }
 
     // get internal variables
-    QJsonArray internals = root["internal"].toArray();
+    QJsonArray internals = root["internals"].toArray();
     for (int i = 0; i < internals.size(); ++i) {
         QJsonObject internalObj = internals[i].toObject();
         std::string name = internalObj["name"].toString().toStdString();
         std::string type = internalObj["type"].toString().toStdString();
-        std::string initialValue = internalObj["initialValue"].toString().toStdString();
+        std::string initialValue = internalObj["initial"].toString().toStdString();
         auto internalVar = InternalVar();
         internalVar.setName(name);
         internalVar.setType(type);

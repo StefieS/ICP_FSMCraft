@@ -1,5 +1,4 @@
 #include "InternalVar.h"
-
 std::string InternalVar::setName(std::string name) {
     this->name = name;
     return this->name;
