@@ -582,7 +582,7 @@ void MainWindow::clearHighlights() {
     }
 
     lastActive = nullptr;
-    lastActiveTransition = nullptr;
+    // lastActiveTransition = nullptr;
 }
 
 void MainWindow::onStopClicked() {
