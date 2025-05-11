@@ -1,12 +1,13 @@
 /**
  * @file MainWindow.h
  * @brief Main GUI window for FSMCraft: allows editing, simulation, and monitoring of finite state machines.
+ * @authors xmarina00, xnovakf00, xlesigm00
+ * @date 11.05.2025
  * 
  * This class integrates the user interface logic and visual state diagram editing tools,
  * allowing the user to build FSMs visually, simulate them in real time, and monitor inputs/outputs.
  * It connects to a running interpreter via sockets and displays current state and transitions.
  * 
- * @authors xmarina00, xnovakf00, xlesigm00
  */
 
 #pragma once

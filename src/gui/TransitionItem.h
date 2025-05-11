@@ -1,12 +1,13 @@
 /**
  * @file TransitionItem.h
  * @brief Visual representation of a transition between FSM states.
+ * @authors xmarina00, xnovakf00, xlesigm00
+ * @date 11.05.2025
  * 
  * This class renders a curved or looped transition in the FSM editor, including
  * optional arrows and labels. It can be highlighted during execution and updated
  * dynamically as connections are drawn.
  * 
- * Authors: xmarina00, xnovakf00, xlesigm00
  */
 
 #pragma once

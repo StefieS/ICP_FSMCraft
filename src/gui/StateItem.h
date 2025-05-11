@@ -1,11 +1,12 @@
 /**
  * @file StateItem.h
  * @brief Represents a state in the FSM editor as a circular graphics object.
+ * @author xmarina00
+ * @date 11.05.2025
  *
  * This class is responsible for rendering individual states (nodes) in the FSM graph.
  * Each state has a name, can be marked as initial or final, and can respond to hover events which are handled in MainWindow.cpp.
  * 
- * Author: xmarina00
  */
 
 #pragma once
