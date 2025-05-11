@@ -1,7 +1,9 @@
 /**
  * @file TransitionItem.h
  * @brief Visual representation of a transition between FSM states.
- * @authors xmarina00, xnovakf00, xlesigm00
+ * @authors xmarina00
+ * @author xnovakf00
+ * @author xlesigm00
  * @date 11.05.2025
  * 
  * This class renders a curved or looped transition in the FSM editor, including
