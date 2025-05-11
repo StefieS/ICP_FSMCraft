@@ -65,9 +65,9 @@ void NetworkHandler::listen(int port) {
                 // Register the first client socket
             {
                 std::lock_guard<std::mutex> lock(socketMutex);
-                if (firstClientSocket == -1) {
+                if (firstClientSocket == -1 || firstClientSocket == clientSocket) {
                     firstClientSocket = clientSocket;
-                    safePrint("Registered first client socket: " + std::to_string(firstClientSocket));
+                    safePrint("Registered client as first: " + std::to_string(firstClientSocket));
                 }
             }
 

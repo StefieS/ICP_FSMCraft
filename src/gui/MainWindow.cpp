@@ -446,8 +446,14 @@ MainWindow::MainWindow(QWidget *parent)
     connect(injectInputButton, &QPushButton::clicked, this, &MainWindow::onInjectInputClicked);
 
 
-    this->connected = networkHandler.connectToServer();
+    this->connected = false;
+    for (int i = 0; i < 5 && !connected; ++i) {
+        this->connected = networkHandler.connectToServer();
+        if (!connected)
+            QThread::sleep(1);  // small delay between retries
+    }
     if (this->connected) {
+        this->isRunning = true;
         Message msg = Message();
         msg.buildRequestMessage();
         this->networkHandler.sendToHost(msg.toMessageString());
@@ -582,7 +588,6 @@ void MainWindow::onRunClicked() {
             if (!controller) {
                 controller = new GuiController(this);
             }
-
             // Check if listener thread is already running, if not, create one
             if (!listenerRunning) {
                 listenerRunning = true;
@@ -591,9 +596,11 @@ void MainWindow::onRunClicked() {
                 });
                 QTimer::singleShot(1000, this, &MainWindow::startReceivingMessages);
             }
+            QTimer::singleShot(750, this, [this]() {
+                this->connected = networkHandler.connectToServer();
+            });
             
 
-            networkHandler.connectToServer();
             QTimer::singleShot(1000, this, &MainWindow::sendInitialMessage);
             
         } else {
@@ -627,7 +634,6 @@ void MainWindow::startReceivingMessages() {
     }
 
 void MainWindow::sendInitialMessage() {
-        this->connected = networkHandler.connectToServer();
         Message msg;
         auto name = this->automatonName.toStdString();
         msg.buildJsonMessage("../examples/" + name + ".json");
@@ -1371,4 +1377,8 @@ void MainWindow::debugPrintStateList() const {
                  << " | transitions:" << s->getTransitions().size();
     }
     qDebug() << "===========================";
+}
+
+void MainWindow::closeEvent(QCloseEvent *event) {
+    if (this->connected) this->networkHandler.closeConnection();
 }
