@@ -1,10 +1,10 @@
 #pragma once
-#include <QGraphicsLineItem>
+#include <QGraphicsPathItem>
 #include <QGraphicsTextItem>
 #include <QPen>
 #include "IActivable.h"
 
-class TransitionItem : public QGraphicsLineItem, public IActivable {
+class TransitionItem : public QGraphicsPathItem, public IActivable {
 public:
     TransitionItem(QPointF start, QPointF end, QGraphicsItem* parent = nullptr, int id = 9999);
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
@@ -20,6 +20,8 @@ private:
     QGraphicsTextItem* label = nullptr;
     bool active = false;
     bool confirmed = false;
+    QPointF start;
+    QPointF end;
     void updateLabelPosition();
     int id;
 };

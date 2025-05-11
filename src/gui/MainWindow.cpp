@@ -113,20 +113,6 @@ MainWindow::MainWindow(QWidget *parent)
     uploadButton->setFixedSize(50, 32);
     toolbarLayout->addWidget(uploadButton);
 
-    QLineEdit* nameInputField = new QLineEdit(this);
-    nameInputField->setPlaceholderText("Name");
-    nameInputField->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-    QPushButton* submitButton = new QPushButton("+", this);
-    submitButton->setFixedSize(30, 30);
-    toolbarLayout->addWidget(nameInputField);
-    toolbarLayout->addWidget(submitButton);
-
-    connect(submitButton, &QPushButton::clicked, this, [this, nameInputField]() {
-        QString name = nameInputField->text();
-        qDebug() << "Entered name:" << name;
-        this->automatonName = name;
-    });
-
     connect(runButton, &QToolButton::clicked, this, &MainWindow::onRunClicked);
     connect(newStateButton, &QToolButton::clicked, this, &MainWindow::onNewStateButtonClicked);
     connect(clearButton, &QToolButton::clicked, this, &MainWindow::onClearClicked);
@@ -134,6 +120,43 @@ MainWindow::MainWindow(QWidget *parent)
     connect(uploadButton, &QToolButton::clicked, this, &MainWindow::onUploadClicked);
 
     leftLayout->addWidget(toolbarWidget, 0, Qt::AlignLeft);
+
+    QLabel* inputLabelName = new QLabel("Set name:");
+    inputLabelName->setContentsMargins(0, 2, 0, 0);
+    leftLayout->addWidget(inputLabelName);
+
+    // Row for name fields
+    QWidget* nameRow = new QWidget(this);
+    QGridLayout* nameGrid = new QGridLayout(nameRow);
+    nameGrid->setContentsMargins(0, 0, 0, 0);
+    nameGrid->setSpacing(6);
+
+    QLineEdit* nameInputField = new QLineEdit(this);
+    nameInputField->setPlaceholderText("Name");
+    nameInputField->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+
+    QLabel* nothingLabel = new QLabel("", this);
+    nothingLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+
+    QPushButton* submitButton = new QPushButton("Set", this);
+    submitButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+
+    // Column stretches: total = 12
+    nameGrid->setColumnStretch(0, 8);  // input field
+    nameGrid->setColumnStretch(1, 0);
+    nameGrid->setColumnStretch(2, 4);  // button
+
+    nameGrid->addWidget(nameInputField, 0, 0);
+    nameGrid->addWidget(nothingLabel, 0, 1);
+    nameGrid->addWidget(submitButton, 0, 2);
+
+    leftLayout->addWidget(nameRow);
+
+    connect(submitButton, &QPushButton::clicked, this, [this, nameInputField]() {
+        QString name = nameInputField->text();
+        qDebug() << "Entered name:" << name;
+        this->automatonName = name;
+    });
 
     // Add env variable input container --
     QWidget* envInputRow = new QWidget(this);
@@ -1114,8 +1137,11 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* event) {
                 
                 else if (act == connect) {
                     transitionStart = state;
+                    QPointF center = state->sceneCenter();
+                    QPointF start = center + QPointF(CircleRadius * std::cos(0), CircleRadius * std::sin(0));        // Right edge
+                    QPointF end   = center + QPointF(CircleRadius * std::cos(M_PI / 2), CircleRadius * std::sin(M_PI / 2)); // Bottom edge
                     this->TransitionId++;
-                    currentLine = new TransitionItem(state->sceneCenter(), state->sceneCenter(),nullptr, (this->TransitionId));
+                    currentLine = new TransitionItem(start, end,nullptr, (this->TransitionId));
                     scene->addItem(currentLine);
                     connectingMode = true;
                     return true;
