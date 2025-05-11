@@ -24,7 +24,9 @@ void GuiController::performAction(Message &msg) {
     safePrint( "Going to perform an action on type" + eMessageTypeToString(type));
     switch (type) {
         case (EMessageType::REJECT) : {
-            this->gui->showError(msg.getOtherInfo());
+            QMetaObject::invokeMethod(this, [=]() {
+                this->gui->showError(msg.getOtherInfo());
+            }, Qt::QueuedConnection);
             break;
         }
 
@@ -32,7 +34,7 @@ void GuiController::performAction(Message &msg) {
             
             EItemType activableType = msg.getElementType();
             std::string activableID = msg.getCurrentElement();
-
+            }, Qt::QueuedConnection);
             IActivable& toActivate = this->gui->getActivableItem(activableType, activableID);
             safePrint("GOT ACTIVE ELE");
             auto outputs = msg.getOutputValues();
@@ -41,15 +43,18 @@ void GuiController::performAction(Message &msg) {
                 std::string name = output.first;
                 std::string value = output.second;
             
-                this->gui->showOutput(name, value);
+                QMetaObject::invokeMethod(this, [this, name, value]() {
+                    this->gui->showOutput(name, value);
+                }, Qt::QueuedConnection);
             }
             auto inputs = msg.getInputValues();
 
             for (const auto& input : inputs) {
                 std::string name = input.first;
                 std::string value = input.second;
-            
-                this->gui->showInput(name, value);
+                QMetaObject::invokeMethod(this, [this, name, value]() {
+                    this->gui->showInput(name, value);
+                }, Qt::QueuedConnection);
             }
             safePrint("GOT before highlight");
             this->gui->highlightItem(true, toActivate);
@@ -63,7 +68,9 @@ void GuiController::performAction(Message &msg) {
 
         case (EMessageType::ACCEPT) : {
             safePrint( "Yes, I am going to accept");
-            this->gui->setRunning();
+            QMetaObject::invokeMethod(this, [=]() {
+                this->gui->setRunning();
+            }, Qt::QueuedConnection);
             safePrint( "Yes, I have accepted going to accept");
             break;
         }
