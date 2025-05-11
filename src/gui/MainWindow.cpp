@@ -66,12 +66,6 @@ MainWindow::MainWindow(QWidget *parent)
 
     setFixedSize(1420, 800);
 
-    QFile styleFile("./resources/style.qss");
-    if (styleFile.open(QFile::ReadOnly)) {
-        QString styleSheet = QLatin1String(styleFile.readAll());
-        qApp->setStyleSheet(styleSheet);  // Applies globally
-    }
-
     // Create compact horizontal toolbar aligned top-left
     QWidget *toolbarWidget = new QWidget(this);
     QHBoxLayout *toolbarLayout = new QHBoxLayout(toolbarWidget);
