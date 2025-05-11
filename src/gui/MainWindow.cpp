@@ -451,6 +451,8 @@ MainWindow::MainWindow(QWidget *parent)
     }
     safePrint(std::to_string(this->connected));
     if (this->connected) {
+        runButton->setText("⏸");  // Pause icon
+        runButton->setToolTip("Pause FSM");
         this->isRunning = true;
         this->listenerRunning = true;
         if (!controller) {
