@@ -8,6 +8,8 @@
 
 std::atomic<int> firstClientSocket{-1};  // Shared socket ID of the first client
 std::mutex clientMutex;
+std::mutex disconnectMutex;
+
 
 void handleClientCommunication(int client_socket, std::function<void(const std::string&, int)> onMessage, std::atomic<bool>& stopReceived) {
     char buffer[1024];

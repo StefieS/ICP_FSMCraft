@@ -449,8 +449,10 @@ MainWindow::MainWindow(QWidget *parent)
         if (!connected)
             QThread::sleep(1);  // small delay between retries
     }
+    safePrint(std::to_string(this->connected));
     if (this->connected) {
         this->isRunning = true;
+        setInterfaceLocked(true);
         std::thread([this]() {
             while (listenerRunning) {
                 Message empty;
@@ -458,7 +460,6 @@ MainWindow::MainWindow(QWidget *parent)
                 std::string buffer = this->networkHandler.recvFromHost();
                 Message toProcess(buffer);
                 if (toProcess.getType() == EMessageType::STOP) {
-                    this->networkHandler2.closeConnection();
                     this->networkHandler.closeConnection();
                     listenerRunning = false;  // Stop listening
                     break;
@@ -466,10 +467,9 @@ MainWindow::MainWindow(QWidget *parent)
                 controller->performAction(toProcess);
             }
         }).detach();
-        this->networkHandler2.connectToServer();
         Message msg = Message();
         msg.buildRequestMessage();
-        this->networkHandler2.sendToHost(msg.toMessageString());
+        this->networkHandler.sendToHost(msg.toMessageString());
     }
 }
 
@@ -611,75 +611,85 @@ void MainWindow::onStopClicked() {
 
 void MainWindow::onRunClicked() {
     if (!isRunning) {
-        // Start FSM logic
-        onSaveClicked();
-        setInterfaceLocked(true);
+            // Start FSM logic
+            onSaveClicked();
+            setInterfaceLocked(true);
 
-        inputComboBox->clear();
-        for (const auto& name : inputMap.keys()) {
-            inputComboBox->addItem(name);
-        }
+            inputComboBox->clear();
+            for (const auto& name : inputMap.keys()) {
+                inputComboBox->addItem(name);
+            }
 
-        isRunning = true;
-        runButton->setText("⏸");  // Pause icon
-        runButton->setToolTip("Pause FSM");
+            isRunning = true;
+            runButton->setText("⏸");  // Pause icon
+            runButton->setToolTip("Pause FSM");
 
-        qDebug() << "FSM Started";
-
-        if (!controller) {
-            controller = new GuiController(this);
-        }
-        // Check if listener thread is already running, if not, create one
-        if (!listenerRunning) {
-            listenerRunning = true;
-            listenerThread = std::thread([this]() {
-                this->networkHandler.listen(8080);
+            qDebug() << "FSM Started";
+            
+            if (!controller) {
+                controller = new GuiController(this);
+            }
+            // Check if listener thread is already running, if not, create one
+            if (!listenerRunning) {
+                listenerRunning = true;
+                QTimer::singleShot(900, this, [this]() {
+                    this->connected = networkHandler2.connectToServer();
+                    Message empty;
+                    networkHandler2.sendToHost(empty.toMessageString());
+                });
+                listenerThread = std::thread([this]() {
+                    this->networkHandler.listen(8080);
+                });
+                QTimer::singleShot(1000, this, &MainWindow::startReceivingMessages);
+            }
+            QTimer::singleShot(750, this, [this]() {
+                this->connected = networkHandler.connectToServer();
             });
-            QTimer::singleShot(1000, this, &MainWindow::startReceivingMessages);
+            
+
+            QTimer::singleShot(1000, this, &MainWindow::sendInitialMessage);
+            
+        } else {
+            // Pause FSM logic
+            isRunning = false;
+            runButton->setText("▶");  // Play icon
+            runButton->setToolTip("Run FSM");
+            // Trigger stop logic to pause FSM
+            onStopClicked();
+            
+            // Set the listener flag to false and join the thread
+            listenerRunning = false;
+            this->networkHandler2.closeConnection();
+            if (listenerThread.joinable()) {
+                listenerThread.join();  // Wait for the listener thread to finish
+            }
         }
-        QTimer::singleShot(750, this, [this]() {
-            this->connected = networkHandler.connectToServer();
-        });
-        
-        QTimer::singleShot(1000, this, &MainWindow::sendInitialMessage);
-        
-    } else {
-        // Pause FSM logic
-        isRunning = false;
-        runButton->setText("▶");  // Play icon
-        runButton->setToolTip("Run FSM");
-        // Trigger stop logic to pause FSM
-        onStopClicked();
-        
-        // Set the listener flag to false and join the thread
-        listenerRunning = false;
-        if (listenerThread.joinable()) {
-            listenerThread.join();  // Wait for the listener thread to finish
-        }
-    }
 }
 
 void MainWindow::startReceivingMessages() {
-    std::thread([this]() {
-        while (listenerRunning) {
-            std::string buffer = this->networkHandler.recvFromHost();
-            Message toProcess(buffer);
-            if (toProcess.getType() == EMessageType::STOP) {
-                this->networkHandler.closeConnection();
-                listenerRunning = false;  // Stop listening
-                break;
+        std::thread([this]() {
+            while (listenerRunning) {
+                std::string buffer = this->networkHandler2.recvFromHost();
+                Message toProcess(buffer);
+                if (toProcess.getType() == EMessageType::STOP) {
+                    this->networkHandler.closeConnection();
+                    this->networkHandler2.closeConnection();
+                    listenerRunning = false;  // Stop listening
+                    break;
+                }
+                controller->performAction(toProcess);
             }
-            controller->performAction(toProcess);
-        }
-    }).detach();
-}
+        }).detach();
+    }
+
+
 
 void MainWindow::sendInitialMessage() {
-    Message msg;
-    auto name = this->automatonName.toStdString();
-    msg.buildJsonMessage("../examples/" + name + ".json");
-    networkHandler.sendToHost(msg.toMessageString());
-}
+        Message msg;
+        auto name = this->automatonName.toStdString();
+        msg.buildJsonMessage("../examples/" + name + ".json");
+        networkHandler.sendToHost(msg.toMessageString());
+    }
 
 void MainWindow::onSaveClicked() {
     fsm = new FSM(this->automatonName.toStdString());
