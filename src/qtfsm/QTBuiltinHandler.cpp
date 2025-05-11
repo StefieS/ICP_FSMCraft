@@ -1,3 +1,11 @@
+/**
+ * @file QTBuiltinHandler.cpp
+ * @brief Implementation file of builtin functions in JSengine
+ * @author xnovakf00
+ * @date 08.05.2025
+ */
+
+
 #include "QTBuiltinHandler.h"
 #include <QDebug>
 #include "QTfsm.h"

@@ -1,3 +1,11 @@
+/**
+ * @file Message.cpp
+ * @brief Implementation file for custom message to send through the network
+ * @author xnovakf00
+ * @date 05.05.2025
+ */
+
+
 #include "Message.h"
 #include "../common/EMessageType.h"
 #include <QJsonDocument>

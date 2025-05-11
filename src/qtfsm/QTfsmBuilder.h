@@ -24,5 +24,10 @@ public:
      * @returns True if no problem, false if problem
      */
     bool buildQTfsm(const QJsonDocument& jsonDoc);
+
+    /**
+     * @brief Gets the built qtfsm
+     * @return built qtfsm
+     */
     QTfsm* getBuiltFsm();
 };

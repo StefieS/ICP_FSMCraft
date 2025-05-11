@@ -22,40 +22,37 @@
  */
 class Message {    
 private:
-    /** @brief The type of the message (e.g., JSON, INPUT, LOG, etc.). */
+    /** @brief The type of the message */
     EMessageType type;
 
-    // JSON
-    /** @brief Name associated with a JSON message. */
+    /** @brief Name of JSON. */
     std::string name;
 
-    // INPUT
     /** @brief Name of the input signal. */
     std::string inputName;
 
     /** @brief Value of the input signal. */
     std::string inputValue;
 
-    // LOG
     /** @brief Timestamp for a log message. */
     std::string timestamp;
 
-    /** @brief The type of the FSM element associated with the message. */
+    /** @brief The type of the FSM element to activate. */
     EItemType elementType;
 
-    /** @brief Identifier of the currently processed element. */
+    /** @brief Identifier of the current element to activate */
     std::string currentElement;
 
-    /** @brief Key-value pairs of input signals. */
+    /** @brief Input keys and values */
     std::map<std::string, std::string> inputValues;
 
-    /** @brief Key-value pairs of output signals. */
+    /** @brief Output keys and values. */
     std::map<std::string, std::string> outputValues;
 
-    /** @brief Key-value pairs of internal FSM variables. */
+    /** @brief Variables keys and values */
     std::map<std::string, std::string> internalValues;
 
-    /** @brief Additional metadata or information attached to the message. */
+    /** @brief Extra data needed for other messages */
     std::string otherData;
 
 public:
@@ -85,23 +82,23 @@ public:
 
     /**
      * @brief Constructs a JSON message with the given name.
-     * @param jsonName Name associated with the JSON message.
+     * @param jsonName Name of JSON file
      */
     void buildJsonMessage(const std::string& jsonName);
 
     /**
-     * @brief Constructs a stop control message.
+     * @brief Constructs a stop message
      */
     void buildStopMessage();
 
     /**
-     * @brief Constructs an accept control message.
+     * @brief Constructs an accept message
      */
     void buildAcceptMessage();
 
     /**
      * @brief Constructs a reject control message with additional info.
-     * @param otherInfo Additional reason or metadata for rejection.
+     * @param otherInfo Additional reason
      */
     void buildRejectMessage(const std::string& otherInfo);
 
@@ -111,7 +108,7 @@ public:
     void buildRequestMessage();
 
     /**
-     * @brief Constructs a log message with various telemetry data.
+     * @brief Constructs a log message with data
      * @param timestamp Time of the event.
      * @param elementType Type of the element involved.
      * @param currentElement Identifier of the element.
