@@ -34,7 +34,7 @@ void GuiController::performAction(Message &msg) {
             std::string activableID = msg.getCurrentElement();
 
             IActivable& toActivate = this->gui->getActivableItem(activableType, activableID);
-
+            safePrint("GOT ACTIVE ELE");
             auto outputs = msg.getOutputValues();
 
             for (const auto& output : outputs) {
@@ -51,7 +51,9 @@ void GuiController::performAction(Message &msg) {
             
                 this->gui->showInput(name, value);
             }
+            safePrint("GOT before highlight");
             this->gui->highlightItem(true, toActivate);
+            safePrint("GOT AFter highlight");
             std::string log = msg.getLogString();
             QMetaObject::invokeMethod(this, [log, this]() {
                 this->gui->printLog(log);
@@ -68,7 +70,9 @@ void GuiController::performAction(Message &msg) {
 
         
         case (EMessageType::JSON): {
-            this->gui->loadFSMFromJson(msg.getJsonName());
+            QMetaObject::invokeMethod(this, [=]() {
+                this->gui->loadFSMFromJson(msg.getJsonName());
+            }, Qt::QueuedConnection);
             break;
         }
 

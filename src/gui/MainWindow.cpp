@@ -32,6 +32,7 @@
 #include "../messages/Message.h"
 #include "../controllers/fsmController/FsmController.h"
 #include "../controllers/guiController/GuiController.h"
+#include <QThread>
 
 constexpr int CircleDiameter = 80; 
 constexpr int CircleRadius = CircleDiameter / 2; 
@@ -446,7 +447,6 @@ MainWindow::MainWindow(QWidget *parent)
 
 
     this->connected = networkHandler.connectToServer();
-    runButton->setEnabled(!connected); // only allow run if disconnected
     if (this->connected) {
         Message msg = Message();
         msg.buildRequestMessage();
@@ -1200,44 +1200,55 @@ IActivable& MainWindow::getActivableItem(EItemType type, std::string itemID) {
 }
 
 void MainWindow::loadFSMFromJson(std::string pathToJson) {
+    safePrint("loadFSMFromJSON");
+    qDebug() << "loadFSMFromJson called in thread:" << QThread::currentThread();
+    qDebug() << "GUI thread is:" << QApplication::instance()->thread();
     QString examplesPath = QDir("..").filePath("examples");
+    safePrint("AfterQDir1");
     QDir dir(QDir(examplesPath).absolutePath());
+    safePrint("AfterQDir2");
     QString filePath = dir.filePath(QString::fromStdString(pathToJson));
+    safePrint("AfterQDir3");
+
 
     QFile file(filePath);
     if (!file.open(QIODevice::ReadOnly)) {
         QMessageBox::critical(this, "Error", "Unable to open selected file.");
         return;
     }
-
+    safePrint("After File Open");
     QByteArray fileData = file.readAll();
     file.close();
-
+    safePrint("After File Read");
     QJsonParseError parseError;
     QJsonDocument doc = QJsonDocument::fromJson(fileData, &parseError);
     if (parseError.error != QJsonParseError::NoError) {
         QMessageBox::critical(this, "Parse Error", "Invalid JSON format.");
         return;
     }
-
+    safePrint("BEFORE LOADER");
     JsonLoader loader;
     FSM* loadedFsm = loader.fromJson(doc);
     this->fsm = loadedFsm;
+    safePrint("AFTER LOADER");
     if (!loadedFsm) {
         QMessageBox::critical(this, "Error", "Failed to load FSM from JSON.");
         return;
     }
 
+    
+    safePrint("BEFORE onClearClicked");
     // Pass loadedFsm to your existing population logic
     onClearClicked();
-
+    
+    safePrint("AFTER onClearClicked");
     // Clear old internal variable widgets
     for (auto it = internalVarMap.begin(); it != internalVarMap.end(); ++it) {
         internalVarsFlow->removeWidget(it.value());
         it.value()->deleteLater();
     }
     internalVarMap.clear();
-
+    safePrint("AFTER internalVar cler");
     // Populate internal variables
     for (const auto& var : loadedFsm->getInternalVars()) {
         QString key = QString::fromStdString(var.getName());
@@ -1254,11 +1265,11 @@ void MainWindow::loadFSMFromJson(std::string pathToJson) {
                 internalVarMap.erase(it);
             }
         });
-
+        
         internalVarsFlow->addWidget(item);
         internalVarMap[key] = item;
     }
-
+    safePrint("AFTER INTERNALVAR");
     // Populate inputs
     for (const auto& name : loadedFsm->getInputNames()) {
         QString qName = QString::fromStdString(name);
@@ -1283,24 +1294,24 @@ void MainWindow::loadFSMFromJson(std::string pathToJson) {
             inputMap.remove(qName);
         });
     }
-
+    
     inputComboBox->clear();
     for (const QString& inputName : inputMap.keys()) {
         inputComboBox->addItem(inputName);
     }
-
+    safePrint("AFTER INPUTS");
     // Populate states and transitions
     int index = 0;
     const int cols = 5;
     const int spacing = 180;
     const int stateSize = CircleDiameter; // assuming same as your circle size
-
+    
     // Calculate starting point (center the grid)
     int totalCols = std::min(cols, static_cast<int>(loadedFsm->getStates().size()));
     int totalRows = (loadedFsm->getStates().size() + cols - 1) / cols;
     QPointF center = view->mapToScene(view->viewport()->rect().center());
     QPointF start = center - QPointF((totalCols - 1) * spacing / 2, (totalRows - 1) * spacing / 2);
-
+    safePrint("AFTER Calculate starting point");
     for (const auto& pair : loadedFsm->getStates()) {
         std::shared_ptr<State> state = pair.second;
         QString qName = QString::fromStdString(state->getName());
@@ -1317,7 +1328,7 @@ void MainWindow::loadFSMFromJson(std::string pathToJson) {
         stateList[stateCount++] = new State(*state);
         ++index;
     }
-
+        safePrint("after getStates");
 
     for (const auto& t : loadedFsm->getTransitions()) {
         QString from = QString::fromStdString(t->getSource());
@@ -1346,7 +1357,7 @@ void MainWindow::loadFSMFromJson(std::string pathToJson) {
             }
         }
     }
-
+    safePrint("after getTransitions");
     QMessageBox::information(this, "Upload Complete", "FSM loaded successfully.");
 }
 
