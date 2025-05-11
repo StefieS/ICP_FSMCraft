@@ -81,7 +81,7 @@ void GuiController::performAction(Message &msg) {
         
         case (EMessageType::JSON): {
             QMetaObject::invokeMethod(this, [=]() {
-                this->gui->loadFSMFromJson(msg.getJsonName());
+                this->gui->loadFSMFromJson(msg.getJsonName() + ".json");
             }, Qt::QueuedConnection);
             break;
         }

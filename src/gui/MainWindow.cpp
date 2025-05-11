@@ -801,6 +801,7 @@ void MainWindow::onUploadClicked() {
 
     if (!ok || selectedFile.isEmpty())
         return;
+    qDebug() <<selectedFile;
     loadFSMFromJson(selectedFile.toStdString());
     
 }

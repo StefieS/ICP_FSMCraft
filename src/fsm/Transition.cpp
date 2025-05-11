@@ -2,6 +2,7 @@
  * @file Transition.cpp
  * @brief Implements the Transition class used in FSM modeling.
  * @author xnovakf00
+ * @author xmarina00
  * @date 07.05.2025
  */
 

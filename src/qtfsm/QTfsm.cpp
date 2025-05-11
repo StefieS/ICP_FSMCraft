@@ -1,3 +1,12 @@
+/**
+ * @file QTfsm.cpp
+ * @brief Implementation of the QTfsm class representing inner logic and transitions of the
+ * FSM defined.
+ * @author xlesigm00
+ * @author xnovakf00
+ * @date 05.05.2025
+ */
+
 #include "QTfsm.h"
 #include <QDebug>
 #include "QTTransition.h"

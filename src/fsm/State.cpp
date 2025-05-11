@@ -2,13 +2,14 @@
  * @file State.cpp
  * @brief Implements the State class used in the FSM model.
  * @author xnovakf00
+ * @author xmarina00
  * @date 07.05.2025
  */
 
 #include "State.h"
 
 State::State(const std::string& name, const std::string& actionCode, bool isInitial, bool isFinal)
-    : name(name), actionCode(actionCode), transitions(), isActive(false), isInitial(isInitial), isFinal(isFinal) {}
+    : name(name), actionCode(actionCode), transitions(), isInitial(isInitial), isFinal(isFinal) {}
 
 
 const std::string& State::getName() const {

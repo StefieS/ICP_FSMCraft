@@ -43,49 +43,6 @@ void FSM::addOutputName(const std::string& outputName) {
     outputNames.push_back(outputName);
 }
 
-void FSM::setInput(const std::string& inputName, const std::string& value) {
-    inputMemory[inputName] = value;
-}
-
-const std::string& FSM::getCurrentState() const {
-    return currentState;
-}
-
-void FSM::printStatus() const {
-    std::cout << "Current state: " << currentState << std::endl;
-    std::cout << "Inputs: ";
-    for (const auto& [key, val] : inputMemory) {
-        std::cout << key << "=" << val << " ";
-    }
-    std::cout << std::endl;
-}
-
-void FSM::process() {
-    std::cout << "Processing event in state: " << currentState << std::endl;
-
-    for (const auto& transition : transitions) {
-        if (transition->getSource() != currentState) continue;
-
-        auto input = transition->getInputEvent();
-
-            auto it = inputMemory.find(input);
-            if (it == inputMemory.end()) continue;
-
-            std::cout << "Transitioning from " << transition->getSource()
-                      << " to " << transition->getTarget()
-                      << " on input: " << input << std::endl;
-
-            currentState = transition->getTarget();
-            break;
-        
-    }
-
-    auto it = states.find(currentState);
-    if (it != states.end()) {
-        std::cout << "Action code: " << it->second->getActionCode() << std::endl;
-    }
-}
-
 std::string FSM::getName() {
     return name;
 }
