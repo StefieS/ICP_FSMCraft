@@ -21,21 +21,21 @@
   "states": [
     {
       "name": "IDLE",
-      "action": "output(\"out\", 0)",
-      "initial": "1",
-      "final": "0"
+      "action": "fsm.output(\"out\", 0)",
+      "isInitial": true,
+      "isFinal": false
     },
     {
       "name": "ACTIVE",
-      "action": "output(\"out\", 1)",
-      "initial": "0",
-      "final": "0"
+      "action": "fsm.output(\"out\", 1)",
+      "isInitial": false,
+      "isFinal": false
     },
     {
       "name": "TIMING",
       "action": "",
-      "initial": "0",
-      "final": "0"
+      "isInitial": false,
+      "isFinal": false
     }
   ],
   "transitions": [
@@ -43,24 +43,24 @@
       "src": "IDLE",
       "dst": "ACTIVE",
       "input": "in",
-      "cond": "atoi(valueof(\"in\")) == 1"
+      "cond": "in == 1"
     },
     {
       "src": "ACTIVE",
       "dst": "TIMING",
       "input": "in",
-      "cond": "atoi(valueof(\"in\")) == 0"
+      "cond": "in == 0"
     },
     {
       "src": "TIMING",
       "dst": "ACTIVE",
       "input": "in",
-      "cond": "atoi(valueof(\"in\")) == 1"
+      "cond": "in == 1"
     },
     {
       "src": "TIMING",
       "dst": "IDLE",
-      "input": "@",
+      "input": "",
       "cond": "timeout"
     }
   ]

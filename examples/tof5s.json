@@ -1,0 +1,66 @@
+{
+    "inputs": [
+        "input"
+    ],
+    "internals": [
+        {
+            "initial": "5000",
+            "name": "timeout",
+            "type": "int"
+        }
+    ],
+    "name": "fsm_gen",
+    "outputs": [
+        "out"
+    ],
+    "states": [
+        {
+            "action": "fsm.output(\"out\", 1)",
+            "isFinal": false,
+            "isInitial": false,
+            "name": "ACTIVE"
+        },
+        {
+            "action": "fsm.output(\"out\", 0)",
+            "isFinal": false,
+            "isInitial": true,
+            "name": "IDLE"
+        },
+        {
+            "action": "",
+            "isFinal": false,
+            "isInitial": false,
+            "name": "TIMING"
+        }
+    ],
+    "transitions": [
+        {
+            "cond": "input == 1",
+            "dst": "ACTIVE",
+            "input": "input",
+            "src": "IDLE",
+            "timeout": "0"
+        },
+        {
+            "cond": "input == 0",
+            "dst": "TIMING",
+            "input": "input",
+            "src": "ACTIVE",
+            "timeout": "0"
+        },
+        {
+            "cond": "input == 1",
+            "dst": "ACTIVE",
+            "input": "input",
+            "src": "TIMING",
+            "timeout": "0"
+        },
+        {
+            "cond": "",
+            "dst": "IDLE",
+            "input": "",
+            "src": "TIMING",
+            "timeout": "timeout"
+        }
+    ]
+}

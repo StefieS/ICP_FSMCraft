@@ -1,0 +1,33 @@
+{
+    "inputs": [
+    ],
+    "internals": [
+    ],
+    "name": "fsm_gen",
+    "outputs": [
+        "a"
+    ],
+    "states": [
+        {
+            "action": "fsm.output(\"a\", \"b\");",
+            "isFinal": false,
+            "isInitial": true,
+            "name": "aaa"
+        },
+        {
+            "action": "fsm.output(\"a\", \"c\");",
+            "isFinal": false,
+            "isInitial": false,
+            "name": "bbb"
+        }
+    ],
+    "transitions": [
+        {
+            "cond": "",
+            "dst": "bbb",
+            "input": "",
+            "src": "aaa",
+            "timeout": "0"
+        }
+    ]
+}
