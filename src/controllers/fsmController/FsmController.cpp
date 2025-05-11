@@ -63,12 +63,11 @@ const Message FsmController::performAction(Message &msg) {
 
         std::string name = msg.getInputName();
         std::string value = msg.getInputValue();
-        QVariantMap data;
         QString qName = QString::fromStdString(name);
         QString qValue = QString::fromStdString(value);
-        data[qName] = qValue;
+        qtfsm->map[qName] = qValue;
 
-        this->qtfsm->postEvent(new JsConditionEvent(data, qName));
+        this->qtfsm->postEvent(new JsConditionEvent(qtfsm->map, qName));
         return response;
     }
 

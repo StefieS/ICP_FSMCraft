@@ -13,7 +13,8 @@
  * @class GuiController
  * @brief Class for controlling the GUI
  */
-class GuiController {
+class GuiController : public QObject {
+    Q_OBJECT
 private:
     /**
      * GUI window to control

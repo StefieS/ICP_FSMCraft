@@ -6,13 +6,33 @@
 #include <QApplication>
 #include "../common/EItemType.h"
 #include "../messages/Message.h"
-
+#include <QSignalTransition>
 QTfsm::QTfsm(QObject* parent, const std::string& name) 
     : QObject(parent), jsonName(name), networkHandler("127.0.0.1", 8080), connected(false) {
     this->automaton = new QState(&machine);
     this->end = new QFinalState(&machine); 
-    automaton->addTransition(this->automaton, &QState::finished, this->end);
-    automaton->addTransition(this, &QTfsm::stopSignal, this->end);
+QSignalTransition* transition = new QSignalTransition(this->automaton, &QState::finished);
+    transition->setTargetState(this->end);
+    QObject::connect(transition, &QSignalTransition::triggered, this->getMachine(), [=]() {
+    Message msg;
+    msg.buildStopMessage();
+    this->getNetworkHandler().sendToHost(msg.toMessageString());
+    this->getNetworkHandler().closeConnection();
+    });
+
+    automaton->addTransition(transition);
+    QSignalTransition* manualTransition = new QSignalTransition(this, &QTfsm::stopSignal);
+    manualTransition->setTargetState(this->end);
+
+    // Optionally, add logic for manual stop
+    QObject::connect(manualTransition, &QSignalTransition::triggered, this, [=]() {
+        Message msg;
+        msg.buildStopMessage();
+        this->getNetworkHandler().sendToHost(msg.toMessageString());
+        this->getNetworkHandler().closeConnection();
+    });
+
+    automaton->addTransition(manualTransition);
     machine.setInitialState(this->automaton);
     this->moveToThread(QCoreApplication::instance()->thread());
     this->getMachine()->moveToThread(QCoreApplication::instance()->thread());
@@ -64,7 +84,6 @@ void QTfsm::initializeJsEngine() {
     engine.globalObject().setProperty("fsm", builtinHandlerJs);
 }
 
-// TODO
 void QTfsm::addStateJsAction(QState* state, const QString& jsCode) {
     qDebug() << "Added action with code:" << jsCode;
 
@@ -75,7 +94,6 @@ void QTfsm::addStateJsAction(QState* state, const QString& jsCode) {
         if (result.isError()) {
             qWarning() << "JavaScript error in state entry action:" << result.toString();
         }
-        // TODO send Logs
         // TimeStamp
         QDateTime now = QDateTime::currentDateTime();
         QString timeStr = now.toString("yyyy-MM-dd hh:mm:ss");  // or any format you want
@@ -95,7 +113,6 @@ void QTfsm::addStateJsAction(QState* state, const QString& jsCode) {
         this->networkHandler.sendToHost(log.toMessageString());
         // epsilon
         QString empty = "";
-        QVariantMap map; // todo add current map
         this->postEvent(new JsConditionEvent(map, empty));
 
     }, Qt::QueuedConnection);

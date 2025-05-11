@@ -41,6 +41,7 @@ public:
     std::map<std::string, QJSValue> getVars();
     std::map<std::string, std::string> getStringMap(std::map<std::string, QJSValue> map);
     void postEvent(QEvent* event);
+    QVariantMap map;
 signals:
     void stopSignal();
     
@@ -57,4 +58,5 @@ private:
     std::map<std::string, QJSValue> internalValues;
     std::map<std::string, QJSValue> inputValues;
     QTBuiltinHandler* builtinHandler;
+    
 };

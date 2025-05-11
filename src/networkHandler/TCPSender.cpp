@@ -97,7 +97,6 @@ bool TCPSender::sendMessage(const std::string& msg) {
         closeConnection();
         return false;
     }
-
     safePrint("Message sent from socket " + std::to_string(sock) + ": " + msg);
     return true;
 }

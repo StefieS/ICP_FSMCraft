@@ -433,21 +433,27 @@ MainWindow::MainWindow(QWidget *parent)
     this->connected = networkHandler.connectToServer();
     runButton->setEnabled(!connected); // only allow run if disconnected
     if (this->connected) {
-        // send request message TODO
+        Message msg = Message();
+        msg.buildRequestMessage();
+        this->networkHandler.sendToHost(msg.toMessageString());
     }
 }
 
 void MainWindow::printLog(std::string logMessage) {
     QString msg = QString::fromStdString(logMessage);
+    qDebug() << msg << "log is this";
     logBox->appendPlainText(msg);
 }
 
 void MainWindow::setRunning() {
-    safePrint("nIE");
+    safePrint("I am in running");
 }
 
 void MainWindow::highlightItem(bool on, IActivable& item) {
+    if (this->lastActive != nullptr)
+        this->lastActive->setActive(false);
     item.setActive(on);
+    this->lastActive = &item;
 }
 
 void MainWindow::showError(std::string errorMessage) {
@@ -500,7 +506,6 @@ void MainWindow::onNewStateButtonClicked() {
 }
 
 void MainWindow::onStopClicked() {
-    // todo send message of stop
     Message msg;
     msg.buildStopMessage();
     networkHandler.sendToHost(msg.toMessageString());
@@ -521,17 +526,16 @@ void MainWindow::onRunClicked() {
         runButton->setText("⏸");  // Pause icon
         runButton->setToolTip("Pause FSM");
 
-        // TODO: Start FSM logic here
         qDebug() << "FSM Started";
-        // todo setup receiver thread
-        GuiController controller(this);
+        if (!controller)
+            controller = new GuiController(this);
 
         this->listenerThread = std::thread([this]() {
             this->networkHandler.listen(8080);
         });
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
-        std::thread([&controller, this]() {
+        std::thread([this]() {
             while (true) {
                 std::string buffer = this->networkHandler.recvFromHost();
                 safePrint("LORESADJA DANFJKAB FASB DSB ");
@@ -540,7 +544,7 @@ void MainWindow::onRunClicked() {
                 Message toProcess(buffer);
                 if (toProcess.getType() == EMessageType::STOP) break;
                 
-                controller.performAction(toProcess);
+                controller->performAction(toProcess);
             }
         }).detach();
 
@@ -1238,9 +1242,9 @@ void MainWindow::onInjectInputClicked() {
     qDebug() << "Injecting input:" << inputName << " = " << value;
     field->setText(value);  // Set injected value visibly
 
-    // Message msg;
-    // msg.buildInputMessage(inputName.toStdString(), value.toStdString());
-    // controller->sendMessage(msg);  // or socket->sendMessage(msg);
+    Message msg;
+    msg.buildInputMessage(inputName.toStdString(), value.toStdString());
+    this->networkHandler.sendToHost(msg.toMessageString());  // or socket->sendMessage(msg);
 }
 
 IActivable& MainWindow::getActivableItem(EItemType type, std::string itemID) {
@@ -1257,6 +1261,7 @@ IActivable& MainWindow::getActivableItem(EItemType type, std::string itemID) {
     } else if (type == EItemType::TRANSITION) {
         for (QGraphicsItem* item : scene->items()) {
             if (auto* transition = dynamic_cast<TransitionItem*>(item)) {
+                qDebug() <<transition->labelText() << "LABEL";
                 if (transition->labelText() == qid) { // You'll need to implement labelText()
                     return *transition;
                 }

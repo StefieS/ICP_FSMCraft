@@ -45,6 +45,10 @@ Message::Message(std::string receivedMessage) {
             this->buildAcceptMessage();
             break;
         }
+        case (EMessageType::REQUEST): {
+            this->buildRequestMessage();
+            break;
+        }
         case (EMessageType::REJECT): {
             std::string otherInfo = root["otherInfo"].toString().toStdString();
             this->buildRejectMessage(otherInfo);
@@ -157,7 +161,7 @@ std::string Message::toMessageString() const {
     }
 
    QJsonDocument doc(msgDoc);
-   return doc.toJson().toStdString(); // TODO CHECK THIS
+   return doc.toJson().toStdString();
 }
 
 void Message::buildInputMessage(const std::string& inputName, const std::string& inputValue) {
@@ -173,6 +177,10 @@ void Message::buildJsonMessage(const std::string& jsonName) {
 
 void Message::buildAcceptMessage() {
     this->type = EMessageType::ACCEPT;
+}
+
+void Message::buildRequestMessage() {
+    this->type = EMessageType::REQUEST;
 }
 
 void Message::buildRejectMessage(const std::string& otherInfo) {
@@ -234,8 +242,26 @@ std::map<std::string, std::string> Message::getInputValues() const {
 }
 
 std::string Message::getLogString() const {
-    // TODO implement this
-    return "";
+    std::string log = "[" + this->timestamp + "] ";
+    log += "Element: " + this->currentElement + " (" + eItemTypeToString(this->elementType) + ")\n";
+
+    log += "Inputs:\n";
+    for (auto it = inputValues.begin(); it != inputValues.end(); ++it) {
+        log += "  " + it->first + " = " + it->second + "\n";
+    }
+
+    log += "Outputs:\n";
+    for (auto it = outputValues.begin(); it != outputValues.end(); ++it) {
+        log += "  " + it->first + " = " + it->second + "\n";
+    }
+
+    log += "Internals:\n";
+    for (auto it = internalValues.begin(); it != internalValues.end(); ++it) {
+        log += "  " + it->first + " = " + it->second + "\n";
+    }
+
+    return log;
 }
+
 
 

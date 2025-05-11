@@ -22,6 +22,7 @@
 #include "../io/JsonLoader.h"
 #include "../networkHandler/NetworkHandler.h"
 #include "../common/EMessageType.h"
+#include "../controllers/guiController/GuiController.h"
 
 
 class MainWindow : public QMainWindow, public IMainWindow {
@@ -110,6 +111,8 @@ private:
     NetworkHandler networkHandler;
     bool connected = false;
 
+    GuiController* controller = nullptr;
+    IActivable* lastActive = nullptr;
     // Helpers
     void debugPrintStateList() const;
 };

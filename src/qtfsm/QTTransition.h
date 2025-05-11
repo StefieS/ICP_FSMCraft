@@ -57,8 +57,7 @@ public:
             delayTimer->setSingleShot(true);
             QObject::connect(delayTimer, &QTimer::timeout, this, [this]() {
                 ready = true;
-                QVariantMap map;
-                auto* triggerEvent = new JsConditionEvent(map, this->inputKey); // TODO MAP THE GLOBAL ONE
+                auto* triggerEvent = new JsConditionEvent(automaton->map, this->inputKey); // TODO MAP THE GLOBAL ONE
                 this->automaton->postEvent(triggerEvent);
             });
 
@@ -131,14 +130,12 @@ protected:
     }
 
     void onTransition(QEvent*) override {
-        //TODO send Log
         QDateTime now = QDateTime::currentDateTime();
         QString timeStr = now.toString("yyyy-MM-dd hh:mm:ss");
         std::string timeStamp = timeStr.toStdString();
         // Elem State
         EItemType elementType = EItemType::TRANSITION;
-        // currentElem todo check if correct order of condition/key
-        const std::string currentElement = jsCondition.toStdString() + "/" + inputKey.toStdString();
+        const std::string currentElement = inputKey.toStdString() +" / "+ jsCondition.toStdString();
         Message log = Message();
         log.buildLogMessage(timeStamp,
             elementType,

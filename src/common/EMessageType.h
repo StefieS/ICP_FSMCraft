@@ -58,5 +58,5 @@
     if (str == "REJECT") return EMessageType::REJECT;
     if (str == "EMPTY") return EMessageType::EMPTY;
     if (str == "REQUEST") return EMessageType::REQUEST;
-    else {return EMessageType::EMPTY;}
+    return EMessageType::EMPTY;
  }

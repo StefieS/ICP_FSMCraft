@@ -25,8 +25,6 @@ public:
      * or turn the highlight off.
      * @param on True to activate, false to deactivate.
      * @param item The object to highlight.
-     * 
-     * @todo Think of better way to let know which object to highlight
      */
     virtual void highlightItem(bool on, IActivable& item) = 0;
 

@@ -10,15 +10,18 @@
 #include "../common/EMessageType.h"
 #include <iostream>
 #include "../networkHandler/NetworkHandler.h"
+#include <QMetaObject>
 
 GuiController::GuiController(IMainWindow* gui) {
     this->gui = gui;
+    qDebug() << "GuiController created with gui pointer:" << gui;
 }
 
 void GuiController::performAction(Message &msg) {
-
+    
     EMessageType type = msg.getType();
 
+    safePrint( "Going to perform an action on type" + eMessageTypeToString(type));
     switch (type) {
         case (EMessageType::REJECT) : {
             this->gui->showError(msg.getOtherInfo());
@@ -48,14 +51,18 @@ void GuiController::performAction(Message &msg) {
             
                 this->gui->showInput(name, value);
             }
-            // TODO MAYBE SHOW INTERNAL
             this->gui->highlightItem(true, toActivate);
-            this->gui->printLog(msg.getLogString());
+            std::string log = msg.getLogString();
+            QMetaObject::invokeMethod(this, [log, this]() {
+                this->gui->printLog(log);
+            }, Qt::QueuedConnection);
             break;
         }
 
         case (EMessageType::ACCEPT) : {
+            safePrint( "Yes, I am going to accept");
             this->gui->setRunning();
+            safePrint( "Yes, I have accepted going to accept");
             break;
         }
         
@@ -65,7 +72,3 @@ void GuiController::performAction(Message &msg) {
     };
 }
 
-void GuiController::sendInput(const std::string& name, const std::string& value) {
-    // TODO: Replace this with actual message sending logic
-    std::cout << "[SEND INPUT] " << name << " = " << value << std::endl;
-}
