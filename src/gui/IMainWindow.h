@@ -10,6 +10,7 @@
 #include "IActivable.h"
 #include "../common/EItemType.h"
 #include <string>
+#include "../networkHandler/NetworkHandler.h"
 
 /**
  * @brief IMainWindow interface
@@ -79,4 +80,5 @@ public:
      * @param pathToJson Path to Json file
      */
     virtual void loadFSMFromJson(std::string pathToJson) = 0;
+
 };

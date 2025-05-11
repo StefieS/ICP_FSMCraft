@@ -75,6 +75,7 @@ void TCPSender::closeConnection() {
     std::lock_guard<std::mutex> lock(sockMutex2);  // Protect socket access
 
     if (sock != -1) {
+        safePrint("Connection closed for sock: " + std::to_string(sock));
         close(sock);
         sock = -1;
         safePrint("Connection closed.");

@@ -41,9 +41,11 @@ public:
     void showOutput(std::string outputID, std::string outputValue) override;
     void showInput(std::string inputID, std::string inputValue) override;
     void loadFSMFromJson(std::string pathToJson) override;
+    
 
     std::thread listenerThread;
     std::thread recvThread;
+    std::atomic<bool> listenerRunning = false;
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event) override;
@@ -56,6 +58,8 @@ private slots:
     void onStopClicked();
     void onSaveClicked();
     void onUploadClicked();
+    void sendInitialMessage();
+    void startReceivingMessages();
     std::tuple<QString, QString, QString> askForTransitionDetails();
     std::pair<QString, QString> askForStateDetails();
     QString askToEditAction(const QString& currentCode);
