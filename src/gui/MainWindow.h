@@ -114,6 +114,8 @@ private:
 
     GuiController* controller = nullptr;
     IActivable* lastActive = nullptr;
+
+    QString automatonName = "basic";
     // Helpers
     void debugPrintStateList() const;
 };

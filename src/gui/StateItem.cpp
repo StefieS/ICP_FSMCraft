@@ -96,7 +96,7 @@ void StateItem::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidge
 void StateItem::setActive(bool isNowActive) {
     active = isNowActive;
     if (active) {
-        circle->setBrush(QBrush(Qt::red));
+        circle->setBrush(QBrush(Qt::green));
     } else {
         circle->setBrush(QBrush(Qt::white));
     }

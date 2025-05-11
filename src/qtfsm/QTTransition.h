@@ -109,13 +109,14 @@ protected:
 
         QJSValue result = jsEngine->evaluate(jsCondition);
         if (result.isError()) {
-            
+            qDebug() << "err CONDITION" << jsCondition << result.toString();
             return false;
         }
         
         // should trigger
         bool pass = result.isBool() && result.toBool();
         if (!pass) {
+            qDebug() << "FALSE CONDITION" << jsCondition;
             return false;
         }
 

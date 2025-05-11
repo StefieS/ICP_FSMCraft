@@ -94,6 +94,7 @@ void TransitionItem::setActive(bool isNowActive) {
     } else {
         setPen(QPen(Qt::black, 2));
     }
+    update();
 }
 
 bool TransitionItem::isActive() const {

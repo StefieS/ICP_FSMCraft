@@ -108,6 +108,20 @@ MainWindow::MainWindow(QWidget *parent)
     uploadButton->setFixedSize(50, 32);
     toolbarLayout->addWidget(uploadButton);
 
+    QLineEdit* nameInputField = new QLineEdit(this);
+    nameInputField->setPlaceholderText("Name");
+    nameInputField->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    QPushButton* submitButton = new QPushButton("+", this);
+    submitButton->setFixedSize(30, 30);
+    toolbarLayout->addWidget(nameInputField);
+    toolbarLayout->addWidget(submitButton);
+
+    connect(submitButton, &QPushButton::clicked, this, [this, nameInputField]() {
+        QString name = nameInputField->text();
+        qDebug() << "Entered name:" << name;
+        this->automatonName = name;
+    });
+
     connect(runButton, &QToolButton::clicked, this, &MainWindow::onRunClicked);
     connect(newStateButton, &QToolButton::clicked, this, &MainWindow::onNewStateButtonClicked);
     connect(clearButton, &QToolButton::clicked, this, &MainWindow::onClearClicked);
@@ -597,7 +611,7 @@ void MainWindow::onRunClicked() {
 }
 
 void MainWindow::onSaveClicked() {
-    fsm = new FSM("fsm_gen");
+    fsm = new FSM(this->automatonName.toStdString());
 
     // Add internal variables
     for (auto it = internalVarMap.begin(); it != internalVarMap.end(); ++it) {
@@ -657,7 +671,7 @@ void MainWindow::onSaveClicked() {
     QJsonObject json = maker.toJson(fsm);
 
     QJsonDocument doc(json);
-    QString fileName = "generated_fsm.json";
+    QString fileName = this->automatonName + ".json";
     QFile file(fileName);
     if (!file.open(QIODevice::WriteOnly)) {
         QMessageBox::critical(this, "Error", "Failed to write FSM JSON.");
@@ -699,153 +713,8 @@ void MainWindow::onUploadClicked() {
 
     if (!ok || selectedFile.isEmpty())
         return;
-
-    QString filePath = dir.filePath(selectedFile);
-
-    QFile file(filePath);
-    if (!file.open(QIODevice::ReadOnly)) {
-        QMessageBox::critical(this, "Error", "Unable to open selected file.");
-        return;
-    }
-
-    QByteArray fileData = file.readAll();
-    file.close();
-
-    QJsonParseError parseError;
-    QJsonDocument doc = QJsonDocument::fromJson(fileData, &parseError);
-    if (parseError.error != QJsonParseError::NoError) {
-        QMessageBox::critical(this, "Parse Error", "Invalid JSON format.");
-        return;
-    }
-
-    JsonLoader loader;
-    FSM* loadedFsm = loader.fromJson(doc);
-
-    if (!loadedFsm) {
-        QMessageBox::critical(this, "Error", "Failed to load FSM from JSON.");
-        return;
-    }
-
-    // Pass loadedFsm to your existing population logic
-    onClearClicked();
-
-    // Clear old internal variable widgets
-    for (auto it = internalVarMap.begin(); it != internalVarMap.end(); ++it) {
-        internalVarsFlow->removeWidget(it.value());
-        it.value()->deleteLater();
-    }
-    internalVarMap.clear();
-
-    // Populate internal variables
-    for (const auto& var : loadedFsm->getInternalVars()) {
-        QString key = QString::fromStdString(var.getName());
-        QString val = QString::fromStdString(var.getInitialValue());
-
-        qDebug() << "[DEBUG] InternalVar:" << key << "=" << val; 
-
-        auto* item = new InternalVarItem(key, val, this);
-        connect(item, &InternalVarItem::removeRequested, this, [=](const QString& keyToRemove) {
-            auto it = internalVarMap.find(keyToRemove);
-            if (it != internalVarMap.end()) {
-                internalVarsFlow->removeWidget(it.value());
-                it.value()->deleteLater();
-                internalVarMap.erase(it);
-            }
-        });
-
-        internalVarsFlow->addWidget(item);
-        internalVarMap[key] = item;
-    }
-
-    // Populate inputs
-    for (const auto& name : loadedFsm->getInputNames()) {
-        QString qName = QString::fromStdString(name);
-        QLineEdit* valField = new QLineEdit(this);
-        valField->setFixedWidth(120);
-        QHBoxLayout* row = new QHBoxLayout();
-        QLabel* label = new QLabel(qName + ":");
-        QPushButton* removeButton = new QPushButton("✕");
-        removeButton->setFixedSize(20, 20);
-
-        row->addWidget(label);
-        row->addWidget(valField);
-        row->addWidget(removeButton);
-        inputListLayout->insertLayout(inputListLayout->count() - 1, row);
-        inputMap[qName] = valField;
-
-        connect(removeButton, &QPushButton::clicked, this, [=]() {
-            label->deleteLater();
-            valField->deleteLater();
-            removeButton->deleteLater();
-            row->deleteLater();
-            inputMap.remove(qName);
-        });
-    }
-
-    inputComboBox->clear();
-    for (const QString& inputName : inputMap.keys()) {
-        inputComboBox->addItem(inputName);
-    }
-
-    // Populate states and transitions
-    int index = 0;
-    const int cols = 5;
-    const int spacing = 180;
-    const int stateSize = CircleDiameter; // assuming same as your circle size
-
-    // Calculate starting point (center the grid)
-    int totalCols = std::min(cols, static_cast<int>(loadedFsm->getStates().size()));
-    int totalRows = (loadedFsm->getStates().size() + cols - 1) / cols;
-    QPointF center = view->mapToScene(view->viewport()->rect().center());
-    QPointF start = center - QPointF((totalCols - 1) * spacing / 2, (totalRows - 1) * spacing / 2);
-
-    for (const auto& pair : loadedFsm->getStates()) {
-        std::shared_ptr<State> state = pair.second;
-        QString qName = QString::fromStdString(state->getName());
-
-        int row = index / cols;
-        int col = index % cols;
-        QPointF pos = start + QPointF(col * spacing, row * spacing);
-
-        StateItem* stateItem = new StateItem(pos, qName);
-        stateItem->setInitial(state->isInitialState());
-        stateItem->setFinal(state->isFinalState());
-        scene->addItem(stateItem);
-
-        stateList[stateCount++] = new State(*state);
-        ++index;
-    }
-
-
-    for (const auto& t : loadedFsm->getTransitions()) {
-        QString from = QString::fromStdString(t->getSource());
-        QString to   = QString::fromStdString(t->getTarget());
-        StateItem* sourceItem = nullptr;
-        StateItem* targetItem = nullptr;
-
-        for (QGraphicsItem* item : scene->items()) {
-            auto* s = dynamic_cast<StateItem*>(item);
-            if (s) {
-                if (s->getName() == from) sourceItem = s;
-                else if (s->getName() == to) targetItem = s;
-            }
-        }
-
-        if (sourceItem && targetItem) {
-            auto* line = new TransitionItem(sourceItem->sceneCenter(), targetItem->sceneCenter());
-            line->setLabel(QString::fromStdString(t->getInputEvent()));
-            line->markConfirmed();
-            scene->addItem(line);
-
-            for (int i = 0; i < stateCount; ++i) {
-                if (stateList[i]->getName() == t->getSource()) {
-                    stateList[i]->addTransition(*t);
-                }
-            }
-        }
-    }
-
-    QMessageBox::information(this, "Upload Complete", "FSM loaded successfully.");
+    loadFSMFromJson(selectedFile.toStdString());
+    
 }
 
 void MainWindow::onClearClicked() {
@@ -1294,7 +1163,7 @@ IActivable& MainWindow::getActivableItem(EItemType type, std::string itemID) {
         for (QGraphicsItem* item : scene->items()) {
             if (auto* transition = dynamic_cast<TransitionItem*>(item)) {
                 qDebug() <<transition->labelText() << "LABEL";
-                if (transition->labelText() == qid) { // You'll need to implement labelText()
+                if (transition->labelText() == qid) { 
                     return *transition;
                 }
             }
@@ -1305,8 +1174,154 @@ IActivable& MainWindow::getActivableItem(EItemType type, std::string itemID) {
 }
 
 void MainWindow::loadFSMFromJson(std::string pathToJson) {
-    // TODO
-    printLog("loadFSMFromJson called with: " + pathToJson);
+    QString examplesPath = QDir("..").filePath("examples");
+    QDir dir(QDir(examplesPath).absolutePath());
+    QString filePath = dir.filePath(QString::fromStdString(pathToJson));
+
+    QFile file(filePath);
+    if (!file.open(QIODevice::ReadOnly)) {
+        QMessageBox::critical(this, "Error", "Unable to open selected file.");
+        return;
+    }
+
+    QByteArray fileData = file.readAll();
+    file.close();
+
+    QJsonParseError parseError;
+    QJsonDocument doc = QJsonDocument::fromJson(fileData, &parseError);
+    if (parseError.error != QJsonParseError::NoError) {
+        QMessageBox::critical(this, "Parse Error", "Invalid JSON format.");
+        return;
+    }
+
+    JsonLoader loader;
+    FSM* loadedFsm = loader.fromJson(doc);
+
+    if (!loadedFsm) {
+        QMessageBox::critical(this, "Error", "Failed to load FSM from JSON.");
+        return;
+    }
+
+    // Pass loadedFsm to your existing population logic
+    onClearClicked();
+
+    // Clear old internal variable widgets
+    for (auto it = internalVarMap.begin(); it != internalVarMap.end(); ++it) {
+        internalVarsFlow->removeWidget(it.value());
+        it.value()->deleteLater();
+    }
+    internalVarMap.clear();
+
+    // Populate internal variables
+    for (const auto& var : loadedFsm->getInternalVars()) {
+        QString key = QString::fromStdString(var.getName());
+        QString val = QString::fromStdString(var.getInitialValue());
+
+        qDebug() << "[DEBUG] InternalVar:" << key << "=" << val; 
+
+        auto* item = new InternalVarItem(key, val, this);
+        connect(item, &InternalVarItem::removeRequested, this, [=](const QString& keyToRemove) {
+            auto it = internalVarMap.find(keyToRemove);
+            if (it != internalVarMap.end()) {
+                internalVarsFlow->removeWidget(it.value());
+                it.value()->deleteLater();
+                internalVarMap.erase(it);
+            }
+        });
+
+        internalVarsFlow->addWidget(item);
+        internalVarMap[key] = item;
+    }
+
+    // Populate inputs
+    for (const auto& name : loadedFsm->getInputNames()) {
+        QString qName = QString::fromStdString(name);
+        QLineEdit* valField = new QLineEdit(this);
+        valField->setFixedWidth(120);
+        QHBoxLayout* row = new QHBoxLayout();
+        QLabel* label = new QLabel(qName + ":");
+        QPushButton* removeButton = new QPushButton("✕");
+        removeButton->setFixedSize(20, 20);
+
+        row->addWidget(label);
+        row->addWidget(valField);
+        row->addWidget(removeButton);
+        inputListLayout->insertLayout(inputListLayout->count() - 1, row);
+        inputMap[qName] = valField;
+
+        connect(removeButton, &QPushButton::clicked, this, [=]() {
+            label->deleteLater();
+            valField->deleteLater();
+            removeButton->deleteLater();
+            row->deleteLater();
+            inputMap.remove(qName);
+        });
+    }
+
+    inputComboBox->clear();
+    for (const QString& inputName : inputMap.keys()) {
+        inputComboBox->addItem(inputName);
+    }
+
+    // Populate states and transitions
+    int index = 0;
+    const int cols = 5;
+    const int spacing = 180;
+    const int stateSize = CircleDiameter; // assuming same as your circle size
+
+    // Calculate starting point (center the grid)
+    int totalCols = std::min(cols, static_cast<int>(loadedFsm->getStates().size()));
+    int totalRows = (loadedFsm->getStates().size() + cols - 1) / cols;
+    QPointF center = view->mapToScene(view->viewport()->rect().center());
+    QPointF start = center - QPointF((totalCols - 1) * spacing / 2, (totalRows - 1) * spacing / 2);
+
+    for (const auto& pair : loadedFsm->getStates()) {
+        std::shared_ptr<State> state = pair.second;
+        QString qName = QString::fromStdString(state->getName());
+
+        int row = index / cols;
+        int col = index % cols;
+        QPointF pos = start + QPointF(col * spacing, row * spacing);
+
+        StateItem* stateItem = new StateItem(pos, qName);
+        stateItem->setInitial(state->isInitialState());
+        stateItem->setFinal(state->isFinalState());
+        scene->addItem(stateItem);
+
+        stateList[stateCount++] = new State(*state);
+        ++index;
+    }
+
+
+    for (const auto& t : loadedFsm->getTransitions()) {
+        QString from = QString::fromStdString(t->getSource());
+        QString to   = QString::fromStdString(t->getTarget());
+        StateItem* sourceItem = nullptr;
+        StateItem* targetItem = nullptr;
+
+        for (QGraphicsItem* item : scene->items()) {
+            auto* s = dynamic_cast<StateItem*>(item);
+            if (s) {
+                if (s->getName() == from) sourceItem = s;
+                else if (s->getName() == to) targetItem = s;
+            }
+        }
+
+        if (sourceItem && targetItem) {
+            auto* line = new TransitionItem(sourceItem->sceneCenter(), targetItem->sceneCenter());
+            line->setLabel(QString::fromStdString(t->getInputEvent()));
+            line->markConfirmed();
+            scene->addItem(line);
+
+            for (int i = 0; i < stateCount; ++i) {
+                if (stateList[i]->getName() == t->getSource()) {
+                    stateList[i]->addTransition(*t);
+                }
+            }
+        }
+    }
+
+    QMessageBox::information(this, "Upload Complete", "FSM loaded successfully.");
 }
 
 void MainWindow::debugPrintStateList() const {

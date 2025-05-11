@@ -66,6 +66,10 @@ void GuiController::performAction(Message &msg) {
             break;
         }
         
+        case (EMessageType::JSON): {
+            this->gui->loadFSMFromJson(msg.getJsonName());
+            break;
+        }
 
         default:
             break;
