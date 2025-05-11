@@ -4,8 +4,8 @@
 #include <QPainter>
 #include <QStyleOptionGraphicsItem>
 
-TransitionItem::TransitionItem(QPointF start, QPointF end, QGraphicsItem* parent)
-    : QGraphicsLineItem(parent) {
+TransitionItem::TransitionItem(QPointF start, QPointF end, QGraphicsItem* parent, int id)
+    : QGraphicsLineItem(parent), id(id) {
     QPen pen(Qt::black, 2);
     setPen(pen);
     setLine(QLineF(start, end));
@@ -14,6 +14,10 @@ TransitionItem::TransitionItem(QPointF start, QPointF end, QGraphicsItem* parent
     label = new QGraphicsTextItem(this);
     label->setDefaultTextColor(Qt::darkBlue);
     label->setZValue(1); // Draw above the line
+}
+
+int TransitionItem::getId() const {
+    return this->id;
 }
 
 void TransitionItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) {
