@@ -1219,28 +1219,25 @@ void MainWindow::onInjectInputClicked() {
 
 IActivable& MainWindow::getActivableItem(EItemType type, std::string itemID) {
     QString qid = QString::fromStdString(itemID);
-    
-    if (type == EItemType::STATE) {
-        for (QGraphicsItem* item : scene->items()) {
+
+    for (QGraphicsItem* item : scene->items()) {
+        if (type == EItemType::STATE) {
             if (auto* state = dynamic_cast<StateItem*>(item)) {
                 if (state->getName() == qid) {
-                    qDebug() <<state->getName() << "LABEL";
-                    return *state;
+                    return *state;  // Return reference to the state item
                 }
             }
-        }
-    } else if (type == EItemType::TRANSITION) {
-        for (QGraphicsItem* item : scene->items()) {
+        } else if (type == EItemType::TRANSITION) {
             if (auto* transition = dynamic_cast<TransitionItem*>(item)) {
-                qDebug() <<transition->labelText() << "LABEL";
-                if (transition->labelText() == qid) { 
-                    return *transition;
+                if (transition->labelText() == qid) {
+                    return *transition;  // Return reference to the transition item
                 }
             }
         }
     }
-    
-    throw std::runtime_error("Activable item not found: " + itemID);
+
+    // If we get here, the item was not found, so throw an exception
+    throw std::runtime_error("Item not found: " + itemID);  // Or use custom exception
 }
 
 void MainWindow::loadFSMFromJson(std::string pathToJson) {
@@ -1449,8 +1446,4 @@ void MainWindow::debugPrintStateList() const {
                  << " | transitions:" << s->getTransitions().size();
     }
     qDebug() << "===========================";
-}
-
-void MainWindow::closeEvent(QCloseEvent *event) {
-    if (this->connected) this->networkHandler.closeConnection();
 }

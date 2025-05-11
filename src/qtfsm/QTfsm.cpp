@@ -161,8 +161,8 @@ void QTfsm::setInput(const QString& name, const QJSValue& value) {
 }
 
 
-void QTfsm::addJsTransition(QState* from, QAbstractState* to, const QString& condition, const QString& expectedInput, const QString& timeout) {
-    JsConditionTransition *trans = new JsConditionTransition(&this->engine, condition, expectedInput, from, timeout, this);
+void QTfsm::addJsTransition(QState* from, QAbstractState* to, const QString& condition, const QString& expectedInput, const QString& timeout, int id) {
+    JsConditionTransition *trans = new JsConditionTransition(&this->engine, condition, expectedInput, from, timeout, this, id);
 
     trans->setTargetState(to);
     from->addTransition(trans);

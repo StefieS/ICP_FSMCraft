@@ -18,9 +18,10 @@ GuiController::GuiController(IMainWindow* gui) {
 }
 
 void GuiController::performAction(Message &msg) {
-    
+    // communication is too fast, we have to limit it
+    std::this_thread::sleep_for(std::chrono::seconds(1)); 
     EMessageType type = msg.getType();
-
+    std::cout << eMessageTypeToString(type) << "HIER";
     safePrint( "Going to perform an action on type" + eMessageTypeToString(type));
     switch (type) {
         case (EMessageType::REJECT) : {
@@ -38,6 +39,7 @@ void GuiController::performAction(Message &msg) {
             QMetaObject::invokeMethod(this, [this, activableID, activableType]() {
                 IActivable& toActivate = this->gui->getActivableItem(activableType, activableID);
                 this->gui->highlightItem(true, toActivate);
+                std::cout<< "*********************************" << activableID << " " << "activavle" << "***********************************\n";
             }, Qt::QueuedConnection);
             safePrint("GOT ACTIVE ELE");
 

@@ -41,6 +41,10 @@ private:
      * @brief Optional delay (in milliseconds) before the transition occurs.
      */
     std::string delayMs;
+    /**
+     * @brief For correct highlighting
+     */
+    int id;
 
 public:
     /**
@@ -51,12 +55,14 @@ public:
      * @param input Input event triggering the transition.
      * @param cond Guard condition for the transition.
      * @param timeout Delay before the transition, in milliseconds.
+     * @param id Id of the transition.
      */
     Transition(const std::string& src, 
                const std::string& tgt, 
                const std::string& input, 
                const std::string& cond, 
-               const std::string& timeout);
+               const std::string& timeout,
+               int id);
 
     /**
      * @brief Sets the input event.
@@ -105,4 +111,10 @@ public:
      * @return A constant reference to the delay string.
      */
     const std::string& getDelay() const;
+    
+    /**
+     * @brief Gets the ID of the transition.
+     * @return Id of the transition
+     */
+    int getId() const;
 };

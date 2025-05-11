@@ -12,8 +12,9 @@ Transition::Transition(const std::string& src,
     const std::string& tgt, 
     const std::string& input, 
     const std::string& cond,
-    const std::string& timeout)
-: source(src), target(tgt), inputEvent(input), guardCondition(cond), delayMs(timeout) {}
+    const std::string& timeout,
+    int id)
+: source(src), target(tgt), inputEvent(input), guardCondition(cond), delayMs(timeout), id(id){}
 
 
 void Transition::setInputEvent(const std::string& input) {
@@ -46,4 +47,8 @@ const std::string& Transition::getGuardCondition() const {
 
 const std::string& Transition::getDelay() const {
     return delayMs;
+}
+
+int Transition::getId() const {
+    return id;
 }

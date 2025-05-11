@@ -63,6 +63,11 @@ private:
      */
     QString jsCondition;
 
+    /**
+     * @brief The id of the transition of the gui
+     */
+    int id;
+
 public:
     /**
      * @brief Constructs a JsConditionTransition object.
@@ -79,13 +84,15 @@ public:
                           const QString& expectedInputKey,
                           QState* parentState,
                           const QString& delayExpr,
-                          QTfsm* fsm)
+                          QTfsm* fsm,
+                          int id)
         : QAbstractTransition(parentState),
           jsEngine(engine),
           jsCondition(condition),
           inputKey(expectedInputKey),
           delayExpression(delayExpr),
-          automaton(fsm) {}
+          automaton(fsm),
+          id(id){}
 
     /**
      * @brief Starts the delay timer based on the evaluated delay expression.
@@ -194,7 +201,7 @@ protected:
         std::string timeStamp = timeStr.toStdString();
 
         EItemType elementType = EItemType::TRANSITION;
-        std::string currentElement = inputKey.toStdString() + " / " + jsCondition.toStdString();
+        std::string currentElement = std::to_string(id);
 
         Message log;
         log.buildLogMessage(

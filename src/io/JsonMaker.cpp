@@ -57,6 +57,7 @@ QJsonObject JsonMaker::toJson(FSM* fsm) {
       transitionObj["input"] = QString::fromStdString(transition->getInputEvent());
       transitionObj["cond"] = QString::fromStdString(transition->getGuardCondition());
       transitionObj["timeout"] = QString::fromStdString(transition->getDelay());
+      transitionObj["id"] = transition->getId();
       transitionsArr.append(transitionObj);
     }
     doc["transitions"] = transitionsArr;

@@ -49,7 +49,8 @@ bool QTfsmBuilder::buildQTfsm(const QJsonDocument& jsonDoc) {
         QString timeout = QString::fromStdString(transition->getDelay());
         QState* srcState = qobject_cast<QState*>(this->built->getStateByName(srcName));
         QAbstractState* trgtState = this->built->getStateByName(trgtName);
-        this->built->addJsTransition(srcState, trgtState, cond, input, timeout);
+        int id = transition->getId();
+        this->built->addJsTransition(srcState, trgtState, cond, input, timeout, id);
     }
 
     auto variables = this->innerFsm->getInternalVars();

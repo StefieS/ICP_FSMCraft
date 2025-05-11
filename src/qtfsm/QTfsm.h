@@ -91,12 +91,14 @@ public:
      * @param jsCondition The JavaScript condition for the transition.
      * @param expectedInput The expected input for the transition.
      * @param timeout The timeout condition for the transition.
+     * @param id Id of the transition for gui later.
      */
     void addJsTransition(QState* from, 
                          QAbstractState* to, 
                          const QString& jsCondition, 
                          const QString& expectedInput, 
-                         const QString& timeout);
+                         const QString& timeout,
+                         int id);
 
     /**
      * @brief Sets a JavaScript variable in the engine.
