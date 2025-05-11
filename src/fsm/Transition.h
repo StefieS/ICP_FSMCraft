@@ -2,6 +2,7 @@
  * @file Transition.h
  * @brief Declares the Transition class used in FSM modeling.
  * @author xnovakf00
+ * @author xmarina00
  * @date 07.05.2025
  */
 
@@ -40,12 +41,6 @@ private:
      * @brief Optional delay (in milliseconds) before the transition occurs.
      */
     std::string delayMs;
-
-    /** 
-     * @brief Indicates whether the transition is currently active (used at runtime).
-     * @todo necessary
-     */
-    bool isActive;
 
 public:
     /**

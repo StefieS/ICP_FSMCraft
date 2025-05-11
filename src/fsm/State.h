@@ -2,6 +2,7 @@
  * @file State.h
  * @brief Declares the State class used in the FSM model.
  * @author xnovakf00
+ * @author xmarina00
  * @date 07.05.2025
  */
 
@@ -34,12 +35,6 @@ private:
      * List of transitions originating from this state.
      */
     std::vector<Transition> transitions;
-
-    /**
-     * Indicates whether the state is currently active (runtime use).
-     * @todo necessary
-     */
-    bool isActive;
 
     /**
      * Indicates if this state is the initial state.

@@ -1,3 +1,10 @@
+/**
+ * @file TCPListener.cpp
+ * @brief Implementation of the TCPListener class for handling TCP connections and communication.
+ * @author xlesigm00
+ * @date 05.05.2025
+ */
+
 #include "NetworkHandler.h"
 #include <thread>
 #include <mutex>
@@ -6,19 +13,24 @@
 #include <functional>
 #include "../messages/Message.h"
 
-std::atomic<int> firstClientSocket{-1};  // Shared socket ID of the first client
-std::mutex clientMutex;
-std::mutex disconnectMutex;
-
-
+/**
+ * @brief Handles communication with a connected client.
+ * This function reads messages from the client, processes them, and sends responses back.
+ * It handles the reception of STOP messages, which will stop the server.
+ * 
+ * @param client_socket Socket ID for the client.
+ * @param onMessage Callback to handle received messages.
+ * @param stopReceived Atomic flag to signal when to stop the server.
+ */
 void handleClientCommunication(int client_socket, std::function<void(const std::string&, int)> onMessage, std::atomic<bool>& stopReceived) {
-    char buffer[1024];
-    std::string recvBuffer;
+    char buffer[1024];            /**< Buffer for receiving client data. */
+    std::string recvBuffer;       /**< Accumulated received data. */
 
     while (true) {
         memset(buffer, 0, sizeof(buffer));
         int bytesRead = recv(client_socket, buffer, sizeof(buffer), 0);
 
+        // If no data is received, or connection is closed, break the loop
         if (bytesRead <= 0) {
             safePrint("Client " + std::to_string(client_socket) + " disconnected.");
             close(client_socket);
@@ -27,6 +39,7 @@ void handleClientCommunication(int client_socket, std::function<void(const std::
 
         recvBuffer.append(buffer, bytesRead);
 
+        // Process complete messages delimited by "\r\n"
         size_t pos;
         while ((pos = recvBuffer.find("\r\n")) != std::string::npos) {
             std::string msg = recvBuffer.substr(0, pos);
@@ -37,6 +50,8 @@ void handleClientCommunication(int client_socket, std::function<void(const std::
             try {
                 onMessage(msg, client_socket);
                 Message isStop(msg);
+
+                // If a STOP message is received, stop the server
                 if (isStop.getType() == EMessageType::STOP) {
                     stopReceived.store(true);
                     safePrint("STOP message received.");
@@ -49,6 +64,14 @@ void handleClientCommunication(int client_socket, std::function<void(const std::
     }
 }
 
+/**
+ * @brief Starts the listener to accept incoming client connections and process their messages.
+ * It also handles the disconnection of clients and stops the server when required.
+ * 
+ * @param port The port number to listen on.
+ * @param onMessage Callback function that handles received messages.
+ * @param onDisconnect Callback function to handle client disconnections.
+ */
 void TCPListener::startListening(int port,
     std::function<void(const std::string&, int)> onMessage,
     std::function<void(int)> onDisconnect) {
@@ -62,7 +85,7 @@ void TCPListener::startListening(int port,
     int opt = 1;
     setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
-    sockaddr_in address{};
+    sockaddr_in address{};         /**< Server address information. */
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
     address.sin_port = htons(port);
@@ -81,8 +104,8 @@ void TCPListener::startListening(int port,
 
     std::cout << "Listening for clients on port " << port << "..." << std::endl;
 
-    std::atomic<bool> stopReceived(false);
-    std::vector<std::thread> clientThreads;
+    std::atomic<bool> stopReceived(false);  /**< Flag indicating if the server should stop. */
+    std::vector<std::thread> clientThreads; /**< Vector to store client handling threads. */
 
     // To simulate unblocking the accept() method when it's time to stop
     std::thread unblockerThread([&]() {

@@ -2,6 +2,7 @@
  * @file InternalVar.cpp
  * @brief Implements the InternalVar class representing a variable internal to the FSM.
  * @author xnovakf00
+ * @author xmarina00
  * @date 07.05.2025
  */
 

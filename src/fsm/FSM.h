@@ -6,7 +6,6 @@
  * @date 07.05.2025
  */
 
-
 #pragma once
 #include <string>
 #include <map>
@@ -27,60 +26,90 @@ private:
      * Name of the fsm
      */
     std::string name;
+
     /**
      * Description of the FSM
      */
     std::string comment;
+
     /**
      * A map of states based on their name
      */
     std::map<std::string, std::shared_ptr<State>> states;
+
     /**
      * A vector of transitions
      */
     std::vector<std::shared_ptr<Transition>> transitions;
-    /**
-     * necessary? TODO
-     */
-    std::map<std::string, std::string> inputMemory;
+
     /**
      * Vector of all defined input names
      */
     std::vector<std::string> inputNames;
+
     /**
      * Vector of all defined output names
      */
     std::vector<std::string> outputNames;
-    /**
-     * todo necessary?
+
+    /** 
+     * Name of the current state 
      */
     std::string currentState;
+
     /**
      * Vector of all internal vars
      */
     std::vector<InternalVar> internalVars;
-    /**
-     * todo necessary
-     */
-    bool isActive;
 
 public:
+    /**
+     * @brief Constructs a new FSM object with a given name.
+     * @param name The name of the FSM.
+     */
     FSM(const std::string& name);
 
-    void addState(const std::shared_ptr<State>& state);
-    void addTransition(const std::shared_ptr<Transition>& transition);
-    void addInternalVar(InternalVar var);
-    void addInputName(const std::string& inputName);
-    void addOutputName(const std::string& outputName);
-    void setInitialState(const std::string& stateName);
-    void setInput(const std::string& inputName, const std::string& value);
-    void process(); // renamed from processEvent
-
-    const std::string& getCurrentState() const;
     /**
-     * @todo necessary 
+     * @brief Adds a new state to the FSM.
+     * @param state A shared pointer to the State to add.
      */
-    void printStatus() const;
+    void addState(const std::shared_ptr<State>& state);
+
+    /**
+     * @brief Adds a new transition to the FSM.
+     * @param transition A shared pointer to the Transition to add.
+     */
+    void addTransition(const std::shared_ptr<Transition>& transition);
+
+    /**
+     * @brief Adds an internal variable to the FSM.
+     * @param var The internal variable to add.
+     */
+    void addInternalVar(InternalVar var);
+
+    /**
+     * @brief Adds a new input variable name.
+     * @param inputName The name of the input variable.
+     */
+    void addInputName(const std::string& inputName);
+
+    /**
+     * @brief Adds a new output variable name.
+     * @param outputName The name of the output variable.
+     */
+    void addOutputName(const std::string& outputName);
+
+    /**
+     * @brief Sets the initial state of the FSM.
+     * @param stateName The name of the state to set as initial.
+     */
+    void setInitialState(const std::string& stateName);
+
+    /**
+     * @brief Retrieves the name of the current state.
+     * @return A const reference to the current state's name.
+     */
+    const std::string& getCurrentState() const;
 
     /**
      * @brief Gets the name of the finite state machine (FSM).
@@ -117,5 +146,4 @@ public:
      * @return A std::vector of InternalVar objects representing internal state.
      */
     std::vector<InternalVar> getInternalVars();
-
 };

@@ -3,7 +3,7 @@
  * @brief Main file of the program starting the execution.
  * @author xlesigm00
  * @author xnovakf00
- * @author
+ * @author xmarina00
  */
 
 #include <QApplication>
