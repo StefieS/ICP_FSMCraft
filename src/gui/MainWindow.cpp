@@ -477,6 +477,36 @@ void MainWindow::showInput(std::string inputID, std::string inputValue) {
     }
 }
 
+void MainWindow::setInterfaceLocked(bool locked) {
+    runButton->setEnabled(true);  // Always allow run/pause toggle
+    injectInputButton->setEnabled(true);  // Always allow injection
+    inputComboBox->setEnabled(true);      // ← Keep enabled
+    inputValueEdit->setEnabled(true);     // ← Keep enabled
+
+    // Disable other buttons except Run and Inject
+    for (auto* btn : this->findChildren<QPushButton*>()) {
+        if (btn != injectInputButton)
+            btn->setEnabled(!locked);
+    }
+
+    for (auto* tool : this->findChildren<QToolButton*>()) {
+        if (tool != runButton)
+            tool->setEnabled(!locked);
+    }
+
+    // Disable all other edits EXCEPT injectValueEdit
+    for (auto edit : this->findChildren<QLineEdit*>()) {
+        if (edit != inputValueEdit)
+            edit->setEnabled(!locked);
+    }
+
+    for (auto box : this->findChildren<QComboBox*>()) {
+        if (box != inputComboBox)
+            box->setEnabled(!locked);
+    }
+
+    view->setInteractive(!locked);
+}
 
 static std::string detectTypeFromValue(const QString& value) {
     bool okInt = false;
@@ -509,13 +539,14 @@ void MainWindow::onStopClicked() {
     Message msg;
     msg.buildStopMessage();
     networkHandler.sendToHost(msg.toMessageString());
-    // todo disconnect
+    setInterfaceLocked(false);
     QMessageBox::information(this, "FSM Stopped", "FSM Stopped.");
 }
 
 void MainWindow::onRunClicked() {
     if (!isRunning) {
         onSaveClicked();
+        setInterfaceLocked(true);
 
         inputComboBox->clear();
         for (const auto& name : inputMap.keys()) {
@@ -561,6 +592,7 @@ void MainWindow::onRunClicked() {
         runButton->setToolTip("Run FSM");
 
         onStopClicked();  // Trigger stop logic
+        setInterfaceLocked(false);
     }
 }
 
@@ -833,7 +865,7 @@ void MainWindow::onClearClicked() {
     // Add ghostCircle back if needed
     ghostCircle = scene->addEllipse(0, 0, CircleDiameter, CircleDiameter,
         QPen(Qt::black, 2), QBrush(Qt::NoBrush));
-        
+
     ghostCircle->setOpacity(0.5);
     ghostCircle->setVisible(false);
 }
