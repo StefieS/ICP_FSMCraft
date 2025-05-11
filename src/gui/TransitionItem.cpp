@@ -104,3 +104,5 @@ bool TransitionItem::isActive() const {
 QString TransitionItem::labelText() const {
     return label->toPlainText();
 }
+
+

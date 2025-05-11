@@ -33,6 +33,8 @@
 #include "../controllers/fsmController/FsmController.h"
 #include "../controllers/guiController/GuiController.h"
 #include <QThread>
+#include <cmath>
+#include <QRandomGenerator>
 
 constexpr int CircleDiameter = 80; 
 constexpr int CircleRadius = CircleDiameter / 2; 
@@ -1362,9 +1364,10 @@ void MainWindow::loadFSMFromJson(std::string pathToJson) {
     safePrint("AFTER OUTPUTS");
     // Populate states and transitions
     int index = 0;
-    const int cols = 5;
+    int numStates = static_cast<int>(loadedFsm->getStates().size());
+    const int cols = std::ceil(std::sqrt(numStates)); // square
     const int spacing = 180;
-    const int stateSize = CircleDiameter; // assuming same as your circle size
+    const int stateSize = CircleDiameter;
     
     // Calculate starting point (center the grid)
     int totalCols = std::min(cols, static_cast<int>(loadedFsm->getStates().size()));
@@ -1378,7 +1381,10 @@ void MainWindow::loadFSMFromJson(std::string pathToJson) {
 
         int row = index / cols;
         int col = index % cols;
-        QPointF pos = start + QPointF(col * spacing, row * spacing);
+        
+        QPointF jitter(QRandomGenerator::global()->bounded(-10, 10),
+        QRandomGenerator::global()->bounded(-10, 10));
+        QPointF pos = start + QPointF(col * spacing, row * spacing) + jitter;
 
         StateItem* stateItem = new StateItem(pos, qName);
         stateItem->setInitial(state->isInitialState());
