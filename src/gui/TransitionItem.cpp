@@ -21,16 +21,12 @@ int TransitionItem::getId() const {
     return this->id;
 }
 
-void TransitionItem::paint(QPainter* painter,
-                            const QStyleOptionGraphicsItem* /*option*/,
-                            QWidget* /*widget*/)
+void TransitionItem::paint(QPainter* painter, const QStyleOptionGraphicsItem*, QWidget*)
 {
-    // ---------- basic constants ----------
     constexpr qreal PEN_ACTIVE_W   = 3.0;
     constexpr qreal PEN_IDLE_W     = 2.0;
     constexpr qreal ARROW_LEN      = 12.0; 
 
-    // ---------- draw the curve itself ----------
     painter->setRenderHint(QPainter::Antialiasing, true);
     painter->setPen(QPen(active ? Qt::red : Qt::black,
                          active ? PEN_ACTIVE_W : PEN_IDLE_W,
@@ -40,11 +36,9 @@ void TransitionItem::paint(QPainter* painter,
     painter->setBrush(Qt::NoBrush);
     painter->drawPath(path());                 // the path was built in updateLine()
 
-    // don’t add an arrow while the user is still dragging
     if (!confirmed)
         return;
 
-    // ---------- decide where the arrow should sit ----------
     const bool selfLoop = (start == end);
 
     QPointF tip, back;
@@ -53,9 +47,7 @@ void TransitionItem::paint(QPainter* painter,
         tip  = path().pointAtPercent(0.12);
         back = path().pointAtPercent(0.18);
     } else {
-        /* Walk backwards from 1.0 until we are far enough from the
-        target-state centre (end point). */
-        constexpr qreal STATE_R   = 40.0;        // your state radius
+        constexpr qreal STATE_R   = 40.0;        
         constexpr qreal GAP_AHEAD = STATE_R + ARROW_LEN + 2.0;   // +2 px safety
 
         qreal tTip = 1.0;
@@ -66,8 +58,8 @@ void TransitionItem::paint(QPainter* painter,
             }
         }
         tip  = path().pointAtPercent(tTip);
-        back = path().pointAtPercent(std::max(0.0, tTip - 0.03));   // ~3 % earlier    
-        constexpr qreal SHIFT = 0.06;            // try 0.02 – 0.06 to taste
+        back = path().pointAtPercent(std::max(0.0, tTip - 0.03));  
+        constexpr qreal SHIFT = 0.06;
         const qreal tTipShift = std::min(0.99, tTip + SHIFT);
 
         tip  = path().pointAtPercent(tTipShift);
@@ -75,18 +67,14 @@ void TransitionItem::paint(QPainter* painter,
 
     }
 
-
-    // ---------- draw the curve (full – your code) ----------
     painter->drawPath(path());
 
-
     const QPointF dir   = tip - back;
-    // angle of the tangent in the direction tip ➞ destination
+
+    // angle of the tangent in the direction tip destination
     const qreal angle = std::atan2(dir.y(), dir.x());
     constexpr qreal ARROW_HALF_ANG = 20.0 * M_PI / 180.0;
 
-    /* go BACK from the tip by ARROW_LEN along two directions
-    rotated ±ARROW_HALF_ANG from the tangent                 */
     const QPointF p1 = tip - QPointF(std::cos(angle - ARROW_HALF_ANG) * ARROW_LEN,
                                     std::sin(angle - ARROW_HALF_ANG) * ARROW_LEN);
     const QPointF p2 = tip - QPointF(std::cos(angle + ARROW_HALF_ANG) * ARROW_LEN,
@@ -123,7 +111,7 @@ void TransitionItem::updateLabelPosition() {
 
 
 // Radius of the state circle that MainWindow uses
-static constexpr qreal STATE_R = 40.0;          // 80-pixel diameter in MainWindow
+static constexpr qreal STATE_R = 40.0;          
 static constexpr qreal LOOP_GAP = 4.0;          // small gap between loop and state
 static constexpr qreal LOOP_RADIUS = STATE_R + 12.0;   // how “wide” the loop is
 
@@ -135,37 +123,21 @@ void TransitionItem::updateLine(QPointF s, QPointF e)
 
     QPainterPath p;
 
-    // ───────────────────────────── normal edge ─────────────────────────────
     if (start != end) {
         QPointF centre = (start + end) / 2.0;
         QPointF dir    = end - start;
         QPointF normal(-dir.y(), dir.x());
 
-        normal /= std::hypot(normal.x(), normal.y());          // unit normal
-        QPointF ctrl = centre + normal * 40.0;                 // 40 → bulge
+        normal /= std::hypot(normal.x(), normal.y());          
+        QPointF ctrl = centre + normal * 40.0;                 
 
         p.moveTo(start);
         p.quadTo(ctrl, end);
-    }
 
-    // ───────────────────────────── self-loop ────────────────────────────────
-    else
-    {
-        constexpr qreal GAP      = 1.0;          // 1-px breathing space
-        constexpr qreal R_STATE  = STATE_R / 1.5;      // radius of the state
-        constexpr qreal R_LOOP   = STATE_R;      // loop radius  = state radius
-
-        /*  Geometry
-        *  ---------
-        *  State centre   : (start.x(), start.y())
-        *  Loop centre    : exactly R_STATE + GAP above the state centre
-        *
-        *  We draw an arc that starts **at the top of the state** (-90°) and
-        *  sweeps counter-clockwise  270°  so it comes back to meet the state
-        *  at about -90°+270° = 180° (far left).  The arrow will later be put
-        *  at 15 % of that arc (near the very top).
-        */
-
+    } else {
+        constexpr qreal GAP      = 1.0;          
+        constexpr qreal R_STATE  = STATE_R / 1.5;
+        constexpr qreal R_LOOP   = STATE_R;      
         const QPointF loopCtr(start.x(),
                             start.y() - (R_STATE + GAP + R_LOOP));
 
@@ -174,20 +146,15 @@ void TransitionItem::updateLine(QPointF s, QPointF e)
                         R_LOOP * 2,
                         R_LOOP * 2);
 
-        const qreal startDeg = -95.0;   // top of the circle
-        const qreal sweepDeg = 360.0;   // CCW
+        const qreal startDeg = -95.0;   
+        const qreal sweepDeg = 360.0;   
 
-        p.moveTo(loopCtr + QPointF(0,  R_LOOP));          // top point
-        p.arcTo(box, startDeg, sweepDeg);                  // draw arc
+        p.moveTo(loopCtr + QPointF(0,  R_LOOP));        
+        p.arcTo(box, startDeg, sweepDeg);               
     }
 
-
-
-
     setPath(p);
-    updateLabelPosition();            // uses the curve now
-
-    // force repaint, otherwise a stale bounding-rect may clip the new loop
+    updateLabelPosition();            
     update();
 }
 

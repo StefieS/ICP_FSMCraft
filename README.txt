@@ -5,7 +5,33 @@ Authors: Mikuláš Lešiga xlesigm00
          Filip Novák xnovakf00
 
 GUI:
- - Alex pridaj co vie spravit GUI vsetko
+    The graphical user interface of FSMCraft is developed using Qt5 and emphasizes clarity and precise interaction with finite state machines.
+    The main window is logically divided into two primary sections: a control panel on the left and the FSM canvas on the right.
+    In the upper-left quadrant, users interact with a compact toolbar featuring essential control buttons:
+    - Run FSM – initiates or resumes execution of the automaton.
+    - New State – creates a new state node, prompting the user to provide a name and optional JavaScript-style action code.
+    - Clear Canvas – resets the working canvas, removing all visual elements.
+    - Save FSM – serializes the current automaton into a JSON file.
+    - Upload – loads a previously saved FSM definition from a JSON file.
+
+    Beneath the toolbar, users can specify the name of the current automaton, which is stored in the JSON export for identification.
+    The internal variable section allows the declaration of internal state variables used within state action code.
+    Each declared variable can be assigned an initial value and removed via the interface.
+    Similarly, users may define input signals and output signals, which are integral to FSM logic and runtime behavior.
+    Defined inputs are made available for real-time injection during execution.
+    The right-hand side of the application hosts the FSM builder, an interactive canvas where states and transitions are visually composed.
+    States can be manipulated via right-click context menus, offering the following actions:
+    Set Initial – designates the selected state as the automaton's entry point.
+    Connect – initiates transition creation from the selected state.
+    Upon clicking a target state, the tool prompts the user to define the transition’s input trigger (linked to declared inputs),
+    an optional guard condition (a boolean expression evaluating injected data), and an optional timeout in milliseconds.
+    Edit Action – allows users to modify the JavaScript-based action logic tied to a specific state.
+    Transitions are rendered as curved paths with dynamically positioned labels and directional arrowheads.
+    They are visually updated to reflect FSM execution flow during runtime.
+    At the bottom of the interface, a log view provides real-time feedback and diagnostics.
+    This panel logs essential runtime events such as state activations, transitions, injected inputs, and evaluation results.
+    It serves as a crucial aid for debugging and monitoring the execution of FSMs in simulation.
+
 
 External specification:
     For external specification, specialised Json format was used,
