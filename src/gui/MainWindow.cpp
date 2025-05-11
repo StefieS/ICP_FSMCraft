@@ -1305,7 +1305,37 @@ void MainWindow::loadFSMFromJson(std::string pathToJson) {
     for (const QString& inputName : inputMap.keys()) {
         inputComboBox->addItem(inputName);
     }
-    safePrint("AFTER INPUTS");
+
+    // Populate outputs
+    for (const auto& name : loadedFsm->getOutputNames()) {
+        QString qName = QString::fromStdString(name);
+        QLineEdit* valField = new QLineEdit("?", this);
+        valField->setReadOnly(true);
+        valField->setFixedWidth(120);
+        valField->setStyleSheet("QLineEdit { border: none; background: transparent; }");
+
+        QHBoxLayout* row = new QHBoxLayout();
+        QLabel* label = new QLabel(qName + ":");
+        QPushButton* removeButton = new QPushButton("✕");
+        removeButton->setFixedSize(20, 20);
+
+        row->addWidget(label);
+        row->addWidget(valField);
+        row->addWidget(removeButton);
+        outputListLayout->insertLayout(outputListLayout->count() - 1, row);
+        outputMap[qName] = valField;
+
+        connect(removeButton, &QPushButton::clicked, this, [=]() {
+            label->deleteLater();
+            valField->deleteLater();
+            removeButton->deleteLater();
+            row->deleteLater();
+            outputMap.remove(qName);
+        });
+    }
+
+
+    safePrint("AFTER OUTPUTS");
     // Populate states and transitions
     int index = 0;
     const int cols = 5;
