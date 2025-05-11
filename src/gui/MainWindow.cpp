@@ -452,12 +452,17 @@ MainWindow::MainWindow(QWidget *parent)
     safePrint(std::to_string(this->connected));
     if (this->connected) {
         this->isRunning = true;
+        this->listenerRunning = true;
+        if (!controller) {
+                controller = new GuiController(this);
+        }
         setInterfaceLocked(true);
         std::thread([this]() {
+            Message empty;
+            networkHandler.sendToHost(empty.toMessageString());
             while (listenerRunning) {
-                Message empty;
-                networkHandler.sendToHost(empty.toMessageString());
                 std::string buffer = this->networkHandler.recvFromHost();
+                safePrint("Received from server: [" + buffer + "]");
                 Message toProcess(buffer);
                 if (toProcess.getType() == EMessageType::STOP) {
                     this->networkHandler.closeConnection();

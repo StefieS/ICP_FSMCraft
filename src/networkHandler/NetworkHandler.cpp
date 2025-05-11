@@ -61,53 +61,63 @@ void NetworkHandler::sendToHost(const std::string& msg) {
 void NetworkHandler::listen(int port) {
     if (listener) {
         FsmController controller;
-        std::vector<int> connectedClients;
-        listener->startListening(port, [this, &controller, &connectedClients](const std::string& msg, int clientSocket) {
-                // Register the client socket
+        // Use a shared mutex to protect connectedClients
+     // List to track client sockets
+
+        listener->startListening(port, [this, &controller](const std::string& msg, int clientSocket) {
             {
+                // Lock the mutex to safely modify the list of connected clients
                 std::lock_guard<std::mutex> lock(socketMutex);
-                // Add the new client to the list of connected clients
-                connectedClients.push_back(clientSocket);
+                connectedClients.push_back(clientSocket);  // Add the new client socket
                 safePrint("Registered client: " + std::to_string(clientSocket));
             }
 
-            // Process message from the client
+            // Process the incoming message
             Message message(msg);
             Message processed = controller.performAction(message);
-            std::string responseStr = processed.toMessageString() + "\r\n"; 
-            safePrint(responseStr);
-            
+            std::string responseStr = processed.toMessageString() + "\r\n";
+            safePrint("Response: " + responseStr);
+
             // Send the response to all connected clients
             {
+                // Lock the mutex to ensure thread-safety while modifying the list of clients
                 std::lock_guard<std::mutex> lock(socketMutex);
+                std::vector<int> failedSockets;  // To store clients that failed to receive the message
+
+                // Send response to all connected clients
                 for (int targetSocket : connectedClients) {
                     int result = ::send(targetSocket, responseStr.c_str(), responseStr.size(), 0);
                     if (result <= 0) {
-                        // If the send fails (or the socket is closed), reset that socket
-                        safePrint("Failed to send to client " + std::to_string(targetSocket) + ", removing from list.");
-                        connectedClients.erase(std::remove(connectedClients.begin(), connectedClients.end(), targetSocket), connectedClients.end());
+                        safePrint("Failed to send to client " + std::to_string(targetSocket));
+                        failedSockets.push_back(targetSocket);  // Mark this socket for removal
                     }
+                }
+
+                // Remove clients that failed to receive the message
+                for (int failedSocket : failedSockets) {
+                    connectedClients.erase(std::remove(connectedClients.begin(), connectedClients.end(), failedSocket), connectedClients.end());
+                    safePrint("Removed client " + std::to_string(failedSocket) + " due to send failure.");
                 }
             }
 
-            // If the message is a STOP type, stop the FSM
+            // If the message type is STOP, stop the FSM
             Message isStop(responseStr);
             if (isStop.getType() == EMessageType::STOP) {
                 controller.getFsm()->stop();
             }
-
         },
-        // Add optional onDisconnect callback
-        [this, &connectedClients](int clientSocket) {
+        // Optional onDisconnect callback
+        [this](int clientSocket) {
+            // Lock the mutex to safely remove the disconnected client from the list
             std::lock_guard<std::mutex> lock(socketMutex);
-            // Remove the client from the connectedClients list when they disconnect
             auto it = std::find(connectedClients.begin(), connectedClients.end(), clientSocket);
             if (it != connectedClients.end()) {
-                connectedClients.erase(it);
+                connectedClients.erase(it);  // Remove the client from the list
                 safePrint("Client " + std::to_string(clientSocket) + " disconnected.");
             }
         });
     }
 }
+
 
 
