@@ -596,7 +596,8 @@ void MainWindow::onRunClicked() {
         networkHandler.connectToServer();
         std::this_thread::sleep_for(std::chrono::seconds(1));
         Message msg;
-        msg.buildJsonMessage("generated_fsm.json"); // TODO NAME
+        auto name = this->automatonName.toStdString();
+        msg.buildJsonMessage(name + ".json");
         networkHandler.sendToHost(msg.toMessageString());
         
 
@@ -1155,6 +1156,7 @@ IActivable& MainWindow::getActivableItem(EItemType type, std::string itemID) {
         for (QGraphicsItem* item : scene->items()) {
             if (auto* state = dynamic_cast<StateItem*>(item)) {
                 if (state->getName() == qid) {
+                    qDebug() <<state->getName() << "LABEL";
                     return *state;
                 }
             }
