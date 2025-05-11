@@ -6,7 +6,7 @@
 #include <QJSEngine>
 #include "../networkHandler/NetworkHandler.h"
 #include "QTBuiltinHandler.h"
-class QTBuiltinHandler; // forward delcar
+class QTBuiltinHandler; // forward declar
 class QTfsm : public QObject {
     Q_OBJECT
 
