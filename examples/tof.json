@@ -1,0 +1,121 @@
+{
+    "inputs": [
+        "input",
+        "set_to",
+        "req_rt"
+    ],
+    "internals": [
+        {
+            "initial": "5000",
+            "name": "timeout",
+            "type": "int"
+        }
+    ],
+    "name": "TOF",
+    "outputs": [
+        "out",
+        "rt"
+    ],
+    "states": [
+        {
+            "action": "if (fsm.defined(\"set_to\")) { timeout = set_to; } fsm.output(\"out\", 0); fsm.output(\"rt\", 0);",
+            "isFinal": false,
+            "isInitial": true,
+            "name": "IDLE"
+        },
+        {
+            "action": "if (fsm.defined(\"set_to\")) { timeout = set_to; } fsm.output(\"out\", 1); fsm.output(\"rt\", timeout);",
+            "isFinal": false,
+            "isInitial": false,
+            "name": "ACTIVE"
+        },
+        {
+            "action": "if (fsm.defined(\"set_to\")) { timeout = set_to; } fsm.output(\"rt\", timeout - fsm.elapsed());",
+            "isFinal": false,
+            "isInitial": false,
+            "name": "TIMING"
+        }
+    ],
+    "transitions": [
+        {
+            "cond": "input == 1",
+            "dst": "ACTIVE",
+            "input": "input",
+            "src": "IDLE",
+            "timeout": "0",
+            "id": 1
+        },
+        {
+            "cond": "input == 0",
+            "dst": "TIMING",
+            "input": "input",
+            "src": "ACTIVE",
+            "timeout": "0",
+            "id": 2
+        },
+        {
+            "cond": "input == 1",
+            "dst": "ACTIVE",
+            "input": "input",
+            "src": "TIMING",
+            "timeout": "0",
+            "id": 3
+        },
+        {
+            "cond": "",
+            "dst": "IDLE",
+            "input": "",
+            "src": "TIMING",
+            "timeout": "timeout",
+            "id": 4
+        },
+        {
+            "cond": "",
+            "dst": "IDLE",
+            "input": "set_to",
+            "src": "IDLE",
+            "timeout": "0",
+            "id": 5
+        },
+        {
+            "cond": "",
+            "dst": "ACTIVE",
+            "input": "set_to",
+            "src": "ACTIVE",
+            "timeout": "0",
+            "id": 6
+        },
+        {
+            "cond": "",
+            "dst": "TIMING",
+            "input": "set_to",
+            "src": "TIMING",
+            "timeout": "0",
+            "id": 7
+        },
+        {
+            "cond": "",
+            "dst": "IDLE",
+            "input": "req_rt",
+            "src": "IDLE",
+            "timeout": "0",
+            "id": 8
+        },
+        {
+            "cond": "",
+            "dst": "ACTIVE",
+            "input": "req_rt",
+            "src": "ACTIVE",
+            "timeout": "0",
+            "id": 9
+        },
+        {
+            "cond": "",
+            "dst": "TIMING",
+            "input": "req_rt",
+            "src": "TIMING",
+            "timeout": "0",
+            "id": 10
+        }
+    ]
+}

@@ -1033,7 +1033,7 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* event) {
                     }
                 }
 
-                QString labelText = input + " / " + cond;
+                QString labelText = input + " / " + cond + " / " + timeout;
                 currentLine->setLabel(labelText);
                 currentLine->markConfirmed();
         
@@ -1450,7 +1450,7 @@ void MainWindow::loadFSMFromJson(std::string pathToJson) {
 
         if (sourceItem && targetItem) {
             auto* line = new TransitionItem(sourceItem->sceneCenter(), targetItem->sceneCenter(), nullptr, id);
-            line->setLabel(QString::fromStdString(t->getInputEvent()) +" / "+ QString::fromStdString(t->getGuardCondition()));
+            line->setLabel(QString::fromStdString(t->getInputEvent()) +" / "+ QString::fromStdString(t->getGuardCondition()) + " / " + QString::fromStdString(t->getDelay()));
             line->markConfirmed();
             scene->addItem(line);
 

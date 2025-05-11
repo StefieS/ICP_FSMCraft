@@ -39,28 +39,32 @@
             "dst": "ACTIVE",
             "input": "input",
             "src": "IDLE",
-            "timeout": "0"
+            "timeout": "0",
+            "id": 1
         },
         {
             "cond": "input == 0",
             "dst": "TIMING",
             "input": "input",
             "src": "ACTIVE",
-            "timeout": "0"
+            "timeout": "0",
+            "id": 2
         },
         {
             "cond": "input == 1",
             "dst": "ACTIVE",
             "input": "input",
             "src": "TIMING",
-            "timeout": "0"
+            "timeout": "0",
+            "id": 3
         },
         {
             "cond": "",
             "dst": "IDLE",
             "input": "",
             "src": "TIMING",
-            "timeout": "timeout"
+            "timeout": "timeout",
+            "id": 4
         }
     ]
 }
