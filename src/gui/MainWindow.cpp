@@ -557,8 +557,8 @@ void MainWindow::onStopClicked() {
     Message msg;
     msg.buildStopMessage();
     networkHandler.sendToHost(msg.toMessageString());
-    setInterfaceLocked(true);
     QMessageBox::information(this, "FSM Stopped", "FSM Stopped.");
+    setInterfaceLocked(false);
 }
 
 
@@ -589,14 +589,13 @@ void MainWindow::onRunClicked() {
                 listenerThread = std::thread([this]() {
                     this->networkHandler.listen(8080);
                 });
-
-                // Set up message receiving with a timer instead of sleep
                 QTimer::singleShot(1000, this, &MainWindow::startReceivingMessages);
             }
+            
 
             networkHandler.connectToServer();
             QTimer::singleShot(1000, this, &MainWindow::sendInitialMessage);
-
+            
         } else {
             // Pause FSM logic
             isRunning = false;
@@ -604,7 +603,7 @@ void MainWindow::onRunClicked() {
             runButton->setToolTip("Run FSM");
             // Trigger stop logic to pause FSM
             onStopClicked();
-
+            
             // Set the listener flag to false and join the thread
             listenerRunning = false;
             if (listenerThread.joinable()) {
@@ -630,7 +629,8 @@ void MainWindow::startReceivingMessages() {
 void MainWindow::sendInitialMessage() {
         this->connected = networkHandler.connectToServer();
         Message msg;
-        msg.buildJsonMessage("generated_fsm.json"); // TODO: Replace with appropriate name
+        auto name = this->automatonName.toStdString();
+        msg.buildJsonMessage(name + ".json");
         networkHandler.sendToHost(msg.toMessageString());
     }
 
