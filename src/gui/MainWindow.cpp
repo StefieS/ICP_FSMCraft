@@ -1374,10 +1374,10 @@ void MainWindow::loadFSMFromJson(std::string pathToJson) {
 
         for (QGraphicsItem* item : scene->items()) {
             auto* s = dynamic_cast<StateItem*>(item);
-            if (s) {
-                if (s->getName() == from) sourceItem = s;
-                else if (s->getName() == to) targetItem = s;
-            }
+            if (!s) continue;
+
+            if (s->getName() == from) sourceItem = s;
+            if (s->getName() == to)   targetItem = s;
         }
 
         if (sourceItem && targetItem) {
