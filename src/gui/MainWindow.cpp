@@ -213,7 +213,6 @@ MainWindow::MainWindow(QWidget *parent)
     // Add widgets to grid row 0
     inputGridLayout->addWidget(inputNameEdit,  0, 0);
     inputGridLayout->addWidget(colonLabel2,    0, 1, Qt::AlignCenter);
-    //inputGridLayout->addWidget(inputInitialValueEdit, 0, 2);
     inputGridLayout->addWidget(addInputButton, 0, 3);
 
     leftLayout->addWidget(inputRow);
@@ -262,7 +261,6 @@ MainWindow::MainWindow(QWidget *parent)
 
     outputGridLayout->addWidget(outputNameEdit,  0, 0);
     outputGridLayout->addWidget(colonLabel3,     0, 1, Qt::AlignCenter);
-    //outputGridLayout->addWidget(outputValueEdit, 0, 2);
     outputGridLayout->addWidget(addOutputButton, 0, 3);
 
     leftLayout->addWidget(outputRow);
@@ -324,7 +322,6 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(addInputButton, &QPushButton::clicked, this, [=]() {
         QString name = inputNameEdit->text().trimmed();
-        //QString val = inputInitialValueEdit->text().trimmed();
 
         if (name.isEmpty()) return;
 
@@ -359,12 +356,10 @@ MainWindow::MainWindow(QWidget *parent)
         });
 
         inputNameEdit->clear();
-        //inputInitialValueEdit->clear();
     });
     
     connect(addOutputButton, &QPushButton::clicked, this, [=]() {
         QString name = outputNameEdit->text().trimmed();
-        //QString val = outputValueEdit->text().trimmed();
 
         if (name.isEmpty()) return;
 
@@ -399,7 +394,6 @@ MainWindow::MainWindow(QWidget *parent)
         });
 
         outputNameEdit->clear();
-        //outputValueEdit->clear();
     });
 
     scene->setSceneRect(0, 0, view->width(), view->height());
@@ -413,7 +407,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     logBox = new QPlainTextEdit(this);
     logBox->setReadOnly(true);
-    logBox->setStyleSheet("background-color: #f9f9f9; border: 1px solid #ccc;");
+    logBox->setStyleSheet("background-color: #f9f9f9; border: 1px solid #ccc; color: rgb(0,0,0)");
     logBox->setMaximumHeight(120);
     logBox->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
 
@@ -578,94 +572,114 @@ void MainWindow::onNewStateButtonClicked() {
     ghostCircle->setVisible(true);
 }
 
+void MainWindow::clearHighlights() {
+    for (QGraphicsItem* item : scene->items()) {
+        if (auto* state = dynamic_cast<StateItem*>(item)) {
+            state->setActive(false);
+        } else if (auto* trans = dynamic_cast<TransitionItem*>(item)) {
+            trans->setActive(false);
+        }
+    }
+
+    lastActive = nullptr;
+    lastActiveTransition = nullptr;
+}
+
 void MainWindow::onStopClicked() {
     Message msg;
     msg.buildStopMessage();
     networkHandler.sendToHost(msg.toMessageString());
+
+    clearHighlights();
+
+    if (fsm) {
+        delete fsm;
+        fsm = nullptr;
+    }
+
+    // Clear the FSM file contents
+    QString filePath = "../examples/" + this->automatonName + ".json";
+    QFile file(filePath);
+    if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        file.write("");
+        file.close();
+    }
+
     QMessageBox::information(this, "FSM Stopped", "FSM Stopped.");
     setInterfaceLocked(false);
 }
 
-
 void MainWindow::onRunClicked() {
     if (!isRunning) {
-            // Start FSM logic
-            onSaveClicked();
-            setInterfaceLocked(true);
+        // Start FSM logic
+        onSaveClicked();
+        setInterfaceLocked(true);
 
-            inputComboBox->clear();
-            for (const auto& name : inputMap.keys()) {
-                inputComboBox->addItem(name);
-            }
+        inputComboBox->clear();
+        for (const auto& name : inputMap.keys()) {
+            inputComboBox->addItem(name);
+        }
 
-            isRunning = true;
-            runButton->setText("⏸");  // Pause icon
-            runButton->setToolTip("Pause FSM");
+        isRunning = true;
+        runButton->setText("⏸");  // Pause icon
+        runButton->setToolTip("Pause FSM");
 
-            qDebug() << "FSM Started";
-            
-            if (!controller) {
-                controller = new GuiController(this);
-            }
-            // Check if listener thread is already running, if not, create one
-            if (!listenerRunning) {
-                listenerRunning = true;
-                QTimer::singleShot(900, this, [this]() {
-                    this->connected = networkHandler2.connectToServer();
-                    Message empty;
-                    networkHandler2.sendToHost(empty.toMessageString());
-                });
-                listenerThread = std::thread([this]() {
-                    this->networkHandler.listen(8080);
-                });
-                QTimer::singleShot(1000, this, &MainWindow::startReceivingMessages);
-            }
-            QTimer::singleShot(750, this, [this]() {
-                this->connected = networkHandler.connectToServer();
+        qDebug() << "FSM Started";
+
+        if (!controller) {
+            controller = new GuiController(this);
+        }
+        // Check if listener thread is already running, if not, create one
+        if (!listenerRunning) {
+            listenerRunning = true;
+            listenerThread = std::thread([this]() {
+                this->networkHandler.listen(8080);
             });
-            
-
-            QTimer::singleShot(1000, this, &MainWindow::sendInitialMessage);
-            
-        } else {
-            // Pause FSM logic
-            isRunning = false;
-            runButton->setText("▶");  // Play icon
-            runButton->setToolTip("Run FSM");
-            // Trigger stop logic to pause FSM
-            onStopClicked();
-            
-            // Set the listener flag to false and join the thread
-            listenerRunning = false;
-            this->networkHandler2.closeConnection();
-            if (listenerThread.joinable()) {
-                listenerThread.join();  // Wait for the listener thread to finish
-            }
+            QTimer::singleShot(1000, this, &MainWindow::startReceivingMessages);
+        }
+        QTimer::singleShot(750, this, [this]() {
+            this->connected = networkHandler.connectToServer();
+        });
+        
+        QTimer::singleShot(1000, this, &MainWindow::sendInitialMessage);
+        
+    } else {
+        // Pause FSM logic
+        isRunning = false;
+        runButton->setText("▶");  // Play icon
+        runButton->setToolTip("Run FSM");
+        // Trigger stop logic to pause FSM
+        onStopClicked();
+        
+        // Set the listener flag to false and join the thread
+        listenerRunning = false;
+        if (listenerThread.joinable()) {
+            listenerThread.join();  // Wait for the listener thread to finish
         }
     }
+}
+
 void MainWindow::startReceivingMessages() {
-        std::thread([this]() {
-            while (listenerRunning) {
-                std::string buffer = this->networkHandler2.recvFromHost();
-                Message toProcess(buffer);
-                if (toProcess.getType() == EMessageType::STOP) {
-                    this->networkHandler.closeConnection();
-                    this->networkHandler2.closeConnection();
-                    listenerRunning = false;  // Stop listening
-                    break;
-                }
-                controller->performAction(toProcess);
+    std::thread([this]() {
+        while (listenerRunning) {
+            std::string buffer = this->networkHandler.recvFromHost();
+            Message toProcess(buffer);
+            if (toProcess.getType() == EMessageType::STOP) {
+                this->networkHandler.closeConnection();
+                listenerRunning = false;  // Stop listening
+                break;
             }
-        }).detach();
-    }
+            controller->performAction(toProcess);
+        }
+    }).detach();
+}
 
 void MainWindow::sendInitialMessage() {
-        Message msg;
-        auto name = this->automatonName.toStdString();
-        msg.buildJsonMessage("../examples/" + name + ".json");
-        networkHandler.sendToHost(msg.toMessageString());
-    }
-
+    Message msg;
+    auto name = this->automatonName.toStdString();
+    msg.buildJsonMessage("../examples/" + name + ".json");
+    networkHandler.sendToHost(msg.toMessageString());
+}
 
 void MainWindow::onSaveClicked() {
     fsm = new FSM(this->automatonName.toStdString());
@@ -690,10 +704,11 @@ void MainWindow::onSaveClicked() {
     QRegularExpression outputRegex(R"(output\(\s*["'](\w+)["'])");
 
     for (int index = 0; index < stateCount; ++index) {
-        std::shared_ptr<State> statePtr(stateList[index]);
+        if (!stateList[index]) continue;
+
+        std::shared_ptr<State> statePtr = std::make_shared<State>(*stateList[index]);
         fsm->addState(statePtr);
 
-        // Extract outputs from action code
         QString action = QString::fromStdString(statePtr->getActionCode());
         QRegularExpressionMatchIterator matchIt = outputRegex.globalMatch(action);
         while (matchIt.hasNext()) {
@@ -703,20 +718,17 @@ void MainWindow::onSaveClicked() {
             }
         }
 
-        // Process transitions and collect input names
         for (const Transition& t : statePtr->getTransitions()) {
             fsm->addTransition(std::make_shared<Transition>(t));
-
             QString input = QString::fromStdString(t.getInputEvent());
             if (!input.isEmpty()) {
                 inputSet.insert(input);
             }
         }
-
-        // Transfer ownership
-        stateList[index] = nullptr;
     }
 
+
+    qDebug() << "BEFORE ADDING UNIQUE INPUTS";
     // Add all unique inputs and outputs
     for (const QString& input : inputSet) {
         fsm->addInputName(input.toStdString());
@@ -724,6 +736,7 @@ void MainWindow::onSaveClicked() {
     for (const QString& output : outputSet) {
         fsm->addOutputName(output.toStdString());
     }
+    qDebug() << "AFTER ADDING UNIQUE INPUTS";
 
     JsonMaker maker;
     QJsonObject json = maker.toJson(fsm);
@@ -738,6 +751,8 @@ void MainWindow::onSaveClicked() {
 
     file.write(doc.toJson());
     file.close();
+
+    qDebug() << "AFTER FILE OPEN/CLOSE";
 
     QMessageBox::information(this, "FSM Saved", "FSM saved.");
 }
@@ -923,27 +938,6 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* event) {
     {
         auto *me = static_cast<QMouseEvent*>(event);
         QPointF scenePos = view->mapToScene(me->pos());
-
-       
-        // if (event->type() == QEvent::MouseMove) {
-        //     QGraphicsItem* under = scene->itemAt(scenePos, QTransform());
-        //     qDebug() << " raw under =" << under;
-
-        //     StateItem* state = nullptr;
-        //     if (auto *g = dynamic_cast<StateItem*>(under)) {
-        //         state = g;
-        //     } else if (under && under->parentItem()) {
-        //         state = dynamic_cast<StateItem*>(under->parentItem());
-        //     }                  
-
-        //     if (state) {
-        //         QPointF center = state->scenePos();
-        //         qDebug() << " Found StateItem at center=" << center
-        //                  << " cursor=" << scenePos;
-        //     } else {
-        //         qDebug() << " Hovering over empty at" << scenePos;
-        //     }
-        // }
 
         if (event->type() == QEvent::MouseMove && connectingMode && transitionStart && currentLine) {
             QPointF scenePos = view->mapToScene(static_cast<QMouseEvent*>(event)->pos());

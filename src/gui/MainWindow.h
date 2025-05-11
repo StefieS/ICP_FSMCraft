@@ -36,6 +36,7 @@ public:
     void printLog(std::string logMessage) override;
     void highlightItem(bool on, IActivable& item) override;
     void setRunning() override;
+    void clearHighlights();
     void setInterfaceLocked(bool locked);
     void showError(std::string errorMessage) override;
     void showOutput(std::string outputID, std::string outputValue) override;
