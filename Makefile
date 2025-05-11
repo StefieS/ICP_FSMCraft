@@ -20,4 +20,4 @@ doxygen:
 	doxygen Doxyfile
 
 pack: clean
-	zip -r $(SRC_DIR) examples README.txt doc Makefile
+	zip -r $(SRC_DIR) examples README.txt doc Makefile CMakeLists.txt

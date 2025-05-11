@@ -45,7 +45,7 @@ void handleClientCommunication(int client_socket, std::function<void(const std::
             std::string msg = recvBuffer.substr(0, pos);
             recvBuffer.erase(0, pos + 2);
 
-            safePrint("Received message from socket " + std::to_string(client_socket) + ": " + msg);
+            safePrint("Server: received message from socket " + std::to_string(client_socket) + ": " + msg);
 
             try {
                 onMessage(msg, client_socket);

@@ -499,12 +499,13 @@ MainWindow::MainWindow(QWidget *parent)
 
 void MainWindow::printLog(std::string logMessage) {
     QString msg = QString::fromStdString(logMessage);
-    qDebug() << msg << "log is this";
     logBox->appendPlainText(msg);
 }
 
 void MainWindow::setRunning() {
+    runButton->isEnabled();
     safePrint("I am in running");
+
 }
 
 void MainWindow::highlightItem(bool on, IActivable& item) {
@@ -727,9 +728,7 @@ void MainWindow::onSaveClicked() {
         var.setName(key.toStdString());
         std::string detected = detectTypeFromValue(value);
         var.setType(detected);
-        qDebug()<<"INITIAL VAR SET FOR *****" ;
         auto str = var.setInitialValue(value.toStdString());
-        qDebug()<< QString::fromStdString(str);
         fsm->addInternalVar(var);
     }
 
@@ -761,8 +760,6 @@ void MainWindow::onSaveClicked() {
         }
     }
 
-
-    qDebug() << "BEFORE ADDING UNIQUE INPUTS";
     // Add all unique inputs and outputs
     for (const QString& input : inputSet) {
         fsm->addInputName(input.toStdString());
@@ -770,7 +767,6 @@ void MainWindow::onSaveClicked() {
     for (const QString& output : outputSet) {
         fsm->addOutputName(output.toStdString());
     }
-    qDebug() << "AFTER ADDING UNIQUE INPUTS";
 
     JsonMaker maker;
     QJsonObject json = maker.toJson(fsm);
@@ -785,8 +781,6 @@ void MainWindow::onSaveClicked() {
 
     file.write(doc.toJson());
     file.close();
-
-    qDebug() << "AFTER FILE OPEN/CLOSE";
 
     QMessageBox::information(this, "FSM Saved", "FSM saved.");
 }
@@ -820,7 +814,6 @@ void MainWindow::onUploadClicked() {
 
     if (!ok || selectedFile.isEmpty())
         return;
-    qDebug() <<selectedFile;
     loadFSMFromJson(selectedFile.toStdString());
     
 }
@@ -1054,7 +1047,6 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* event) {
         // ─── Mouse‐button‐press handling ──────────────────────────────
         if (me->button() == Qt::RightButton && event->type() == QEvent::MouseButtonPress) {
             QGraphicsItem* under = scene->itemAt(scenePos, QTransform());
-            qDebug() << " Right-click raw item =" << under;
 
             StateItem* state = nullptr;
             if (auto *g = dynamic_cast<StateItem*>(under)) {
@@ -1065,9 +1057,7 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* event) {
 
             if (state) {
                 QPointF center = state->scenePos();
-                qDebug() << "  -> on state!  center =" << center
-                         << " cursor =" << scenePos;
-
+               
                 QMenu menu;
                 
                 QAction* setInit = menu.addAction(state->isInitial() ? "Unset Initial" : "Set Initial");
@@ -1149,7 +1139,6 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* event) {
                             QString updated = askToEditAction(current);
                             if (!updated.isEmpty()) {
                                 stateList[i]->setActionCode(updated.toStdString());
-                                qDebug() << "Updated actionCode for state" << QString::fromStdString(stateList[i]->getName());
                             }
                             break;
                         }
@@ -1189,11 +1178,10 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* event) {
         
             StateItem *state = new StateItem(finalPos, name);
             scene->addItem(state);
-            qDebug() << "Created state at:" << finalPos;
         
             stateList[stateCount++] = new State(name.toStdString(), actionCode.toStdString());
         
-            debugPrintStateList();
+           
         
             addingNewState = false;
             ghostCircle->setVisible(false);
@@ -1250,7 +1238,6 @@ IActivable& MainWindow::getActivableItem(EItemType type, std::string itemID) {
             }
         } else if (type == EItemType::TRANSITION) {
             if (auto* transition = dynamic_cast<TransitionItem*>(item)) {
-                qDebug() << transition->getId() << "LABEL";
                 if (QString::fromStdString(std::to_string(transition->getId())) == qid) { 
                     return *transition;
                 }
@@ -1263,15 +1250,13 @@ IActivable& MainWindow::getActivableItem(EItemType type, std::string itemID) {
 }
 
 void MainWindow::loadFSMFromJson(std::string pathToJson) {
-    safePrint("loadFSMFromJSON");
-    qDebug() << "loadFSMFromJson called in thread:" << QThread::currentThread();
-    qDebug() << "GUI thread is:" << QApplication::instance()->thread();
+    
     QString examplesPath = QDir("..").filePath("examples");
-    safePrint("AfterQDir1");
+  
     QDir dir(QDir(examplesPath).absolutePath());
-    safePrint("AfterQDir2");
+   
     QString filePath = dir.filePath(QString::fromStdString(pathToJson));
-    safePrint("AfterQDir3");
+    
 
 
     QFile file(filePath);
@@ -1279,45 +1264,40 @@ void MainWindow::loadFSMFromJson(std::string pathToJson) {
         QMessageBox::critical(this, "Error", "Unable to open selected file.");
         return;
     }
-    safePrint("After File Open");
+  
     QByteArray fileData = file.readAll();
     file.close();
-    safePrint("After File Read");
+    
     QJsonParseError parseError;
     QJsonDocument doc = QJsonDocument::fromJson(fileData, &parseError);
     if (parseError.error != QJsonParseError::NoError) {
         QMessageBox::critical(this, "Parse Error", "Invalid JSON format.");
         return;
     }
-    safePrint("BEFORE LOADER");
+
     JsonLoader loader;
     FSM* loadedFsm = loader.fromJson(doc);
     this->fsm = loadedFsm;
-    safePrint("AFTER LOADER");
+   
     if (!loadedFsm) {
         QMessageBox::critical(this, "Error", "Failed to load FSM from JSON.");
         return;
     }
 
-    
-    safePrint("BEFORE onClearClicked");
     // Pass loadedFsm to your existing population logic
     onClearClicked();
-    
-    safePrint("AFTER onClearClicked");
+
     // Clear old internal variable widgets
     for (auto it = internalVarMap.begin(); it != internalVarMap.end(); ++it) {
         internalVarsFlow->removeWidget(it.value());
         it.value()->deleteLater();
     }
     internalVarMap.clear();
-    safePrint("AFTER internalVar cler");
+
     // Populate internal variables
     for (const auto& var : loadedFsm->getInternalVars()) {
         QString key = QString::fromStdString(var.getName());
         QString val = QString::fromStdString(var.getInitialValue());
-
-        qDebug() << "[DEBUG] InternalVar:" << key << "=" << val; 
 
         auto* item = new InternalVarItem(key, val, this);
         connect(item, &InternalVarItem::removeRequested, this, [=](const QString& keyToRemove) {
@@ -1332,7 +1312,6 @@ void MainWindow::loadFSMFromJson(std::string pathToJson) {
         internalVarsFlow->addWidget(item);
         internalVarMap[key] = item;
     }
-    safePrint("AFTER INTERNALVAR");
     // Populate inputs
     for (const auto& name : loadedFsm->getInputNames()) {
         QString qName = QString::fromStdString(name);
@@ -1391,8 +1370,6 @@ void MainWindow::loadFSMFromJson(std::string pathToJson) {
         });
     }
 
-
-    safePrint("AFTER OUTPUTS");
     // Populate states and transitions
     int index = 0;
     int numStates = static_cast<int>(loadedFsm->getStates().size());
@@ -1405,7 +1382,7 @@ void MainWindow::loadFSMFromJson(std::string pathToJson) {
     int totalRows = (loadedFsm->getStates().size() + cols - 1) / cols;
     QPointF center = view->mapToScene(view->viewport()->rect().center());
     QPointF start = center - QPointF((totalCols - 1) * spacing / 2, (totalRows - 1) * spacing / 2);
-    safePrint("AFTER Calculate starting point");
+   
     for (const auto& pair : loadedFsm->getStates()) {
         std::shared_ptr<State> state = pair.second;
         QString qName = QString::fromStdString(state->getName());
@@ -1425,7 +1402,6 @@ void MainWindow::loadFSMFromJson(std::string pathToJson) {
         stateList[stateCount++] = new State(*state);
         ++index;
     }
-        safePrint("after getStates");
 
     for (const auto& t : loadedFsm->getTransitions()) {
         QString from = QString::fromStdString(t->getSource());
@@ -1455,18 +1431,6 @@ void MainWindow::loadFSMFromJson(std::string pathToJson) {
             }
         }
     }
-    safePrint("after getTransitions");
     QMessageBox::information(this, "Upload Complete", "FSM loaded successfully.");
 }
 
-void MainWindow::debugPrintStateList() const {
-    qDebug() << "==== DEBUG: stateList ====";
-    for (int i = 0; i < stateCount; ++i) {
-        const State* s = stateList[i];
-        qDebug() << "State name:" << QString::fromStdString(s->getName())
-                 << " | isInitial:" << s->isInitialState()
-                 << " | actionCode:" << QString::fromStdString(s->getActionCode())
-                 << " | transitions:" << s->getTransitions().size();
-    }
-    qDebug() << "===========================";
-}

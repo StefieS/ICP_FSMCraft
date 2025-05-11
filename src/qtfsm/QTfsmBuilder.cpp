@@ -26,7 +26,6 @@ bool QTfsmBuilder::buildQTfsm(const QJsonDocument& jsonDoc) {
             this->built->addFinalState(stateName);
             continue;
         } else if (state.second->isInitialState()) {
-            qDebug("Added initial");
             addedInitial = true;
             toBeSet = this->built->addState(stateName);
             this->built->setInitialState(toBeSet);
@@ -54,12 +53,12 @@ bool QTfsmBuilder::buildQTfsm(const QJsonDocument& jsonDoc) {
     }
 
     auto variables = this->innerFsm->getInternalVars();
-    if (variables.empty()){qDebug() << "noInternals";}
+    
     for (auto var : variables) {
         QJSValue val = this->built->getJsEngine()->toScriptValue(QString::fromStdString(var.getInitialValue()));
         QString name = QString::fromStdString(var.getName());
         this->built->setJsVariable(name, val);
-        qDebug() << "added internal" << name << val.toString();
+        
     }
 
     auto outputs = this->innerFsm->getOutputNames();

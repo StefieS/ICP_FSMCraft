@@ -20,7 +20,7 @@ QTfsm::QTfsm(QObject* parent, const std::string& name)
     : QObject(parent), jsonName(name), networkHandler("127.0.0.1", 8080), connected(false) {
     this->automaton = new QState(&machine);
     this->end = new QFinalState(&machine); 
-QSignalTransition* transition = new QSignalTransition(this->automaton, &QState::finished);
+    QSignalTransition* transition = new QSignalTransition(this->automaton, &QState::finished);
     transition->setTargetState(this->end);
     QObject::connect(transition, &QSignalTransition::triggered, this->getMachine(), [=]() {
     Message msg;
@@ -61,9 +61,9 @@ QState* QTfsm::addState(const QString& name) {
     QState* state = new QState(this->automaton);  // owned by automaton
     if (!name.isEmpty()) {
         state->setObjectName(name);
-        qDebug() << "Added state:" << name;
+        
     } else {
-        qDebug() << "Added unnamed state";
+        
     }
 
     return state;
@@ -94,10 +94,8 @@ void QTfsm::initializeJsEngine() {
 }
 
 void QTfsm::addStateJsAction(QState* state, const QString& jsCode) {
-    qDebug() << "Added action with code:" << jsCode;
-
+    
     QObject::connect(state, &QState::entered, this, [this, jsCode, state]() {
-        qDebug() << "STATE ENTERED";
         builtinHandler->stateEntered(state);
         QJSValue result = this->engine.evaluate(jsCode);
         if (result.isError()) {
@@ -150,7 +148,6 @@ QAbstractState* QTfsm::getStateByName(const QString& name) const {
 void QTfsm::setJsVariable(const QString& name, const QJSValue& value) {
     this->internalValues[name.toStdString()] = value;
     engine.globalObject().setProperty(name, value);
-    qDebug() << "set" << name << "value" << value.toString();
 }
 
 void QTfsm::setOutput(const QString& name, const QJSValue& value) {
@@ -170,7 +167,6 @@ void QTfsm::addJsTransition(QState* from, QAbstractState* to, const QString& con
 
 
 void QTfsm::postEvent(QEvent* event) {
-    qDebug() << "POSTED";
     getMachine()->postEvent(event);
 }
 
@@ -195,7 +191,6 @@ void QTfsm::start() {
 
 void QTfsm::stop() {
     this->stopSignal();
-    safePrint("STOP BOL ZAVOLANY");
     emit stopSignal();
     getMachine()->stop();
     this->networkHandler.closeConnection();

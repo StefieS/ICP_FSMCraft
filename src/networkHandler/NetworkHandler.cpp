@@ -69,15 +69,14 @@ void NetworkHandler::listen(int port) {
                 // Lock the mutex to safely modify the list of connected clients
                 std::lock_guard<std::mutex> lock(socketMutex);
                 connectedClients.push_back(clientSocket);  // Add the new client socket
-                safePrint("Registered client: " + std::to_string(clientSocket));
+                safePrint("Server: registered client: " + std::to_string(clientSocket));
             }
 
             // Process the incoming message
             Message message(msg);
             Message processed = controller.performAction(message);
             std::string responseStr = processed.toMessageString() + "\r\n";
-            safePrint("Response: " + responseStr);
-
+            
             // Send the response to all connected clients
             {
                 // Lock the mutex to ensure thread-safety while modifying the list of clients
@@ -112,8 +111,8 @@ void NetworkHandler::listen(int port) {
             std::lock_guard<std::mutex> lock(socketMutex);
             auto it = std::find(connectedClients.begin(), connectedClients.end(), clientSocket);
             if (it != connectedClients.end()) {
-                connectedClients.erase(it);  // Remove the client from the list
-                safePrint("Client " + std::to_string(clientSocket) + " disconnected.");
+                connectedClients.erase(it); 
+                safePrint("Server: Client " + std::to_string(clientSocket) + " removed.");
             }
         });
     }

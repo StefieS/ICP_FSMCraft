@@ -213,10 +213,5 @@ private:
     GuiController* controller = nullptr;        ///< Pointer to main controller class
     IActivable* lastActive = nullptr;           ///< Last highlighted item in scene
 
-    QString automatonName = "basic";            ///< Name of the current FSM
-
-    /**
-     * @brief Outputs debug information about current states.
-     */
-    void debugPrintStateList() const;
+    QString automatonName = "basic";
 };

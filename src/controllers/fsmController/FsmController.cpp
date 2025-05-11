@@ -16,7 +16,6 @@ FsmController::FsmController() {}
 const Message FsmController::performAction(Message &msg) {
     EMessageType type = msg.getType();
     Message response;
-    std::cout << eMessageTypeToString(type) << "HIER";
     switch (type) {
     case EMessageType::JSON: {
         std::string name = msg.getJsonName();
