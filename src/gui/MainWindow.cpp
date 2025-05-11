@@ -1114,7 +1114,8 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* event) {
                 
                 else if (act == connect) {
                     transitionStart = state;
-                    currentLine = new TransitionItem(state->sceneCenter(), state->sceneCenter(),nullptr, (this->TransitionId++));
+                    this->TransitionId++;
+                    currentLine = new TransitionItem(state->sceneCenter(), state->sceneCenter(),nullptr, (this->TransitionId));
                     scene->addItem(currentLine);
                     connectingMode = true;
                     return true;

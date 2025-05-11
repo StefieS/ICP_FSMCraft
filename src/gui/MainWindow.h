@@ -47,7 +47,7 @@ public:
     std::thread listenerThread;
     std::thread recvThread;
     std::atomic<bool> listenerRunning = false;
-    int TransitionId = 0;
+    int TransitionId = 1;
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event) override;
